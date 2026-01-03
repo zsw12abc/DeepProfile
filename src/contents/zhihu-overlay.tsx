@@ -9,48 +9,43 @@ export const config: PlasmoCSConfig = {
 
 const ZhihuOverlay = () => {
   const [targetUser, setTargetUser] = useState<string | null>(null)
+  const [initialNickname, setInitialNickname] = useState<string | undefined>()
   const [profileData, setProfileData] = useState<{
     profile: string
     items: ZhihuContent[]
     userProfile: UserProfile | null
   } | null>(null)
   const [loading, setLoading] = useState(false)
+  const [statusMessage, setStatusMessage] = useState("正在初始化...")
   const [error, setError] = useState<string | undefined>()
+
+  useEffect(() => {
+    // Listen for progress messages from background
+    const messageListener = (request: any) => {
+      if (request.type === "ANALYSIS_PROGRESS") {
+        setStatusMessage(request.message)
+      }
+    }
+    chrome.runtime.onMessage.addListener(messageListener)
+    return () => chrome.runtime.onMessage.removeListener(messageListener)
+  }, [])
 
   useEffect(() => {
     // Function to inject analyze buttons
     const injectButtons = () => {
-      // Target user links specifically. 
-      // We select .UserLink-link but we need to filter out avatars.
-      // Usually avatars are inside a link but contain an <img> tag, or have specific classes.
-      // Text links usually contain text directly.
       const links = document.querySelectorAll('a[href*="/people/"]')
       
       links.forEach((link) => {
         if (link.getAttribute("data-deep-profile-injected")) return
         
-        // 1. Check if it's a valid user link
         const href = link.getAttribute("href") || ""
         const match = href.match(/\/people\/([^/?]+)/)
         if (!match) return
         const userId = match[1]
 
-        // 2. Filter out avatars or non-text links
-        // If the link contains an image, it's likely an avatar -> skip
         if (link.querySelector('img')) return
-        
-        // If the link has no text content, skip
         if (!link.textContent?.trim()) return
 
-        // 3. Avoid duplicate buttons in the same container (e.g. if name appears twice)
-        // This is tricky, but usually checking if it's an image is enough.
-        
-        // 4. Specific Zhihu classes check
-        // .UserLink-link is the most common class for user names.
-        // Sometimes it's just <a> inside .AuthorInfo
-        // We want to be broad but exclude avatars.
-
-        // Create button
         const btn = document.createElement("span")
         btn.innerText = " 🔍"
         btn.style.cursor = "pointer"
@@ -58,7 +53,7 @@ const ZhihuOverlay = () => {
         btn.style.marginLeft = "4px"
         btn.style.color = "#8590a6"
         btn.title = "DeepProfile 分析"
-        btn.className = "deep-profile-btn" // Add class for potential styling
+        btn.className = "deep-profile-btn"
         
         btn.onmouseover = () => { btn.style.color = "#0084ff" }
         btn.onmouseout = () => { btn.style.color = "#8590a6" }
@@ -66,22 +61,21 @@ const ZhihuOverlay = () => {
         btn.onclick = (e) => {
           e.preventDefault()
           e.stopPropagation()
-          handleAnalyze(userId)
+          // Try to get nickname from the link text
+          const nickname = link.textContent?.trim()
+          handleAnalyze(userId, nickname)
         }
 
         link.setAttribute("data-deep-profile-injected", "true")
         
-        // Insert after the link
         if (link.parentNode) {
             link.parentNode.insertBefore(btn, link.nextSibling)
         }
       })
     }
 
-    // Initial injection
     injectButtons()
 
-    // Observer for dynamic content
     const observer = new MutationObserver(() => {
       injectButtons()
     })
@@ -94,9 +88,11 @@ const ZhihuOverlay = () => {
     return () => observer.disconnect()
   }, [])
 
-  const handleAnalyze = async (userId: string) => {
+  const handleAnalyze = async (userId: string, nickname?: string) => {
     setTargetUser(userId)
+    setInitialNickname(nickname)
     setLoading(true)
+    setStatusMessage("正在连接后台服务...")
     setError(undefined)
     setProfileData(null)
 
@@ -123,8 +119,10 @@ const ZhihuOverlay = () => {
   return (
     <ProfileCard
       userId={targetUser}
+      initialNickname={initialNickname}
       profileData={profileData}
       loading={loading}
+      statusMessage={statusMessage}
       error={error}
       onClose={() => setTargetUser(null)}
     />

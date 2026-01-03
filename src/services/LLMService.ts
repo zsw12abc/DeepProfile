@@ -1,8 +1,19 @@
 ﻿import { ConfigService } from "./ConfigService"
 import type { AIProvider } from "~types"
 
+export interface LLMResponse {
+  content: string;
+  usage?: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+  durationMs: number;
+  model: string;
+}
+
 export interface LLMProvider {
-  generateProfile(text: string): Promise<string>
+  generateProfile(text: string): Promise<LLMResponse>
 }
 
 export class LLMService {
@@ -12,7 +23,10 @@ export class LLMService {
 
 {
   "nickname": "用户昵称（如果无法获取则留空）",
-  "political_leaning": ["标签1", "标签2"], 
+  "political_leaning": [
+    { "label": "标签1", "score": 0.9 },
+    { "label": "标签2", "score": 0.7 }
+  ], 
   "summary": "简要总结其领域偏好、性格特征和潜在的言论倾向（100字以内）",
   "evidence": [
     {
@@ -24,14 +38,16 @@ export class LLMService {
   ]
 }
 
-关于 political_leaning 标签，请使用如：自由主义、保守主义、左翼、右翼、民族主义、建制派、反建制派、女权主义、工业党、入关学 等具体标签。如果特征不明显，可以使用“温和”、“中立”等。
+关于 political_leaning：
+- label: 请使用如：自由主义、保守主义、左翼、右翼、民族主义、建制派、反建制派、女权主义、工业党、入关学 等具体标签。如果特征不明显，可以使用“温和”、“中立”等。
+- score: 0.0 到 1.0 之间的浮点数，表示你对该标签的置信度或该倾向的强烈程度。
 
 请务必基于用户提供的【回答内容】进行分析，而不仅仅是看他回答了什么问题。
 在 evidence 中，source_id 必须对应原文中 [ID:xxxxx] 里的数字。
 
 请保持客观、中立的分析态度。`
 
-  static async generateProfile(text: string): Promise<string> {
+  static async generateProfile(text: string): Promise<LLMResponse> {
     const config = await ConfigService.getConfig()
     const provider = this.getProviderInstance(config.selectedProvider, config)
     return provider.generateProfile(text)
@@ -43,29 +59,30 @@ export class LLMService {
   ): LLMProvider {
     const apiKey = config.apiKeys[type] || ""
     const baseUrl = config.customBaseUrls[type]
+    const customModel = config.customModelNames?.[type]
 
     switch (type) {
       case "openai":
         return new OpenAICompatibleProvider(
           apiKey,
           baseUrl || "https://api.openai.com/v1",
-          process.env.PLASMO_PUBLIC_OPENAI_MODEL || "gpt-3.5-turbo"
+          customModel || process.env.PLASMO_PUBLIC_OPENAI_MODEL || "gpt-3.5-turbo"
         )
       case "deepseek":
         return new OpenAICompatibleProvider(
           apiKey,
           baseUrl || "https://api.deepseek.com/v1",
-          process.env.PLASMO_PUBLIC_DEEPSEEK_MODEL || "deepseek-chat"
+          customModel || process.env.PLASMO_PUBLIC_DEEPSEEK_MODEL || "deepseek-chat"
         )
       case "gemini":
         return new GeminiProvider(
           apiKey,
-          process.env.PLASMO_PUBLIC_GEMINI_MODEL || "gemini-1.5-flash"
+          customModel || process.env.PLASMO_PUBLIC_GEMINI_MODEL || "gemini-1.5-flash"
         )
       case "ollama":
         return new OllamaProvider(
           baseUrl || "http://localhost:11434",
-          process.env.PLASMO_PUBLIC_OLLAMA_MODEL || "llama3"
+          customModel || process.env.PLASMO_PUBLIC_OLLAMA_MODEL || "llama3"
         )
       default:
         throw new Error(`Unsupported provider: ${type}`)
@@ -84,11 +101,12 @@ class OpenAICompatibleProvider implements LLMProvider {
     private model: string
   ) {}
 
-  async generateProfile(text: string): Promise<string> {
+  async generateProfile(text: string): Promise<LLMResponse> {
     if (!this.apiKey && !this.baseUrl.includes("localhost")) {
       throw new Error("API Key is required")
     }
 
+    const startTime = Date.now();
     const url = `${this.baseUrl}/chat/completions`
     const response = await fetch(url, {
       method: "POST",
@@ -107,13 +125,20 @@ class OpenAICompatibleProvider implements LLMProvider {
       })
     })
 
+    const durationMs = Date.now() - startTime;
+
     if (!response.ok) {
       const error = await response.text()
       throw new Error(`LLM API Error: ${response.status} - ${error}`)
     }
 
     const data = await response.json()
-    return data.choices[0]?.message?.content || "{}"
+    return {
+        content: data.choices[0]?.message?.content || "{}",
+        usage: data.usage,
+        durationMs,
+        model: this.model
+    }
   }
 }
 
@@ -123,9 +148,10 @@ class GeminiProvider implements LLMProvider {
     private model: string
   ) {}
 
-  async generateProfile(text: string): Promise<string> {
+  async generateProfile(text: string): Promise<LLMResponse> {
     if (!this.apiKey) throw new Error("API Key is required for Gemini")
 
+    const startTime = Date.now();
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`
     
     const response = await fetch(url, {
@@ -145,13 +171,27 @@ class GeminiProvider implements LLMProvider {
       })
     })
 
+    const durationMs = Date.now() - startTime;
+
     if (!response.ok) {
       const error = await response.text()
       throw new Error(`Gemini API Error: ${response.status} - ${error}`)
     }
 
     const data = await response.json()
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || "{}"
+    // Gemini usage metadata is in usageMetadata
+    const usage = data.usageMetadata ? {
+        prompt_tokens: data.usageMetadata.promptTokenCount,
+        completion_tokens: data.usageMetadata.candidatesTokenCount,
+        total_tokens: data.usageMetadata.totalTokenCount
+    } : undefined;
+
+    return {
+        content: data.candidates?.[0]?.content?.parts?.[0]?.text || "{}",
+        usage,
+        durationMs,
+        model: this.model
+    }
   }
 }
 
@@ -161,7 +201,8 @@ class OllamaProvider implements LLMProvider {
     private model: string
   ) {}
 
-  async generateProfile(text: string): Promise<string> {
+  async generateProfile(text: string): Promise<LLMResponse> {
+    const startTime = Date.now();
     const url = `${this.baseUrl}/api/generate`
     
     const response = await fetch(url, {
@@ -175,11 +216,25 @@ class OllamaProvider implements LLMProvider {
       })
     })
 
+    const durationMs = Date.now() - startTime;
+
     if (!response.ok) {
       throw new Error(`Ollama API Error: ${response.status}`)
     }
 
     const data = await response.json()
-    return data.response
+    // Ollama returns usage stats
+    const usage = {
+        prompt_tokens: data.prompt_eval_count,
+        completion_tokens: data.eval_count,
+        total_tokens: (data.prompt_eval_count || 0) + (data.eval_count || 0)
+    };
+
+    return {
+        content: data.response,
+        usage,
+        durationMs,
+        model: this.model
+    }
   }
 }

@@ -68,25 +68,29 @@ export class ZhihuClient {
   /**
    * Fetches user answers and articles directly.
    */
-  static async fetchUserContent(username: string): Promise<ZhihuContent[]> {
+  static async fetchUserContent(username: string, limit: number = 15): Promise<ZhihuContent[]> {
     const userToken = await this.resolveUserToken(username);
     
     // Fetch answers and articles in parallel
+    // We fetch 'limit' items for each type to ensure we have enough recent content
     const [answers, articles] = await Promise.all([
-      this.fetchList(userToken, 'answers'),
-      this.fetchList(userToken, 'articles')
+      this.fetchList(userToken, 'answers', limit),
+      this.fetchList(userToken, 'articles', limit)
     ]);
 
     const combined = [...answers, ...articles];
     // Sort by created time desc
     combined.sort((a, b) => b.created_time - a.created_time);
     
-    console.log(`Fetched ${combined.length} items (${answers.length} answers, ${articles.length} articles) for ${username}`);
-    return combined;
+    // Return top 'limit' items total
+    const result = combined.slice(0, limit);
+    
+    console.log(`Fetched ${result.length} items for ${username} (limit: ${limit})`);
+    return result;
   }
 
-  private static async fetchList(userToken: string, type: 'answers' | 'articles'): Promise<ZhihuContent[]> {
-    const url = `${this.BASE_URL}/members/${userToken}/${type}?limit=10&sort_by=created`;
+  private static async fetchList(userToken: string, type: 'answers' | 'articles', limit: number): Promise<ZhihuContent[]> {
+    const url = `${this.BASE_URL}/members/${userToken}/${type}?limit=${limit}&sort_by=created`;
     try {
       const response = await fetch(url, {
         method: 'GET',
@@ -124,7 +128,6 @@ export class ZhihuClient {
     if (!items || items.length === 0) return text + '该用户暂无公开回答或文章。';
 
     const contentText = items
-      .slice(0, 15) // Limit to top 15 items
       .map(item => {
         let content = item.excerpt;
         if (!content && item.content) {
