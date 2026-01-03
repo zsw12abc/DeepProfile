@@ -200,10 +200,7 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
       cleanText = contextForLLM + cleanText;
   }
   
-  // 添加调试输出，显示发送给LLM的完整内容
-  if (config.enableDebug) {
-    console.log("【DEBUG】发送给LLM的完整文本：", cleanText);
-  }
+
   
   try {
       const llmResponse = await LLMService.generateProfile(cleanText)

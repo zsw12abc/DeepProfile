@@ -3,6 +3,7 @@ import { RedditClient } from "./RedditClient";
 import type { ZhihuContent, UserProfile } from "./ZhihuClient";
 import { ConfigService } from "./ConfigService";
 import type { SupportedPlatform } from "~types";
+import { LabelService } from "./LabelService";
 
 export interface FetchResult {
   items: ZhihuContent[];
@@ -147,5 +148,14 @@ export class ProfileService {
   private static stripHtml(html: string): string {
     if (!html) return '';
     return html.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ');
+  }
+  
+  // 使用标准化标签系统分析用户内容
+  static async analyzeWithStandardLabels(
+    content: string,
+    topicClassification: string
+  ) {
+    const labelService = LabelService.getInstance();
+    return labelService.analyzeContentWithStandardLabels(content, topicClassification);
   }
 }

@@ -85,7 +85,14 @@ export class ZhihuClient {
       this.fetchActivities(userToken, fetchLimit)
     ]);
 
-    let combined = [...answers, ...articles, ...activities];
+    // 去重：基于ID移除重复项
+    const allItemsMap = new Map<string, ZhihuContent>();
+    [...answers, ...articles, ...activities].forEach(item => {
+      if (!allItemsMap.has(item.id.toString())) {
+        allItemsMap.set(item.id.toString(), item);
+      }
+    });
+    let combined = Array.from(allItemsMap.values());
     const totalFetched = combined.length;
     
     if (context && context.length > 1) {

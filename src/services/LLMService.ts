@@ -1,5 +1,11 @@
 import { ConfigService } from "./ConfigService"
 import type { AIProvider, AnalysisMode } from "~types"
+import { LabelService } from "./LabelService"
+import { ChatOpenAI } from "@langchain/openai"
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai"
+import { HumanMessage, SystemMessage } from "@langchain/core/messages"
+import { StringOutputParser } from "@langchain/core/output_parsers"
+import { RunnableSequence } from "@langchain/core/runnables"
 
 export interface LLMResponse {
   content: string;
@@ -18,6 +24,9 @@ export interface LLMProvider {
 
 export class LLMService {
   private static getSystemPrompt(mode: AnalysisMode): string {
+    const labelService = LabelService.getInstance();
+    const standardLabels = labelService.getStandardLabelsForLLM();
+    
     let basePrompt = `你是一个专业的政治倾向与心理分析师。请根据以下用户的动态（回答和文章），生成一份详细的用户画像。
 
 请严格按照以下 JSON 格式返回结果（不要包含 Markdown 代码块标记）：
@@ -26,8 +35,8 @@ export class LLMService {
   "nickname": "用户昵称（如果无法获取则留空）",
   "topic_classification": "对用户关注话题的简要分类（如：国际政治、宏观经济、数码科技、动漫、体育等）",
   "political_leaning": [
-    { "label": "标签1", "score": 0.9 },
-    { "label": "标签2", "score": 0.7 }
+    { "label": "标签名", "score": 0.9 },
+    { "label": "标签名", "score": 0.7 }
   ], 
   "summary": "简要总结其领域偏好、性格特征和潜在的言论倾向（100字以内）",
   "evidence": [
@@ -49,17 +58,19 @@ export class LLMService {
 6.  对于政治倾向标签，必须根据内容的相关性决定是否输出：
     - 如果内容明确涉及政治、经济、社会议题，则输出政治倾向标签
     - 如果内容是动漫、科技、体育、美食等非政治领域，则输出与内容相关的兴趣、专业或性格标签
-    - 政治标签包括但不限于：左翼/右翼、自由主义/保守主义、进步/传统、激进/温和、亲资本主义/社会主义、民族主义/国际主义、民粹主义/精英主义、威权/民主、法西斯主义、军国主义、纳粹主义等
-    - 非政治标签可包括：技术专家、动漫爱好者、体育迷、美食家、游戏玩家等
-    - 评分标准：1.0为极强倾向，0.0为无倾向，0.5为中立
-7.  对于政治倾向的识别要精确具体：
-    - 经济观点：亲资本主义/社会主义、亲自由市场/计划经济
-    - 社会议题：亲个人主义/集体主义、亲全球化/本土化
-    - 价值观：亲民主/威权、亲世俗化/传统宗教
-    - 意识形态：民族主义、国际主义、民粹主义、法西斯主义、军国主义、纳粹主义等
+    - 评分标准：1.0为极强倾向，-1.0为极强反向倾向，0.0为中立
+7.  对于政治倾向的识别要精确具体，使用以下标准化标签系统：
+${standardLabels}
+    - 请从上述标签中选择适用的标签，而不是创建新标签
+    - 对于每个选择的标签，提供-1.0到1.0的精确分数，其中：
+      * 正值表示偏向标签名称右边的选项（如：右派、自由、激进、威权、资本主义、全球主义等）
+      * 负值表示偏向标签名称左边的选项（如：左派、保守、温和、自由、社会主义、民族主义等）
+      * 绝对值表示倾向强度，绝对值越大倾向越明显
+    - 如果内容涉及多个类别，请从每个相关类别中选择最显著的标签
 8.  请保持客观中立，但也要准确反映用户的真实观点，避免过度谨慎而无法输出有意义的标签。
 9.  严禁对非政治内容强行关联政治标签。如果话题是动漫，就不要输出政治标签，而是输出与动漫相关的标签。
 10. 请始终使用 "political_leaning" 字段，格式为 [{"label": "标签名", "score": 0.X}]，不要使用 "value_orientation" 字段。
+11. 请直接返回JSON格式内容，不要添加任何Markdown代码块标记（如\`\`\`json 或 \`\`\`）。
 `;
 
     if (mode === 'fast') {
@@ -80,9 +91,9 @@ export class LLMService {
   static async generateProfile(text: string): Promise<LLMResponse> {
     const config = await ConfigService.getConfig()
     
-    // 添加调试输出
+    // 添加调试输出 - 只输出发送给LLM的内容
     if (config.enableDebug) {
-      console.log("【DEBUG】发送给LLM的文本内容：", text);
+      console.log("【LANGCHAIN REQUEST】发送给LLM的内容：", text);
     }
     
     const provider = this.getProviderInstance(config.selectedProvider, config)
@@ -99,35 +110,42 @@ export class LLMService {
 
     switch (type) {
       case "openai":
-        return new OpenAICompatibleProvider(
+        return new LangChainProvider(
+          "openai",
           apiKey,
           baseUrl || "https://api.openai.com/v1",
           customModel || process.env.PLASMO_PUBLIC_OPENAI_MODEL || "gpt-3.5-turbo"
         )
       case "deepseek":
-        return new OpenAICompatibleProvider(
+        return new LangChainProvider(
+          "deepseek",
           apiKey,
           baseUrl || "https://api.deepseek.com/v1",
           customModel || process.env.PLASMO_PUBLIC_DEEPSEEK_MODEL || "deepseek-chat"
         )
       case "qwen":
-        return new OpenAICompatibleProvider(
+        return new LangChainProvider(
+          "qwen",
           apiKey,
           baseUrl || "https://dashscope.aliyuncs.com/compatible-mode/v1",
           customModel || "qwen-turbo"
         )
       case "custom":
-        return new OpenAICompatibleProvider(
+        return new LangChainProvider(
+          "custom",
           apiKey,
           baseUrl || "https://api.openai.com/v1", // Default fallback
           customModel || "gpt-3.5-turbo"
         )
       case "gemini":
-        return new GeminiProvider(
+        return new LangChainProvider(
+          "gemini",
           apiKey,
+          undefined, // Gemini doesn't use base URL
           customModel || process.env.PLASMO_PUBLIC_GEMINI_MODEL || "gemini-1.5-flash"
         )
       case "ollama":
+        // For Ollama, we'll keep the original implementation since LangChain doesn't have native Ollama integration
         return new OllamaProvider(
           baseUrl || "http://localhost:11434",
           customModel || process.env.PLASMO_PUBLIC_OLLAMA_MODEL || "llama3"
@@ -138,126 +156,205 @@ export class LLMService {
   }
 }
 
-class OpenAICompatibleProvider implements LLMProvider {
+class LangChainProvider implements LLMProvider {
+  private llm: any;
+
   constructor(
+    private provider: string,
     private apiKey: string,
-    private baseUrl: string,
-    private model: string
-  ) {}
+    private baseUrl?: string,
+    private model?: string
+  ) {
+    this.initializeLLM();
+  }
+
+  private initializeLLM() {
+    const temperature = 0.5; // Set a consistent temperature for all models
+
+    switch (this.provider) {
+      case "openai":
+      case "deepseek":
+      case "qwen":
+      case "custom":
+        this.llm = new ChatOpenAI({
+          openAIApiKey: this.apiKey,
+          configuration: {
+            baseURL: this.baseUrl
+          },
+          modelName: this.model,
+          temperature: temperature,
+          response_format: { type: "json_object" } // Ensure JSON response format
+        });
+        break;
+      case "gemini":
+        this.llm = new ChatGoogleGenerativeAI({
+          apiKey: this.apiKey,
+          modelName: this.model,
+          temperature: temperature,
+          responseMimeType: "application/json" // Ensure JSON response format for Gemini
+        });
+        break;
+      default:
+        throw new Error(`Unsupported provider: ${this.provider}`);
+    }
+  }
 
   async generateProfile(text: string, mode: AnalysisMode): Promise<LLMResponse> {
-    if (!this.apiKey && !this.baseUrl.includes("localhost")) {
+    if (!this.apiKey && !this.baseUrl?.includes("localhost")) {
       throw new Error("API Key is required")
     }
 
-    const temperature = mode === 'deep' ? 0.5 : 0.7;
-
     const startTime = Date.now();
-    const url = `${this.baseUrl}/chat/completions`
     
-    // 准备请求数据以便调试
-    const requestData = {
-      model: this.model,
-      messages: [
-        { role: "system", content: (LLMService as any).getSystemPrompt(mode) },
-        { role: "user", content: text }
-      ],
-      temperature: temperature,
-      response_format: { type: "json_object" } 
-    };
-    
-    // 输出调试信息
-    const config = await ConfigService.getConfig();
-    if (config.enableDebug) {
-      console.log("【DEBUG】发送给OpenAI兼容API的请求：", JSON.stringify(requestData, null, 2));
-    }
-    
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${this.apiKey}`
-      },
-      body: JSON.stringify(requestData)
-    })
+    try {
+      const messages = [
+        new SystemMessage((LLMService as any).getSystemPrompt(mode)),
+        new HumanMessage(text)
+      ];
+      
+      // Create a simple chain to process the response
+      const chain = RunnableSequence.from([
+        () => this.llm,
+        new StringOutputParser()
+      ]);
+      
+      const result = await chain.invoke(messages);
+      
+      const durationMs = Date.now() - startTime;
 
-    if (!response.ok) {
-      const error = await response.text()
-      throw new Error(`LLM API Error: ${response.status} - ${error}`)
-    }
-
-    const data = await response.json()
-    const durationMs = Date.now() - startTime;
-
-    return {
-        content: data.choices[0]?.message?.content || "{}",
-        usage: data.usage,
-        durationMs,
-        model: this.model
-    }
-  }
-}
-
-class GeminiProvider implements LLMProvider {
-  constructor(
-    private apiKey: string,
-    private model: string
-  ) {}
-
-  async generateProfile(text: string, mode: AnalysisMode): Promise<LLMResponse> {
-    if (!this.apiKey) throw new Error("API Key is required for Gemini")
-
-    const startTime = Date.now();
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`
-    
-    const prompt = (LLMService as any).getSystemPrompt(mode) + "\n\n用户动态:\n" + text;
-    
-    // 输出调试信息
-    const config = await ConfigService.getConfig();
-    if (config.enableDebug) {
-      console.log("【DEBUG】发送给Gemini的提示词：", prompt);
-    }
-    
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              { text: prompt }
-            ]
+      // 验证和处理响应
+      const validatedContent = this.validateAndFixResponse(result);
+      
+      // 调试输出 - 显示LLM返回的标签分数
+      const debugConfig = await ConfigService.getConfig();
+      if (debugConfig.enableDebug) {
+        try {
+          const parsedResult = JSON.parse(validatedContent);
+          if (parsedResult.political_leaning && parsedResult.political_leaning.length > 0) {
+            console.log("【LANGCHAIN LABEL SCORES】LLM评判的标签分数：");
+            for (const label of parsedResult.political_leaning) {
+              console.log(`  - ${label.label}: ${label.score}`);
+            }
+          } else {
+            console.log("【LANGCHAIN LABEL SCORES】LLM未返回任何标签");
           }
-        ],
-        generationConfig: {
-            responseMimeType: "application/json"
+        } catch (e) {
+          console.error("【LANGCHAIN LABEL SCORES】解析标签分数失败：", e);
         }
-      })
-    })
-
-    const durationMs = Date.now() - startTime;
-
-    if (!response.ok) {
-      const error = await response.text()
-      throw new Error(`Gemini API Error: ${response.status} - ${error}`)
+      }
+      
+      // Note: LangChain doesn't provide token usage in the same way as direct API calls
+      // We'll return undefined for usage for now
+      return {
+          content: validatedContent,
+          usage: undefined,
+          durationMs,
+          model: this.model
+      }
+    } catch (error) {
+      console.error("LangChain API Error:", error);
+      throw error;
     }
-
-    const data = await response.json()
-    const usage = data.usageMetadata ? {
-        prompt_tokens: data.usageMetadata.promptTokenCount,
-        completion_tokens: data.usageMetadata.candidatesTokenCount,
-        total_tokens: data.usageMetadata.totalTokenCount
-    } : undefined;
-
-    return {
-        content: data.candidates?.[0]?.content?.parts?.[0]?.text || "{}",
-        usage,
-        durationMs,
-        model: this.model
+  }
+  
+  private validateAndFixResponse(response: string): string {
+    try {
+      // 清理响应内容，移除可能的Markdown代码块标记
+      let cleanedResponse = response.trim();
+      
+      // 处理各种可能的Markdown代码块标记
+      // 移除开头的 ```json
+      if (cleanedResponse.startsWith('```json')) {
+        cleanedResponse = cleanedResponse.substring(7);
+      }
+      // 移除开头的 ```
+      if (cleanedResponse.startsWith('```')) {
+        cleanedResponse = cleanedResponse.substring(3);
+      }
+      // 移除结尾的 ```
+      if (cleanedResponse.endsWith('```')) {
+        cleanedResponse = cleanedResponse.substring(0, cleanedResponse.length - 3);
+      }
+      
+      cleanedResponse = cleanedResponse.trim();
+      
+      // 尝试解析响应
+      const parsed = JSON.parse(cleanedResponse);
+      
+      // 验证必需字段
+      if (!parsed.political_leaning) {
+        parsed.political_leaning = [];
+      }
+      
+      // 验证political_leaning格式并修复分数
+      if (Array.isArray(parsed.political_leaning)) {
+        parsed.political_leaning = parsed.political_leaning.map(item => {
+          if (typeof item === 'string') {
+            // 如果是字符串格式，转换为对象格式
+            return { label: item.trim(), score: 0.5 };
+          } else if (typeof item === 'object' && item.label) {
+            // 确保分数在-1到1范围内
+            let score = item.score || 0.5;
+            score = Math.max(-1, Math.min(1, score)); // 限制在-1到1范围内
+            return { label: String(item.label).trim(), score };
+          }
+          return { label: "未知", score: 0.5 };
+        });
+      }
+      
+      return JSON.stringify(parsed);
+    } catch (e) {
+      console.error("Response validation error:", e, "Raw response:", response);
+      // 如果解析失败，尝试更激进的清理方法
+      try {
+        // 查找JSON对象的开始和结束位置
+        const jsonStart = response.indexOf('{');
+        const jsonEnd = response.lastIndexOf('}');
+        
+        if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+          const extractedJson = response.substring(jsonStart, jsonEnd + 1);
+          const parsed = JSON.parse(extractedJson);
+          
+          // 验证必需字段
+          if (!parsed.political_leaning) {
+            parsed.political_leaning = [];
+          }
+          
+          // 验证political_leaning格式并修复分数
+          if (Array.isArray(parsed.political_leaning)) {
+            parsed.political_leaning = parsed.political_leaning.map(item => {
+              if (typeof item === 'string') {
+                // 如果是字符串格式，转换为对象格式
+                return { label: item.trim(), score: 0.5 };
+              } else if (typeof item === 'object' && item.label) {
+                // 确保分数在-1到1范围内
+                let score = item.score || 0.5;
+                score = Math.max(-1, Math.min(1, score)); // 限制在-1到1范围内
+                return { label: String(item.label).trim(), score };
+              }
+              return { label: "未知", score: 0.5 };
+            });
+          }
+          
+          return JSON.stringify(parsed);
+        }
+      } catch (ex) {
+        console.error("Failed to extract JSON from response:", ex);
+      }
+      
+      // 如果所有尝试都失败，返回一个默认格式
+      return JSON.stringify({
+        nickname: "",
+        topic_classification: "未知分类",
+        political_leaning: [],
+        summary: "分析失败",
+        evidence: []
+      });
     }
   }
 }
 
+// Keep the original providers for Ollama support since LangChain doesn't have native Ollama integration
 class OllamaProvider implements LLMProvider {
   constructor(
     private baseUrl: string,
@@ -270,10 +367,10 @@ class OllamaProvider implements LLMProvider {
     
     const prompt = (LLMService as any).getSystemPrompt(mode) + "\n\n" + text;
     
-    // 输出调试信息
+    // 输出调试信息 - 只在启用调试时输出，避免重复
     const config = await ConfigService.getConfig();
     if (config.enableDebug) {
-      console.log("【DEBUG】发送给Ollama的提示词：", prompt);
+      console.log("【LANGCHAIN REQUEST】发送给LLM的内容：", prompt);
     }
     
     const response = await fetch(url, {
@@ -300,11 +397,134 @@ class OllamaProvider implements LLMProvider {
         total_tokens: (data.prompt_eval_count || 0) + (data.eval_count || 0)
     };
 
+    // 调试输出 - 输出LLM返回的原始JSON
+    if (config.enableDebug) {
+      console.log("【LANGCHAIN RESPONSE】LLM返回的JSON：", data.response);
+    }
+
+    // 验证和处理响应
+    const content = data.response || "{}";
+    const validatedContent = this.validateAndFixResponse(content);
+    
+    // 调试输出 - 显示LLM返回的标签分数
+    const debugConfig = await ConfigService.getConfig();
+    if (debugConfig.enableDebug) {
+      try {
+        const parsedResult = JSON.parse(validatedContent);
+        if (parsedResult.political_leaning && parsedResult.political_leaning.length > 0) {
+          console.log("【LANGCHAIN LABEL SCORES】LLM评判的标签分数：");
+          for (const label of parsedResult.political_leaning) {
+            console.log(`  - ${label.label}: ${label.score}`);
+          }
+        } else {
+          console.log("【LANGCHAIN LABEL SCORES】LLM未返回任何标签");
+        }
+      } catch (e) {
+        console.error("【LANGCHAIN LABEL SCORES】解析标签分数失败：", e);
+      }
+    }
+    
     return {
-        content: data.response,
+        content: validatedContent,
         usage,
         durationMs,
         model: this.model
+    }
+  }
+  
+  private validateAndFixResponse(response: string): string {
+    try {
+      // 清理响应内容，移除可能的Markdown代码块标记
+      let cleanedResponse = response.trim();
+      
+      // 处理各种可能的Markdown代码块标记
+      // 移除开头的 ```json
+      if (cleanedResponse.startsWith('```json')) {
+        cleanedResponse = cleanedResponse.substring(7);
+      }
+      // 移除开头的 ```
+      if (cleanedResponse.startsWith('```')) {
+        cleanedResponse = cleanedResponse.substring(3);
+      }
+      // 移除结尾的 ```
+      if (cleanedResponse.endsWith('```')) {
+        cleanedResponse = cleanedResponse.substring(0, cleanedResponse.length - 3);
+      }
+      
+      cleanedResponse = cleanedResponse.trim();
+      
+      // 尝试解析响应
+      const parsed = JSON.parse(cleanedResponse);
+      
+      // 验证必需字段
+      if (!parsed.political_leaning) {
+        parsed.political_leaning = [];
+      }
+      
+      // 验证political_leaning格式并修复分数
+      if (Array.isArray(parsed.political_leaning)) {
+        parsed.political_leaning = parsed.political_leaning.map(item => {
+          if (typeof item === 'string') {
+            // 如果是字符串格式，转换为对象格式
+            return { label: item.trim(), score: 0.5 };
+          } else if (typeof item === 'object' && item.label) {
+            // 确保分数在-1到1范围内
+            let score = item.score || 0.5;
+            score = Math.max(-1, Math.min(1, score)); // 限制在-1到1范围内
+            return { label: String(item.label).trim(), score };
+          }
+          return { label: "未知", score: 0.5 };
+        });
+      }
+      
+      return JSON.stringify(parsed);
+    } catch (e) {
+      console.error("Response validation error:", e, "Raw response:", response);
+      // 如果解析失败，尝试更激进的清理方法
+      try {
+        // 查找JSON对象的开始和结束位置
+        const jsonStart = response.indexOf('{');
+        const jsonEnd = response.lastIndexOf('}');
+        
+        if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+          const extractedJson = response.substring(jsonStart, jsonEnd + 1);
+          const parsed = JSON.parse(extractedJson);
+          
+          // 验证必需字段
+          if (!parsed.political_leaning) {
+            parsed.political_leaning = [];
+          }
+          
+          // 验证political_leaning格式并修复分数
+          if (Array.isArray(parsed.political_leaning)) {
+            parsed.political_leaning = parsed.political_leaning.map(item => {
+              if (typeof item === 'string') {
+                // 如果是字符串格式，转换为对象格式
+                return { label: item.trim(), score: 0.5 };
+              } else if (typeof item === 'object' && item.label) {
+                // 确保分数在-1到1范围内
+                let score = item.score || 0.5;
+                score = Math.max(-1, Math.min(1, score)); // 限制在-1到1范围内
+                return { label: String(item.label).trim(), score };
+              }
+              return { label: "未知", score: 0.5 };
+            });
+          }
+          
+          return JSON.stringify(parsed);
+        }
+      } catch (ex) {
+        console.error("Failed to extract JSON from response:", ex);
+      }
+      
+      // 如果所有尝试都失败，返回一个默认格式
+      return JSON.stringify({
+        nickname: "",
+        topic_classification: "未知分类",
+        political_leaning: [],
+        summary: "分析失败",
+        evidence: []
+      });
     }
   }
 }
