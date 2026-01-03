@@ -1,17 +1,26 @@
-﻿export interface ZhihuContent {
+export interface ZhihuContent {
   id: string;
-  type: 'answer' | 'article';
+  type: 'answer' | 'article' | 'question'; // Added question type
   title: string;
   excerpt: string;
   content: string;
   created_time: number;
-  question_id?: string; // Added question_id for constructing proper URLs
+  question_id?: string;
+  url?: string;
+  action_type: 'created' | 'voted';
+  is_relevant?: boolean;
 }
 
 export interface UserProfile {
   name: string;
   headline: string;
   url_token: string;
+}
+
+export interface FetchResult {
+  items: ZhihuContent[];
+  totalFetched: number;
+  totalRelevant: number;
 }
 
 export class ZhihuClient {
@@ -65,56 +74,208 @@ export class ZhihuClient {
     return null;
   }
 
-  /**
-   * Fetches user answers and articles directly.
-   */
-  static async fetchUserContent(username: string, limit: number = 15): Promise<ZhihuContent[]> {
+  static async fetchUserContent(username: string, limit: number = 15, context?: string): Promise<FetchResult> {
     const userToken = await this.resolveUserToken(username);
     
-    // Fetch answers and articles in parallel
-    // We fetch 'limit' items for each type to ensure we have enough recent content
-    const [answers, articles] = await Promise.all([
-      this.fetchList(userToken, 'answers', limit),
-      this.fetchList(userToken, 'articles', limit)
+    const fetchLimit = Math.min(limit * 3, 50);
+
+    const [answers, articles, activities] = await Promise.all([
+      this.fetchList(userToken, 'answers', fetchLimit),
+      this.fetchList(userToken, 'articles', fetchLimit),
+      this.fetchActivities(userToken, fetchLimit)
     ]);
 
-    const combined = [...answers, ...articles];
-    // Sort by created time desc
-    combined.sort((a, b) => b.created_time - a.created_time);
+    let combined = [...answers, ...articles, ...activities];
+    const totalFetched = combined.length;
     
-    // Return top 'limit' items total
+    if (context && context.length > 1) {
+        console.log(`Filtering content by context: "${context}"`);
+        combined = this.sortByRelevance(combined, context);
+    } else {
+        combined.sort((a, b) => b.created_time - a.created_time);
+    }
+
+    const totalRelevant = combined.filter(i => i.is_relevant).length;
     const result = combined.slice(0, limit);
     
-    console.log(`Fetched ${result.length} items for ${username} (limit: ${limit})`);
-    return result;
+    // 为内容为空的回答获取详细内容
+    const enhancedResult = await this.enhanceContent(result);
+    
+    console.log(`Fetched ${totalFetched} items, returning top ${enhancedResult.length}`);
+    
+    return {
+        items: enhancedResult,
+        totalFetched,
+        totalRelevant
+    };
+  }
+
+  // 增强内容，为内容为空的回答获取详细内容
+  private static async enhanceContent(items: ZhihuContent[]): Promise<ZhihuContent[]> {
+    // 过滤出内容为空的回答
+    const itemsWithEmptyContent = items.filter(item => 
+      (!item.content || item.content.trim() === '' || item.content === '[无正文内容]') && item.type === 'answer'
+    );
+    
+    console.log(`Found ${itemsWithEmptyContent.length} items with empty content to enhance`);
+    
+    // 对于内容为空的回答，获取详细内容
+    for (const item of itemsWithEmptyContent) {
+      try {
+        const detailedContent = await this.fetchAnswerContent(item.id);
+        if (detailedContent) {
+          // 更新原数组中的内容
+          const index = items.findIndex(i => i.id === item.id);
+          if (index !== -1) {
+            items[index].content = detailedContent;
+          }
+        }
+      } catch (error) {
+        console.error(`Failed to fetch detailed content for answer ${item.id}:`, error);
+      }
+    }
+    
+    return items;
+  }
+
+  // 获取单个回答的详细内容
+  private static async fetchAnswerContent(answerId: string): Promise<string | null> {
+    try {
+      const url = `${this.BASE_URL}/answers/${answerId}?include=content`;
+      const response = await fetch(url, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        },
+      });
+
+      if (!response.ok) {
+        console.error(`Failed to fetch answer ${answerId}: ${response.status} ${response.statusText}`);
+        return null;
+      }
+
+      const data = await response.json();
+      return data.content || null;
+    } catch (error) {
+      console.error(`Error fetching answer ${answerId}:`, error);
+      return null;
+    }
+  }
+
+  private static sortByRelevance(items: ZhihuContent[], context: string): ZhihuContent[] {
+    const keywords = context.split('|').map(s => s.trim().toLowerCase()).filter(s => s.length > 1);
+    
+    const titlePart = keywords[0] || "";
+    const bigrams = new Set<string>();
+    for (let i = 0; i < titlePart.length - 1; i++) {
+        bigrams.add(titlePart.substring(i, i + 2));
+    }
+
+    const getScore = (item: ZhihuContent) => {
+        const text = (item.title + item.excerpt).toLowerCase();
+        let score = 0;
+        
+        let keywordMatches = 0;
+        keywords.forEach(kw => {
+            if (text.includes(kw)) keywordMatches++;
+        });
+        score += keywordMatches * 500;
+
+        let bigramMatches = 0;
+        bigrams.forEach(bg => {
+            if (text.includes(bg)) bigramMatches++;
+        });
+        score += bigramMatches * 20;
+
+        if (keywordMatches > 0 || bigramMatches > 1) {
+            item.is_relevant = true;
+            score += 1000;
+        } else {
+            item.is_relevant = false;
+        }
+        
+        score += item.created_time / 10000000000; 
+
+        if (item.action_type === 'created') score += 5;
+
+        return score;
+    };
+
+    return items.sort((a, b) => getScore(b) - getScore(a));
   }
 
   private static async fetchList(userToken: string, type: 'answers' | 'articles', limit: number): Promise<ZhihuContent[]> {
-    const url = `${this.BASE_URL}/members/${userToken}/${type}?limit=${limit}&sort_by=created`;
+    // 知乎API参数，包含更多字段
+    const url = `${this.BASE_URL}/members/${userToken}/${type}?limit=${limit}&offset=0&sort_by=created&include=data[*].id,data[*].type,data[*].question.title,data[*].question.id,data[*].excerpt,data[*].created_time,has_more`;
+    
     try {
       const response = await fetch(url, {
         method: 'GET',
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest'
+          'X-Requested-With': 'XMLHttpRequest',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         },
       });
 
-      if (!response.ok) return [];
+      if (!response.ok) {
+        console.error(`Failed to fetch ${type}: ${response.status} ${response.statusText}`);
+        return [];
+      }
 
       const data = await response.json();
+      
+      // 调试输出API响应
+      console.log(`API Response for ${type}:`, data);
+      
       return (data.data || []).map((item: any) => ({
         id: item.id,
         type: item.type, // 'answer' or 'article'
         title: item.question?.title || item.title || '无标题',
         excerpt: item.excerpt || '',
-        content: item.content || '',
+        content: item.excerpt || '', // 先用excerpt作为content，后续会增强
         created_time: item.created_time,
-        question_id: item.question?.id // Extract question ID
+        question_id: item.question?.id,
+        action_type: 'created'
       }));
     } catch (error) {
       console.error(`Failed to fetch ${type}:`, error);
+      return [];
+    }
+  }
+
+  private static async fetchActivities(userToken: string, limit: number): Promise<ZhihuContent[]> {
+    const url = `${this.BASE_URL}/members/${userToken}/activities?limit=${limit}&include=data[*].verb,data[*].target.id,data[*].target.type,data[*].target.question.title,data[*].target.question.id,data[*].target.excerpt,data[*].target.title,data[*].created_time`;
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+
+      if (!response.ok) return [];
+
+      const data = await response.json();
+      console.log('Fetched activities:', data); // 调试输出
+      
+      return (data.data || [])
+        .filter((item: any) => item.verb === 'MEMBER_VOTEUP_ANSWER' || item.verb === 'MEMBER_VOTEUP_ARTICLE')
+        .map((item: any) => ({
+          id: item.target.id,
+          type: item.target.type,
+          title: item.target.question?.title || item.target.title || '无标题',
+          excerpt: item.target.excerpt || '',
+          content: item.target.excerpt || '', // 先用excerpt，后续可能增强
+          created_time: item.created_time,
+          question_id: item.target.question?.id,
+          action_type: 'voted'
+        }));
+    } catch (error) {
+      console.error('Failed to fetch activities:', error);
       return [];
     }
   }
@@ -127,23 +288,55 @@ export class ZhihuClient {
 
     if (!items || items.length === 0) return text + '该用户暂无公开回答或文章。';
 
-    const contentText = items
-      .map(item => {
-        let content = item.excerpt;
-        if (!content && item.content) {
-          content = this.stripHtml(item.content);
+    const relevantItems = items.filter(item => item.is_relevant);
+    let otherItems = items.filter(item => !item.is_relevant);
+
+    if (relevantItems.length >= 3) {
+        console.log(`Found ${relevantItems.length} relevant items. Trimming noise.`);
+        otherItems = otherItems.slice(0, 3);
+    }
+
+    const formatItem = (item: ZhihuContent) => {
+        // 优先使用完整内容，如果没有则使用摘要
+        let content = item.content || item.excerpt || '';
+        if (content) {
+            content = this.stripHtml(content);
+            // 增加内容长度以捕获更多有意义的内容
+            content = content.slice(0, 1000); 
+        } else {
+            content = '[无正文内容]'; // 如果真的没有内容，则标记
         }
-        content = content.slice(0, 200);
-        // Embed ID for LLM to reference
-        return `[ID:${item.id}] 【${item.title}】\n${content}`;
-      })
-      .join('\n\n');
+        
+        const actionTag = item.action_type === 'voted' ? '【赞同】' : '【原创】';
+        const typeTag = item.type === 'answer' ? '【回答】' : (item.type === 'article' ? '【文章】' : '【动态】');
+        
+        return `[ID:${item.id}] ${actionTag}${typeTag} 标题：【${item.title}】\n正文：${content}`;
+    };
+
+    let contentText = '';
+    if (relevantItems.length > 0) {
+        contentText += '--- RELEVANT CONTENT (★ 重点分析) ---\n';
+        contentText += relevantItems.map(formatItem).join('\n\n');
+        contentText += '\n\n';
+    }
+
+    if (otherItems.length > 0) {
+        contentText += '--- OTHER RECENT CONTENT (仅作性格参考，忽略其话题) ---\n';
+        contentText += otherItems.map(formatItem).join('\n\n');
+    }
     
     return text + contentText;
   }
 
   private static stripHtml(html: string): string {
     if (!html) return '';
-    return html.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ');
+    // Replace <br> and <p> with newlines to preserve paragraph structure
+    let text = html.replace(/<br\s*\/?>/gi, '\n').replace(/<\/p>/gi, '\n');
+    // Strip other tags
+    text = text.replace(/<[^>]*>?/gm, '');
+    // Decode entities
+    text = text.replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+    // Collapse multiple newlines
+    return text.replace(/\n\s*\n/g, '\n').trim();
   }
 }

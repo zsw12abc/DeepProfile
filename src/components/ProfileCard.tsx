@@ -1,9 +1,11 @@
-﻿import React, { useState } from "react"
+import React, { useState } from "react"
 import type { ZhihuContent, UserProfile } from "~services/ZhihuClient"
 
 interface ProfileData {
   nickname?: string
+  topic_classification?: string
   political_leaning?: Array<{ label: string; score: number }> | string[]
+  value_orientation?: Array<{ dimension: string; label: string; score: number }>
   summary?: string
   evidence?: Array<{
     quote: string
@@ -17,7 +19,11 @@ interface DebugInfo {
   totalDurationMs: number;
   llmDurationMs: number;
   itemsCount: number;
+  itemsBreakdown?: string;
+  sourceInfo?: string;
   model: string;
+  context?: string;
+  fetchStrategy?: string;
   tokens?: {
     prompt_tokens: number;
     completion_tokens: number;
@@ -55,13 +61,14 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
   
   if (profileData?.profile) {
     try {
-      data = JSON.parse(profileData.profile)
+      const cleanedProfile = profileData.profile.replace(/^```json\s*|```\s*$/g, '').trim();
+      data = JSON.parse(cleanedProfile)
     } catch (e) {
+      console.error("Failed to parse profile JSON:", e, "Raw profile:", profileData.profile);
       data = { summary: profileData.profile }
     }
   }
 
-  // Helper to find URL by ID
   const getSourceUrl = (sourceId?: string) => {
     if (!sourceId || !profileData?.items) return null
     const item = profileData.items.find(i => String(i.id) === String(sourceId))
@@ -83,16 +90,22 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
     ? `https://www.zhihu.com/people/${profileData.userProfile.url_token}`
     : `https://www.zhihu.com/people/${userId}`
 
-  // Display name logic
   const displayName = data?.nickname || profileData?.userProfile?.name || initialNickname || userId
 
-  // Helper to render leaning tags
-  const renderLeaningTags = () => {
+  // Helper to render political leaning tags
+  const renderPoliticalLeaning = () => {
     if (!data?.political_leaning) return null;
     
     const tags = Array.isArray(data.political_leaning) ? data.political_leaning : [];
     
     if (tags.length === 0) return null;
+
+    // Filter tags with score >= 0.5 or all tags if they're strings
+    const significantTags = tags.filter(tag => 
+      typeof tag === 'string' || (typeof tag === 'object' && (tag.score === undefined || tag.score >= 0.5))
+    );
+    
+    if (significantTags.length === 0) return null;
 
     return (
       <div style={{ marginBottom: "16px" }}>
@@ -100,9 +113,9 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
           倾向标签
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          {tags.map((tag: any, i: number) => {
-            const label = typeof tag === 'string' ? tag : tag.label;
-            const score = typeof tag === 'string' ? null : tag.score;
+          {significantTags.map((tag: any, i: number) => {
+            const label = typeof tag === 'string' ? tag : (tag.label || tag.dimension);
+            const score = typeof tag === 'string' ? null : (tag.score !== undefined ? tag.score : null);
             
             return (
               <div key={i} style={{ display: "flex", alignItems: "center", fontSize: "12px" }}>
@@ -136,6 +149,56 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
                     {Math.round(score * 100)}%
                   </span>
                 )}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  const renderValueOrientation = () => {
+    if (!data?.value_orientation) return null;
+    
+    return (
+      <div style={{ marginBottom: "16px" }}>
+        <div style={{ fontSize: "12px", fontWeight: "bold", color: "#8590a6", marginBottom: "6px" }}>
+          价值取向
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          {data.value_orientation.map((item, i) => {
+            // 正确处理 value_orientation 格式，显示 label 而不是 dimension
+            const displayLabel = item.label; // 直接使用 label 字段
+            const displayScore = item.score;
+
+            return (
+              <div key={i} style={{ display: "flex", alignItems: "center", fontSize: "12px" }}>
+                <span
+                  style={{
+                    backgroundColor: "#e3f2fd",
+                    color: "#0084ff",
+                    padding: "4px 8px",
+                    borderRadius: "4px",
+                    fontWeight: "500",
+                    marginRight: "8px",
+                    minWidth: "60px",
+                    textAlign: "center"
+                  }}>
+                  {displayLabel}
+                </span>
+                <div style={{ flex: 1, height: "6px", backgroundColor: "#eee", borderRadius: "3px", overflow: "hidden" }}>
+                  <div 
+                    style={{ 
+                      width: `${displayScore * 100}%`, 
+                      height: "100%", 
+                      backgroundColor: displayScore > 0.7 ? "#0084ff" : "#90caf9",
+                      borderRadius: "3px"
+                    }} 
+                  />
+                </div>
+                <span style={{ marginLeft: "8px", color: "#999", fontSize: "11px", width: "30px", textAlign: "right" }}>
+                  {Math.round(displayScore * 100)}%
+                </span>
               </div>
             )
           })}
@@ -226,10 +289,12 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
 
       {!loading && !error && data && (
         <div>
-          {/* 政治倾向标签 (带概率) */}
-          {renderLeaningTags()}
+          {/* 政治倾向标签 (带概率) - 优先显示 */}
+          {renderPoliticalLeaning()}
+          
+          {/* 价值取向 (备用) - 如果没有政治倾向标签则显示 */}
+          {!data.political_leaning && renderValueOrientation()}
 
-          {/* 总结 */}
           {data.summary && (
             <div style={{ marginBottom: "16px" }}>
               <div style={{ fontSize: "12px", fontWeight: "bold", color: "#8590a6", marginBottom: "6px" }}>
@@ -241,7 +306,6 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
             </div>
           )}
 
-          {/* 证据引用 - 折叠式 */}
           {data.evidence && data.evidence.length > 0 && (
             <div>
               <div 
@@ -299,7 +363,6 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
             </div>
           )}
 
-          {/* Debug Info */}
           {profileData?.debugInfo && (
             <div style={{ 
               marginTop: "20px", 
@@ -311,10 +374,14 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
               fontFamily: "monospace"
             }}>
               <div style={{ fontWeight: "bold", marginBottom: "4px" }}>🛠️ Debug Info</div>
+              <div>Topic Class: {data.topic_classification || "N/A"}</div>
+              <div>Context: {profileData.debugInfo.context || "None"}</div>
+              <div>Strategy: {profileData.debugInfo.fetchStrategy}</div>
+              <div>Source: {profileData.debugInfo.sourceInfo}</div>
               <div>Model: {profileData.debugInfo.model}</div>
               <div>Total Time: {profileData.debugInfo.totalDurationMs}ms</div>
               <div>LLM Time: {profileData.debugInfo.llmDurationMs}ms</div>
-              <div>Items Analyzed: {profileData.debugInfo.itemsCount}</div>
+              <div>Breakdown: {profileData.debugInfo.itemsBreakdown}</div>
               {profileData.debugInfo.tokens && (
                 <div>
                   Tokens: {profileData.debugInfo.tokens.total_tokens} 

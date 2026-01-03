@@ -4,10 +4,10 @@ import { ProfileCard } from "~components/ProfileCard"
 import type { ZhihuContent, UserProfile } from "~services/ZhihuClient"
 
 export const config: PlasmoCSConfig = {
-  matches: ["https://www.zhihu.com/*"]
+  matches: ["https://www.reddit.com/*", "https://old.reddit.com/*"]
 }
 
-const ZhihuOverlay = () => {
+const RedditOverlay = () => {
   const [targetUser, setTargetUser] = useState<string | null>(null)
   const [initialNickname, setInitialNickname] = useState<string | undefined>()
   const [profileData, setProfileData] = useState<{
@@ -34,19 +34,29 @@ const ZhihuOverlay = () => {
   useEffect(() => {
     // Function to inject analyze buttons
     const injectButtons = () => {
-      const links = document.querySelectorAll('.UserLink-link[href*="/people/"]')
+      // Find user profile links in Reddit
+      const userLinks = document.querySelectorAll('a[href*="/user/"], .author, .user')
       
-      links.forEach((link) => {
+      userLinks.forEach((link) => {
         if (link.getAttribute("data-deep-profile-injected")) return
         
+        // Extract username from href or text content
+        let userId = null
         const href = link.getAttribute("href") || ""
-        const match = href.match(/\/people\/([^/?]+)/)
-        if (!match) return
-        const userId = match[1]
+        const match = href.match(/\/user\/([^\/\?#]+)/)
+        if (match) {
+          userId = match[1]
+        } else if (link.textContent && link.textContent.trim().startsWith('u/')) {
+          userId = link.textContent.trim().substring(2) // Remove 'u/' prefix
+        } else {
+          userId = link.textContent?.trim() || null
+        }
+        
+        if (!userId || userId === '[deleted]' || userId === 'AutoModerator') return
 
+        // Skip if it's already an image or button
         if (link.querySelector('img')) return
         if (!link.textContent?.trim()) return
-        if (link.closest('.Popover-content')) return
 
         const btn = document.createElement("span")
         btn.innerText = " 🔍"
@@ -66,33 +76,31 @@ const ZhihuOverlay = () => {
           e.preventDefault()
           e.stopPropagation()
           
-          const nickname = link.textContent?.trim()
+          const nickname = link.textContent?.trim() || userId
           
-          // --- Enhanced Context Extraction ---
+          // Extract context from the current post/thread
           let contextParts: string[] = [];
           
-          // 1. Get Question Title
-          const questionHeader = document.querySelector('.QuestionHeader-title');
-          if (questionHeader) {
-              contextParts.push(questionHeader.textContent?.trim() || "");
+          // Get post title if available
+          const postTitle = document.querySelector('h1[data-test-id="post-title"]') || 
+                           document.querySelector('div[data-adclicklocation="title"] h3')
+          if (postTitle) {
+              contextParts.push(postTitle.textContent?.trim() || "")
           }
 
-          // 2. Get all Topic Tags
-          const topicTags = document.querySelectorAll('.QuestionTopic .Tag-content');
-          topicTags.forEach(tag => {
-              contextParts.push(tag.textContent?.trim() || "");
-          });
-
-          // 3. Fallback to closest ContentItem title
-          if (contextParts.length === 0) {
-              const contentItem = link.closest('.ContentItem');
-              if (contentItem) {
-                  const title = contentItem.querySelector('.ContentItem-title');
-                  if (title) contextParts.push(title.textContent?.trim() || "");
+          // Get subreddit name
+          const subredditElement = document.querySelector('span[class*="subreddit"]') ||
+                                  document.querySelector('a[data-click-id="subreddit"]')
+          if (subredditElement) {
+              const subreddit = subredditElement.textContent?.trim()
+              if (subreddit && !subreddit.startsWith('/r/')) {
+                  contextParts.push(`r/${subreddit}`)
+              } else if (subreddit) {
+                  contextParts.push(subreddit)
               }
           }
 
-          const richContext = contextParts.filter(Boolean).join(' | '); // Use a separator
+          const richContext = contextParts.filter(Boolean).join(' | ')
 
           handleAnalyze(userId, nickname, richContext)
         }
@@ -100,7 +108,12 @@ const ZhihuOverlay = () => {
         link.setAttribute("data-deep-profile-injected", "true")
         
         if (link.parentNode) {
-            link.parentNode.insertBefore(btn, link.nextSibling)
+            // Try to insert after the link
+            if (link.nextSibling) {
+                link.parentNode.insertBefore(btn, link.nextSibling)
+            } else {
+                link.parentNode.appendChild(btn)
+            }
         }
       })
     }
@@ -132,7 +145,7 @@ const ZhihuOverlay = () => {
         type: "ANALYZE_PROFILE",
         userId,
         context, // Send rich context to background
-        platform: 'zhihu' // Specify platform
+        platform: 'reddit' // Specify platform
       })
 
       if (response.success) {
@@ -162,4 +175,4 @@ const ZhihuOverlay = () => {
   )
 }
 
-export default ZhihuOverlay
+export default RedditOverlay

@@ -28,7 +28,9 @@
   },
   "manifest": {
     "host_permissions": [
-      "https://www.zhihu.com/*"
+      "https://www.zhihu.com/*",
+      "https://www.reddit.com/*",
+      "https://old.reddit.com/*"
     ],
     "permissions": [
       "storage"
