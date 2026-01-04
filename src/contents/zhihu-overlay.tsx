@@ -1,6 +1,7 @@
 import type { PlasmoCSConfig } from "plasmo"
 import React, { useEffect, useState, useRef } from "react"
 import { ProfileCard } from "~components/ProfileCard"
+import { ConfigService } from "~services/ConfigService"
 import type { ZhihuContent, UserProfile } from "~services/ZhihuClient"
 
 export const config: PlasmoCSConfig = {
@@ -45,9 +46,24 @@ const ZhihuOverlay = () => {
   }, [])
 
   useEffect(() => {
-    // Function to inject analyze buttons
+    let observer: MutationObserver | null = null;
+    let isEnabled = false;
+
+    // 清理函数：停止观察并移除所有已注入的元素
+    const cleanup = () => {
+      if (observer) {
+        observer.disconnect();
+        observer = null;
+      }
+      document.querySelectorAll('.deep-profile-btn').forEach(el => el.remove());
+      document.querySelectorAll('[data-deep-profile-injected]').forEach(el => el.removeAttribute('data-deep-profile-injected'));
+    };
+
+    // 注入逻辑
     const injectButtons = () => {
-      // 1. 清理孤儿按钮 (Clean up orphaned buttons)
+      if (!isEnabled) return;
+
+      // 1. 清理孤儿按钮
       document.querySelectorAll('.deep-profile-btn').forEach(btn => {
           const prev = btn.previousElementSibling as HTMLAnchorElement | null;
           if (!prev || prev.tagName !== 'A' || !prev.href.includes('www.zhihu.com/people/')) {
@@ -55,7 +71,7 @@ const ZhihuOverlay = () => {
           }
       });
 
-      // 2. 检查并重置状态 (Reset state for moved links)
+      // 2. 检查并重置状态
       const injectedLinks = document.querySelectorAll('a[data-deep-profile-injected="true"]');
       injectedLinks.forEach(link => {
           const next = link.nextElementSibling;
@@ -64,30 +80,20 @@ const ZhihuOverlay = () => {
           }
       });
 
-      // 3. 注入新按钮 (Inject new buttons)
+      // 3. 注入新按钮
       const links = document.querySelectorAll('a[href*="www.zhihu.com/people/"]')
       
       links.forEach((element) => {
         const link = element as HTMLAnchorElement
         if (link.getAttribute("data-deep-profile-injected")) return
         
-        // 使用严格正则匹配：
-        // 1. 必须包含 www.zhihu.com/people/
-        // 2. 紧接着是用户ID ([^/?#]+)，不包含斜杠
-        // 3. ID后面必须是结束，或者是 / 结束，或者是参数/锚点开始
-        // 这样就自然排除了 /people/xxx/answers 这种情况
         const match = link.href.match(/www\.zhihu\.com\/people\/([^/?#]+)\/?(\?|$|#)/)
-        
         if (!match) return
         
         const userId = match[1]
 
-        // 过滤逻辑：
-        // 1. 排除包含图片的链接（通常是头像）
         if (link.querySelector('img')) return
-        // 2. 排除没有文本的链接
         if (!link.textContent?.trim()) return
-        // 3. 排除悬浮卡片内的链接
         if (link.closest('.Popover-content')) return
 
         const btn = document.createElement("span")
@@ -110,22 +116,13 @@ const ZhihuOverlay = () => {
           
           const nickname = link.textContent?.trim()
           
-          // --- Enhanced Context Extraction ---
           let contextParts: string[] = [];
-          
-          // 1. Get Question Title
           const questionHeader = document.querySelector('.QuestionHeader-title');
-          if (questionHeader) {
-              contextParts.push(questionHeader.textContent?.trim() || "");
-          }
+          if (questionHeader) contextParts.push(questionHeader.textContent?.trim() || "");
 
-          // 2. Get all Topic Tags
           const topicTags = document.querySelectorAll('.QuestionTopic .Tag-content');
-          topicTags.forEach(tag => {
-              contextParts.push(tag.textContent?.trim() || "");
-          });
+          topicTags.forEach(tag => contextParts.push(tag.textContent?.trim() || ""));
 
-          // 3. Fallback to closest ContentItem title
           if (contextParts.length === 0) {
               const contentItem = link.closest('.ContentItem');
               if (contentItem) {
@@ -135,7 +132,6 @@ const ZhihuOverlay = () => {
           }
 
           const richContext = contextParts.filter(Boolean).join(' | ');
-
           handleAnalyze(userId, nickname, richContext)
         }
 
@@ -147,26 +143,55 @@ const ZhihuOverlay = () => {
       })
     }
 
-    injectButtons()
+    const startInjection = () => {
+      if (observer) return; // Already running
+      
+      injectButtons();
+      
+      observer = new MutationObserver(() => {
+        if (isEnabled) injectButtons();
+      });
+      
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+    };
 
-    const observer = new MutationObserver(() => {
-      injectButtons()
-    })
+    const checkConfig = async () => {
+      const config = await ConfigService.getConfig();
+      const newEnabled = config.globalEnabled;
+      
+      // console.log("Checking config. Enabled:", newEnabled);
 
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true
-    })
-
-    // 安全地清理DOM观察器
-    return () => {
-      try {
-        observer.disconnect()
-      } catch (e) {
-        // 忽略上下文失效错误
-        console.debug("Extension context may have been invalidated, ignoring error:", e)
+      if (newEnabled !== isEnabled) {
+        isEnabled = newEnabled;
+        if (isEnabled) {
+          startInjection();
+        } else {
+          cleanup();
+        }
+      } else if (isEnabled && !observer) {
+          // If enabled but observer died for some reason
+          startInjection();
       }
-    }
+    };
+
+    // Initial check
+    checkConfig();
+
+    // Listen for storage changes to react immediately to options changes
+    const storageListener = (changes: any, area: string) => {
+      if (area === 'local' && changes['deep_profile_config']) {
+        checkConfig();
+      }
+    };
+    chrome.storage.onChanged.addListener(storageListener);
+
+    return () => {
+      chrome.storage.onChanged.removeListener(storageListener);
+      cleanup();
+    };
   }, [])
 
   const handleAnalyze = async (userId: string, nickname?: string, context?: string, forceRefresh: boolean = false) => {

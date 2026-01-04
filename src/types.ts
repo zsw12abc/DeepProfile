@@ -23,6 +23,7 @@ export interface PlatformConfig {
 }
 
 export interface AppConfig {
+  globalEnabled: boolean; // Master switch
   selectedProvider: AIProvider;
   apiKeys: Record<string, string>;
   customBaseUrls: Record<string, string>;
@@ -35,6 +36,7 @@ export interface AppConfig {
 }
 
 export const DEFAULT_CONFIG: AppConfig = {
+  globalEnabled: true,
   selectedProvider: 'openai',
   apiKeys: {},
   customBaseUrls: {},

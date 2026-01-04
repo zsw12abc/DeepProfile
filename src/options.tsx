@@ -356,6 +356,67 @@ export default function Options() {
       case 'general':
         return (
           <Card title="AI 模型配置 (通用)" icon="🤖">
+            <div style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              padding: "16px",
+              backgroundColor: config.globalEnabled ? "#f0fff4" : "#fff5f5",
+              borderRadius: "10px",
+              marginBottom: "24px",
+              border: `1px solid ${config.globalEnabled ? "#c6f6d5" : "#feb2b2"}`
+            }}>
+              <div style={{ flex: 1 }}>
+                <label htmlFor="globalEnabled" style={{ 
+                  fontWeight: "700", 
+                  cursor: "pointer", 
+                  fontSize: "16px",
+                  color: config.globalEnabled ? "#22543d" : "#742a2a",
+                  display: "block"
+                }}>
+                    {config.globalEnabled ? "✅ 插件已启用" : "⛔ 插件已禁用"}
+                </label>
+                <div style={{ fontSize: "13px", color: config.globalEnabled ? "#2f855a" : "#9b2c2c", marginTop: "4px" }}>
+                  {config.globalEnabled ? "DeepProfile 正在正常工作，将在目标网站显示分析按钮。" : "DeepProfile 已完全关闭，不会在任何网站注入代码。"}
+                </div>
+              </div>
+              <div style={{ position: "relative", width: "52px", height: "32px" }}>
+                <input
+                    type="checkbox"
+                    id="globalEnabled"
+                    checked={config.globalEnabled}
+                    onChange={(e) => setConfig({ ...config, globalEnabled: e.target.checked })}
+                    style={{ 
+                      opacity: 0,
+                      width: 0,
+                      height: 0
+                    }}
+                />
+                <label htmlFor="globalEnabled" style={{
+                  position: "absolute",
+                  cursor: "pointer",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: config.globalEnabled ? "#48bb78" : "#ccc",
+                  transition: ".4s",
+                  borderRadius: "34px"
+                }}>
+                  <span style={{
+                    position: "absolute",
+                    content: '""',
+                    height: "24px",
+                    width: "24px",
+                    left: config.globalEnabled ? "24px" : "4px",
+                    bottom: "4px",
+                    backgroundColor: "white",
+                    transition: ".4s",
+                    borderRadius: "50%"
+                  }}></span>
+                </label>
+              </div>
+            </div>
+
             <InputGroup label="AI 服务商">
               <div style={{ position: "relative" }}>
                   <select

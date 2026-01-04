@@ -238,8 +238,9 @@ class LangChainProvider implements LLMProvider {
     const startTime = Date.now();
     
     try {
-      // 根据模式设置不同的超时时间
-      const timeout = mode === 'fast' ? 10000 : 30000; // 10秒或30秒
+      // 设置一个非常长的超时时间（5分钟），作为最后的兜底
+      // 用户反馈不希望因为超时而浪费Token，因此给予足够的时间
+      const timeout = 300000; // 5 minutes
       
       const messages = [
         new SystemMessage((LLMService as any).getSystemPrompt(mode, category)),
@@ -387,8 +388,8 @@ class OllamaProvider implements LLMProvider {
       console.log("【LANGCHAIN REQUEST】发送给LLM的内容：", prompt);
     }
     
-    // 根据模式设置不同的超时时间
-    const timeout = mode === 'fast' ? 10000 : 30000; // 10秒或30秒
+    // 设置一个非常长的超时时间（5分钟），作为最后的兜底
+    const timeout = 300000; // 5 minutes
     
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);

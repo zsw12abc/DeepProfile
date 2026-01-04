@@ -1,4 +1,14 @@
 {
+  "name": "deep-profile",
+  "displayName": "DeepProfile",
+  "version": "0.4.1",
+  "description": "A Chrome extension to analyze Zhihu user profiles using AI.",
+  "author": "DeepProfile Team",
+  "scripts": {
+    "dev": "plasmo dev",
+    "build": "plasmo build",
+    "test": "vitest run"
+  },
   "dependencies": {
     "@langchain/community": "^0.0.23",
     "@langchain/core": "^0.1.63",
@@ -19,5 +29,14 @@
     "prettier": "3.2.4",
     "typescript": "5.3.3",
     "vitest": "1.2.1"
+  },
+  "manifest": {
+    "host_permissions": [
+      "https://www.zhihu.com/*"
+    ],
+    "permissions": [
+      "storage",
+      "cookies"
+    ]
   }
 }
