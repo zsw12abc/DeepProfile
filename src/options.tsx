@@ -3,7 +3,8 @@ import { ConfigService } from "~services/ConfigService"
 import { HistoryService } from "~services/HistoryService"
 import { TopicService, type MacroCategory } from "~services/TopicService"
 import { calculateFinalLabel } from "~services/LabelUtils"
-import { DEFAULT_CONFIG, type AIProvider, type AppConfig, type AnalysisMode, type SupportedPlatform, type UserHistoryRecord } from "~types"
+import { ExportService } from "~services/ExportService"
+import { DEFAULT_CONFIG, type AIProvider, type AppConfig, type AnalysisMode, type SupportedPlatform, type UserHistoryRecord, type ProfileData } from "~types"
 import icon from "data-base64:../assets/icon.png"
 
 const PROVIDERS: { value: AIProvider; label: string }[] = [
@@ -129,6 +130,22 @@ export default function Options() {
       await HistoryService.clearAll();
       await loadHistory(); // Reload list
     }
+  };
+
+  const handleExportMarkdown = (profileData: ProfileData, category: MacroCategory, userId: string, timestamp: number) => {
+    const userHomeUrl = `https://www.zhihu.com/people/${userId}`;
+    const nickname = profileData.nickname || `用户${userId}`;
+    const md = ExportService.toMarkdown(profileData, category, userHomeUrl, timestamp);
+    
+    const blob = new Blob([md], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `DeepProfile_${nickname}_${new Date().toISOString().slice(0, 10)}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const fetchModels = useCallback(async (provider: AIProvider, apiKey: string, baseUrl: string) => {
@@ -745,23 +762,45 @@ export default function Options() {
                                 <div style={{ fontWeight: "500" }}>{categoryName}</div>
                                 <div style={{ fontSize: "11px", color: "#a0aec0", marginTop: "2px" }}>🕒 {timeStr}</div>
                               </div>
-                              <button
-                                onClick={(e) => { e.preventDefault(); handleDeleteProfile(userRecord.userId, userRecord.platform, profile.category); }}
-                                style={{
-                                  padding: "4px",
-                                  backgroundColor: "transparent",
-                                  border: "none",
-                                  cursor: "pointer",
-                                  fontSize: "14px",
-                                  color: "#cbd5e0",
-                                  transition: "color 0.2s"
-                                }}
-                                onMouseOver={e => e.currentTarget.style.color = "#e53e3e"}
-                                onMouseOut={e => e.currentTarget.style.color = "#cbd5e0"}
-                                title={`删除【${categoryName}】画像`}
-                              >
-                                🗑️
-                              </button>
+                              <div style={{ display: "flex", gap: "8px" }}>
+                                <button
+                                  onClick={(e) => { 
+                                    e.preventDefault(); 
+                                    handleExportMarkdown(profile.profileData as ProfileData, profile.category as MacroCategory, userRecord.userId, profile.timestamp); 
+                                  }}
+                                  style={{
+                                    padding: "4px",
+                                    backgroundColor: "transparent",
+                                    border: "none",
+                                    cursor: "pointer",
+                                    fontSize: "14px",
+                                    color: "#cbd5e0",
+                                    transition: "color 0.2s"
+                                  }}
+                                  onMouseOver={e => e.currentTarget.style.color = "#3498db"}
+                                  onMouseOut={e => e.currentTarget.style.color = "#cbd5e0"}
+                                  title="导出为 Markdown"
+                                >
+                                  📝
+                                </button>
+                                <button
+                                  onClick={(e) => { e.preventDefault(); handleDeleteProfile(userRecord.userId, userRecord.platform, profile.category); }}
+                                  style={{
+                                    padding: "4px",
+                                    backgroundColor: "transparent",
+                                    border: "none",
+                                    cursor: "pointer",
+                                    fontSize: "14px",
+                                    color: "#cbd5e0",
+                                    transition: "color 0.2s"
+                                  }}
+                                  onMouseOver={e => e.currentTarget.style.color = "#e53e3e"}
+                                  onMouseOut={e => e.currentTarget.style.color = "#cbd5e0"}
+                                  title={`删除【${categoryName}】画像`}
+                                >
+                                  🗑️
+                                </button>
+                              </div>
                             </summary>
                             <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px dashed #e2e8f0" }}>
                               <p style={{ margin: "0 0 10px 0", fontStyle: "italic" }}>"{summary}"</p>

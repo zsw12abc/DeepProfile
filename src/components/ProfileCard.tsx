@@ -4,6 +4,7 @@ import { calculateFinalLabel } from "~services/LabelUtils"
 import { TopicService, type MacroCategory } from "~services/TopicService"
 import { ExportService } from "~services/ExportService"
 import html2canvas from "html2canvas"
+import icon from "data-base64:../../assets/icon.png"
 
 interface ProfileData {
   nickname?: string
@@ -121,7 +122,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     if (!profileData) return;
     
     const category = TopicService.classify(cachedContext || "");
-    const md = ExportService.toMarkdown(profileData.profile as ProfileData, category, userHomeUrl);
+    const md = ExportService.toMarkdown(profileData.profile as ProfileData, category, userHomeUrl, cachedAt || Date.now());
     
     const blob = new Blob([md], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
@@ -146,12 +147,97 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       setExpandedEvidence(true);
       setShowDebug(false); // 截图通常不需要调试信息
       
-      // 等待 React 渲染更新
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // 创建一个临时的、样式化的容器用于截图
+      const exportContainer = document.createElement('div');
+      exportContainer.style.position = 'absolute';
+      exportContainer.style.top = '-9999px';
+      exportContainer.style.left = '-9999px';
+      exportContainer.style.width = '400px'; // 固定宽度，类似身份证
+      exportContainer.style.backgroundColor = '#f0f2f5'; // 浅灰色背景
+      exportContainer.style.padding = '20px';
+      exportContainer.style.fontFamily = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+      document.body.appendChild(exportContainer);
+
+      // 构建 ID 卡片样式的内容
+      // 这里我们手动构建 HTML 结构，而不是直接克隆 cardRef
+      // 这样可以完全控制导出图片的样式，使其更像一张精美的卡片
+      const dateStr = new Date().toLocaleDateString('zh-CN');
       
-      const canvas = await html2canvas(cardRef.current, {
+      // 渲染价值取向条
+      let valueOrientationHtml = '';
+      if (valueOrientation && valueOrientation.length > 0) {
+          valueOrientationHtml = valueOrientation.map(item => {
+              const { label: labelName, score } = item;
+              const { label, percentage } = calculateFinalLabel(labelName, score);
+              const intensity = Math.min(100, percentage);
+              const color = score >= 0 
+                ? `hsl(210, 70%, ${70 - intensity * 0.3}%)`
+                : `hsl(0, 70%, ${70 - Math.abs(intensity) * 0.3}%)`;
+              
+              return `
+                <div style="display: flex; align-items: center; margin-bottom: 8px; font-size: 12px;">
+                    <span style="width: 100px; font-weight: 500; color: #333;">${label}</span>
+                    <div style="flex: 1; height: 8px; background-color: #e0e0e0; border-radius: 4px; overflow: hidden;">
+                        <div style="height: 100%; width: ${percentage}%; background-color: ${color}; border-radius: 4px;"></div>
+                    </div>
+                    <span style="width: 30px; text-align: right; font-size: 11px; color: #666;">${Math.round(percentage)}%</span>
+                </div>
+              `;
+          }).join('');
+      }
+
+      exportContainer.innerHTML = `
+        <div style="background-color: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            <div style="background: linear-gradient(135deg, #0084ff 0%, #0055ff 100%); padding: 24px 20px; color: white; position: relative;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 60px; height: 60px; background-color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+                        <img src="${icon}" style="width: 40px; height: 40px;" />
+                    </div>
+                    <div>
+                        <h2 style="margin: 0; font-size: 20px; font-weight: 700;">${displayName}</h2>
+                        <div style="font-size: 12px; opacity: 0.9; margin-top: 4px;">DeepProfile 用户画像分析</div>
+                    </div>
+                </div>
+                <div style="position: absolute; top: 20px; right: 20px; text-align: right;">
+                    <div style="font-size: 10px; opacity: 0.8;">生成日期</div>
+                    <div style="font-size: 14px; font-weight: 600;">${dateStr}</div>
+                </div>
+            </div>
+            
+            <div style="padding: 24px;">
+                <div style="margin-bottom: 20px;">
+                    <div style="font-size: 12px; color: #8590a6; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">核心话题</div>
+                    <div style="font-size: 16px; font-weight: 600; color: #1a1a1a; background-color: #f0f2f5; display: inline-block; padding: 4px 12px; border-radius: 20px;">${topicClassification}</div>
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <div style="font-size: 12px; color: #8590a6; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">AI 总结</div>
+                    <div style="font-size: 14px; line-height: 1.6; color: #444; background-color: #f9f9f9; padding: 12px; border-radius: 8px; border-left: 3px solid #0084ff;">
+                        ${summary}
+                    </div>
+                </div>
+
+                ${valueOrientationHtml ? `
+                <div style="margin-bottom: 20px;">
+                    <div style="font-size: 12px; color: #8590a6; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">价值取向图谱</div>
+                    ${valueOrientationHtml}
+                </div>
+                ` : ''}
+                
+                <div style="border-top: 1px dashed #e0e0e0; margin-top: 20px; padding-top: 16px; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="font-size: 12px; color: #999;">Powered by DeepProfile</div>
+                    <div style="font-size: 12px; color: #0084ff; font-weight: 600;">chrome.google.com/webstore</div>
+                </div>
+            </div>
+        </div>
+      `;
+
+      // 等待图片加载
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      const canvas = await html2canvas(exportContainer, {
         useCORS: true,
-        backgroundColor: "#ffffff",
+        backgroundColor: null, // 透明背景，因为我们有圆角
         scale: 2, // 高清截图
         logging: false
       });
@@ -159,10 +245,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       const image = canvas.toDataURL("image/png");
       const a = document.createElement('a');
       a.href = image;
-      a.download = `DeepProfile_${displayName}_${new Date().toISOString().slice(0, 10)}.png`;
+      a.download = `DeepProfile_Card_${displayName}_${new Date().toISOString().slice(0, 10)}.png`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+      document.body.removeChild(exportContainer);
       
       // 恢复状态
       setExpandedEvidence(wasEvidenceExpanded);
