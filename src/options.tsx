@@ -4,6 +4,7 @@ import { HistoryService } from "~services/HistoryService"
 import { TopicService, type MacroCategory } from "~services/TopicService"
 import { calculateFinalLabel } from "~services/LabelUtils"
 import { DEFAULT_CONFIG, type AIProvider, type AppConfig, type AnalysisMode, type SupportedPlatform, type UserHistoryRecord } from "~types"
+import icon from "data-base64:../assets/icon.png"
 
 const PROVIDERS: { value: AIProvider; label: string }[] = [
   { value: "openai", label: "OpenAI" },
@@ -14,17 +15,20 @@ const PROVIDERS: { value: AIProvider; label: string }[] = [
   { value: "custom", label: "Custom (OpenAI Compatible)" }
 ]
 
+const ZhihuIcon = <img src="https://static.zhihu.com/heifetz/assets/apple-touch-icon-152.a53ae37b.png" alt="Zhihu" style={{ width: "24px", height: "24px", borderRadius: "4px", objectFit: "contain" }} />;
+const RedditIcon = <img src="https://www.redditstatic.com/desktop2x/img/favicon/apple-icon-120x120.png" alt="Reddit" style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "contain" }} />;
+
 const PLATFORMS = [
-  { id: 'general', name: '通用设置', icon: '⚙️' },
-  { id: 'zhihu', name: '知乎设置', icon: '🔵' },
-  { id: 'reddit', name: 'Reddit 设置', icon: '🟠' },
-  { id: 'history', name: '历史记录', icon: '📅' },
-  { id: 'debug', name: '开发者选项', icon: '🛠️' },
+  { id: 'general', name: '通用设置', icon: <span style={{ fontSize: "24px" }}>⚙️</span> },
+  { id: 'zhihu', name: '知乎设置', icon: ZhihuIcon },
+  { id: 'reddit', name: 'Reddit 设置', icon: RedditIcon },
+  { id: 'history', name: '历史记录', icon: <span style={{ fontSize: "24px" }}>📅</span> },
+  { id: 'debug', name: '开发者选项', icon: <span style={{ fontSize: "24px" }}>🛠️</span> },
 ]
 
 type PlatformId = 'general' | 'zhihu' | 'reddit' | 'debug' | 'history';
 
-const Card: React.FC<{ title: string; children: React.ReactNode; icon?: string }> = ({ title, children, icon }) => (
+const Card: React.FC<{ title: string; children: React.ReactNode; icon?: React.ReactNode }> = ({ title, children, icon }) => (
   <div style={{
     backgroundColor: "white",
     borderRadius: "16px",
@@ -43,7 +47,7 @@ const Card: React.FC<{ title: string; children: React.ReactNode; icon?: string }
         gap: "10px",
         fontWeight: "600"
     }}>
-        {icon && <span style={{ fontSize: "24px" }}>{icon}</span>}
+        {icon && <span style={{ display: "flex", alignItems: "center", marginRight: "10px" }}>{icon}</span>}
         {title}
     </h2>
     {children}
@@ -249,9 +253,9 @@ export default function Options() {
         fontSize: "14px", 
         padding: "14px", 
         backgroundColor: "#f8fafc", 
-        borderRadius: "10px",
-        display: "flex",
-        alignItems: "center",
+        borderRadius: "10px", 
+        display: "flex", 
+        alignItems: "center", 
         gap: "8px"
       }}>⏳ 正在加载模型列表...</div>
     }
@@ -355,7 +359,7 @@ export default function Options() {
     switch (platformId) {
       case 'general':
         return (
-          <Card title="AI 模型配置 (通用)" icon="🤖">
+          <Card title="AI 模型配置 (通用)" icon={<span style={{ fontSize: "24px" }}>🤖</span>}>
             <div style={{ 
               display: "flex", 
               alignItems: "center", 
@@ -555,7 +559,7 @@ export default function Options() {
         );
       case 'zhihu':
         return (
-          <Card title="知乎设置" icon="🔵">
+          <Card title="知乎设置" icon={ZhihuIcon}>
             <InputGroup 
               label="分析模式" 
               subLabel={
@@ -620,7 +624,7 @@ export default function Options() {
         );
       case 'reddit':
         return (
-          <Card title="Reddit 设置" icon="🟠">
+          <Card title="Reddit 设置" icon={RedditIcon}>
               <div style={{ 
                   padding: "24px", 
                   backgroundColor: "#f8fafc", 
@@ -636,7 +640,7 @@ export default function Options() {
         );
       case 'history':
         return (
-          <Card title="历史记录管理" icon="📅">
+          <Card title="历史记录管理" icon={<span style={{ fontSize: "24px" }}>📅</span>}>
             <div style={{ marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ fontSize: "14px", color: "#666" }}>
                 共 {historyRecords.length} 位用户记录 (最多 {200} 位)
@@ -788,7 +792,7 @@ export default function Options() {
         );
       case 'debug':
         return (
-          <Card title="开发者选项" icon="🛠️">
+          <Card title="开发者选项" icon={<span style={{ fontSize: "24px" }}>🛠️</span>}>
             <div style={{ 
               display: "flex", 
               alignItems: "flex-start", 
@@ -860,7 +864,7 @@ export default function Options() {
               margin: "0 auto 16px",
               boxShadow: "0 6px 12px rgba(52, 152, 219, 0.2)"
             }}>
-              <span style={{ fontSize: "32px", color: "white" }}>👤</span>
+              <img src={icon} alt="DeepProfile Icon" style={{ width: "48px", height: "48px" }} />
             </div>
             <h1 style={{ 
               fontSize: "32px", 
@@ -943,7 +947,7 @@ export default function Options() {
                           : {})
                       }}
                     >
-                      <span style={{ fontSize: "18px" }}>{platform.icon}</span>
+                      <span style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "24px" }}>{platform.icon}</span>
                       {platform.name}
                     </button>
                   </li>
