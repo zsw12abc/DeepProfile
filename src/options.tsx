@@ -1,7 +1,9 @@
 import React, { useEffect, useState, useCallback } from "react"
 import { ConfigService } from "~services/ConfigService"
 import { HistoryService } from "~services/HistoryService"
-import { DEFAULT_CONFIG, type AIProvider, type AppConfig, type AnalysisMode, type SupportedPlatform, type HistoryRecord } from "~types"
+import { TopicService, type MacroCategory } from "~services/TopicService"
+import { calculateFinalLabel } from "~services/LabelUtils"
+import { DEFAULT_CONFIG, type AIProvider, type AppConfig, type AnalysisMode, type SupportedPlatform, type UserHistoryRecord } from "~types"
 
 const PROVIDERS: { value: AIProvider; label: string }[] = [
   { value: "openai", label: "OpenAI" },
@@ -56,7 +58,6 @@ const InputGroup: React.FC<{ label: string; children: React.ReactNode; subLabel?
           fontWeight: "600", 
           color: "#2d3748", 
           fontSize: "15px",
-          display: "flex",
           alignItems: "center",
           gap: "6px"
         }}>
@@ -78,7 +79,7 @@ export default function Options() {
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null)
   const [activePlatform, setActivePlatform] = useState<PlatformId>('general')
   
-  const [historyRecords, setHistoryRecords] = useState<HistoryRecord[]>([])
+  const [historyRecords, setHistoryRecords] = useState<UserHistoryRecord[]>([])
   const [loadingHistory, setLoadingHistory] = useState(false)
 
   useEffect(() => {
@@ -96,7 +97,7 @@ export default function Options() {
   const loadHistory = async () => {
     setLoadingHistory(true);
     try {
-      const records = await HistoryService.getAllRecords();
+      const records = await HistoryService.getAllUserRecords();
       setHistoryRecords(records);
     } catch (e) {
       console.error("Failed to load history:", e);
@@ -105,9 +106,16 @@ export default function Options() {
     }
   };
 
-  const handleDeleteRecord = async (userId: string, platform: SupportedPlatform) => {
-    if (confirm(`确定要删除用户 ${userId} 的历史记录吗？`)) {
-      await HistoryService.deleteRecord(userId, platform);
+  const handleDeleteProfile = async (userId: string, platform: SupportedPlatform, category: string) => {
+    if (confirm(`确定要删除用户 ${userId} 的【${TopicService.getCategoryName(category as MacroCategory)}】画像吗？`)) {
+      await HistoryService.deleteProfile(userId, platform, category);
+      await loadHistory(); // Reload list
+    }
+  };
+
+  const handleDeleteUser = async (userId: string, platform: SupportedPlatform) => {
+    if (confirm(`确定要删除用户 ${userId} 的所有历史记录吗？`)) {
+      await HistoryService.deleteUserRecord(userId, platform);
       await loadHistory(); // Reload list
     }
   };
@@ -138,11 +146,9 @@ export default function Options() {
       if (response.success) {
         setModels(response.data)
       } else {
-        setModels([])
         setModelError(response.error || "Failed to fetch models")
       }
-    } catch (e) {
-      setModels([])
+    } catch (e: any) {
       setModelError(e.message)
     } finally {
       setIsLoadingModels(false)
@@ -193,7 +199,7 @@ export default function Options() {
         } else {
             setTestResult({ success: false, message: response.error })
         }
-    } catch (e) {
+    } catch (e: any) {
         setTestResult({ success: false, message: e.message })
     } finally {
         setIsTesting(false)
@@ -572,7 +578,7 @@ export default function Options() {
           <Card title="历史记录管理" icon="📅">
             <div style={{ marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ fontSize: "14px", color: "#666" }}>
-                共 {historyRecords.length} 条记录 (保留最近 100 条，24小时过期)
+                共 {historyRecords.length} 位用户记录 (最多 {200} 位)
               </div>
               {historyRecords.length > 0 && (
                 <button
@@ -610,46 +616,39 @@ export default function Options() {
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                {historyRecords.map((record) => {
-                  const date = new Date(record.timestamp);
-                  const timeStr = date.toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-                  const nickname = record.profileData.nickname || record.userId;
-                  const topic = record.profileData.topic_classification || "未知话题";
-                  
-                  return (
-                    <div key={`${record.platform}-${record.userId}`} style={{
-                      padding: "16px",
-                      backgroundColor: "#fff",
-                      border: "1px solid #e2e8f0",
-                      borderRadius: "10px",
+                {historyRecords.map((userRecord) => (
+                  <details key={`${userRecord.platform}-${userRecord.userId}`} style={{
+                    padding: "16px",
+                    backgroundColor: "#fff",
+                    border: "1px solid #e2e8f0",
+                    borderRadius: "10px",
+                    transition: "all 0.2s",
+                    boxShadow: "0 2px 4px rgba(0,0,0,0.02)"
+                  }}>
+                    <summary style={{
                       display: "flex",
                       justifyContent: "space-between",
                       alignItems: "center",
-                      transition: "all 0.2s",
-                      boxShadow: "0 2px 4px rgba(0,0,0,0.02)"
+                      cursor: "pointer"
                     }}>
-                      <div>
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
-                          <span style={{ 
-                            fontSize: "12px", 
-                            padding: "2px 6px", 
-                            borderRadius: "4px", 
-                            backgroundColor: record.platform === 'zhihu' ? '#e1f0fa' : '#ffedd5',
-                            color: record.platform === 'zhihu' ? '#2980b9' : '#c05621',
-                            fontWeight: "600"
-                          }}>
-                            {record.platform === 'zhihu' ? '知乎' : 'Reddit'}
-                          </span>
-                          <span style={{ fontWeight: "600", color: "#2d3748" }}>{nickname}</span>
-                          <span style={{ fontSize: "13px", color: "#a0aec0" }}>({record.userId})</span>
-                        </div>
-                        <div style={{ fontSize: "13px", color: "#718096" }}>
-                          <span style={{ marginRight: "12px" }}>🕒 {timeStr}</span>
-                          <span>🏷️ {topic}</span>
-                        </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <span style={{ 
+                          fontSize: "12px", 
+                          padding: "2px 6px", 
+                          borderRadius: "4px", 
+                          backgroundColor: userRecord.platform === 'zhihu' ? '#e1f0fa' : '#ffedd5',
+                          color: userRecord.platform === 'zhihu' ? '#2980b9' : '#c05621',
+                          fontWeight: "600"
+                        }}>
+                          {userRecord.platform === 'zhihu' ? '知乎' : 'Reddit'}
+                        </span>
+                        <span style={{ fontWeight: "600", color: "#2d3748" }}>
+                          {Object.values(userRecord.profiles)[0]?.profileData.nickname || userRecord.userId}
+                        </span>
+                        <span style={{ fontSize: "13px", color: "#a0aec0" }}>({userRecord.userId})</span>
                       </div>
                       <button
-                        onClick={() => handleDeleteRecord(record.userId, record.platform)}
+                        onClick={(e) => { e.preventDefault(); handleDeleteUser(userRecord.userId, userRecord.platform); }}
                         style={{
                           padding: "8px",
                           backgroundColor: "transparent",
@@ -661,13 +660,67 @@ export default function Options() {
                         }}
                         onMouseOver={e => e.currentTarget.style.color = "#e53e3e"}
                         onMouseOut={e => e.currentTarget.style.color = "#cbd5e0"}
-                        title="删除此记录"
+                        title="删除此用户所有记录"
                       >
                         ×
                       </button>
+                    </summary>
+                    <div style={{ marginTop: "16px", borderTop: "1px solid #f0f0f0", paddingTop: "12px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                      {Object.values(userRecord.profiles).map(profile => {
+                        const date = new Date(profile.timestamp);
+                        const timeStr = date.toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                        const categoryName = TopicService.getCategoryName(profile.category as MacroCategory);
+                        const summary = profile.profileData.summary;
+                        const labels = profile.profileData.political_leaning || [];
+
+                        return (
+                          <details key={profile.category} style={{ fontSize: "13px", color: "#4a5568", padding: "8px", borderRadius: "6px", backgroundColor: "#f8fafc" }}>
+                            <summary style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
+                              <div>
+                                <div style={{ fontWeight: "500" }}>{categoryName}</div>
+                                <div style={{ fontSize: "11px", color: "#a0aec0", marginTop: "2px" }}>🕒 {timeStr}</div>
+                              </div>
+                              <button
+                                onClick={(e) => { e.preventDefault(); handleDeleteProfile(userRecord.userId, userRecord.platform, profile.category); }}
+                                style={{
+                                  padding: "4px",
+                                  backgroundColor: "transparent",
+                                  border: "none",
+                                  cursor: "pointer",
+                                  fontSize: "14px",
+                                  color: "#cbd5e0",
+                                  transition: "color 0.2s"
+                                }}
+                                onMouseOver={e => e.currentTarget.style.color = "#e53e3e"}
+                                onMouseOut={e => e.currentTarget.style.color = "#cbd5e0"}
+                                title={`删除【${categoryName}】画像`}
+                              >
+                                🗑️
+                              </button>
+                            </summary>
+                            <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px dashed #e2e8f0" }}>
+                              <p style={{ margin: "0 0 10px 0", fontStyle: "italic" }}>"{summary}"</p>
+                              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                                {labels.map((item: { label: string; score: number }, index: number) => {
+                                  const { label, percentage } = calculateFinalLabel(item.label, item.score);
+                                  return (
+                                    <div key={index} style={{ display: "flex", alignItems: "center", fontSize: "12px" }}>
+                                      <span style={{ width: "80px", fontWeight: "500" }}>{label}</span>
+                                      <div style={{ flex: 1, height: "8px", backgroundColor: "#e0e0e0", borderRadius: "4px", overflow: "hidden" }}>
+                                        <div style={{ height: "100%", width: `${percentage}%`, backgroundColor: item.score > 0 ? "#3498db" : "#e74c3c", borderRadius: "4px" }} />
+                                      </div>
+                                      <span style={{ width: "30px", textAlign: "right", fontSize: "11px" }}>{percentage}%</span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </details>
+                        );
+                      })}
                     </div>
-                  );
-                })}
+                  </details>
+                ))}
               </div>
             )}
           </Card>
@@ -678,10 +731,9 @@ export default function Options() {
             <div style={{ 
               display: "flex", 
               alignItems: "flex-start", 
-              padding: "12px 0",
+              padding: "14px",
               backgroundColor: "#f8fafc",
-              borderRadius: "8px",
-              padding: "14px"
+              borderRadius: "8px"
             }}>
               <input
                   type="checkbox"

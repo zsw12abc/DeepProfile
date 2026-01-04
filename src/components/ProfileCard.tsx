@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import type { ZhihuContent, UserProfile } from "~services/ZhihuClient"
 import { calculateFinalLabel, getLabelInfo, parseLabelName, filterLabelsByTopic } from "~services/LabelUtils"
+import { TopicService, type MacroCategory } from "~services/TopicService"
 
 interface ProfileData {
   nickname?: string
@@ -138,16 +139,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     const date = new Date(cachedAt);
     const timeStr = date.toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     
-    // Extract topic from context if available
-    let contextTopic = "未知";
-    if (cachedContext) {
-        const parts = cachedContext.split('|');
-        if (parts.length > 1) {
-            contextTopic = parts[1].trim(); // Usually the topic tag
-        } else {
-            contextTopic = parts[0].substring(0, 10) + "...";
-        }
-    }
+    // Determine category name from cached context (which is now the macro category key in some cases, or we re-classify)
+    // Actually, in handleAnalysis we stored the original context in 'context' field of HistoryRecord
+    // So cachedContext is the original context string.
+    const category = TopicService.classify(cachedContext);
+    const categoryName = TopicService.getCategoryName(category);
 
     return (
       <div style={{
@@ -165,7 +161,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         <div>
           <span style={{ fontWeight: "600" }}>📅 历史记录 ({timeStr})</span>
           <div style={{ fontSize: "11px", marginTop: "2px", opacity: 0.8 }}>
-            基于话题: {contextTopic}
+            分类: {categoryName}
           </div>
         </div>
         {onRefresh && (

@@ -3,6 +3,7 @@ import { ZhihuClient } from "~services/ZhihuClient"
 import { ConfigService } from "~services/ConfigService"
 import { ProfileService } from "~services/ProfileService"
 import { HistoryService } from "~services/HistoryService"
+import { TopicService } from "~services/TopicService"
 import type { SupportedPlatform } from "~types"
 
 export {}
@@ -164,21 +165,31 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
   console.log(`Analyzing user: ${userId}, Platform: ${platform}, Context: ${context}, ForceRefresh: ${forceRefresh}`)
   const startTime = Date.now();
   
-  // 1. Check cache first (if not forced)
+  // 1. Classify the context into a macro category
+  let macroCategory = TopicService.classify(context || "");
+  if (macroCategory === 'general') {
+    console.log("Keyword classification failed, falling back to LLM classification...");
+    await sendProgress(tabId, "关键词分类失败，尝试使用 AI 分类...");
+    macroCategory = await TopicService.classifyWithLLM(context || "");
+  }
+  const categoryName = TopicService.getCategoryName(macroCategory);
+  console.log(`Context classified as: ${macroCategory} (${categoryName})`);
+
+  // 2. Check cache first (if not forced)
   if (!forceRefresh) {
-    // Pass context to getRecord to ensure we only get cache that matches the current context
-    const cachedRecord = await HistoryService.getRecord(userId, platform, context);
-    if (cachedRecord) {
-      console.log(`Cache hit for user ${userId} with context ${context}`);
-      await sendProgress(tabId, "已从本地缓存加载结果 (秒开!)");
+    // Use macroCategory for cache lookup
+    const cachedProfile = await HistoryService.getProfile(userId, platform, macroCategory);
+    if (cachedProfile) {
+      console.log(`Cache hit for user ${userId} in category ${macroCategory}`);
+      await sendProgress(tabId, `已加载该用户的【${categoryName}】画像 (秒开!)`);
       
       return {
-        profile: cachedRecord.profileData,
-        items: [], // We don't store raw items in cache to save space
-        userProfile: null, // We'll need to fetch this if we want to show it, but for cache speed we skip
+        profile: cachedProfile.profileData,
+        items: [], 
+        userProfile: null, 
         fromCache: true,
-        cachedAt: cachedRecord.timestamp,
-        cachedContext: cachedRecord.context
+        cachedAt: cachedProfile.timestamp,
+        cachedContext: cachedProfile.context // Return the original context stored in cache
       };
     }
   }
@@ -230,16 +241,15 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
       
       const totalDuration = Date.now() - startTime;
 
-      // 2. Save to History
-      await HistoryService.saveRecord({
+      // 3. Save to History using macroCategory
+      await HistoryService.saveProfile(
         userId,
         platform,
-        profileData: llmResponse.content,
-        context: context,
-        timestamp: Date.now(),
-        model: llmResponse.model,
-        version: "1.0"
-      });
+        macroCategory, // Store macroCategory as the key
+        llmResponse.content,
+        context || "", // Store original context for reference
+        llmResponse.model
+      );
 
       let debugInfo = undefined;
       if (config.enableDebug) {

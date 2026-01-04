@@ -26,6 +26,15 @@ export interface FetchResult {
 export class ZhihuClient {
   private static BASE_URL = 'https://www.zhihu.com/api/v4';
 
+  private static getHeaders() {
+    return {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Referer': 'https://www.zhihu.com/'
+    };
+  }
+
   static async resolveUserToken(idOrToken: string): Promise<string> {
     if (/^[a-f0-9]{32}$/.test(idOrToken)) {
       try {
@@ -34,7 +43,7 @@ export class ZhihuClient {
         const response = await fetch(url, {
           method: 'GET',
           credentials: 'include',
-          headers: { 'X-Requested-With': 'XMLHttpRequest' }
+          headers: this.getHeaders()
         });
 
         if (response.ok) {
@@ -58,7 +67,7 @@ export class ZhihuClient {
       const response = await fetch(url, {
         method: 'GET',
         credentials: 'include',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        headers: this.getHeaders()
       });
       if (response.ok) {
         const data = await response.json();
@@ -152,11 +161,7 @@ export class ZhihuClient {
       const response = await fetch(url, {
         method: 'GET',
         credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        },
+        headers: this.getHeaders()
       });
 
       if (!response.ok) {
@@ -222,11 +227,7 @@ export class ZhihuClient {
       const response = await fetch(url, {
         method: 'GET',
         credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        },
+        headers: this.getHeaders()
       });
 
       if (!response.ok) {
@@ -261,7 +262,7 @@ export class ZhihuClient {
       const response = await fetch(url, {
         method: 'GET',
         credentials: 'include',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        headers: this.getHeaders()
       });
 
       if (!response.ok) return [];
@@ -345,5 +346,35 @@ export class ZhihuClient {
     text = text.replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
     // Collapse multiple newlines
     return text.replace(/\n\s*\n/g, '\n').trim();
+  }
+
+  // --- New Feature: Fetch Hot List ---
+  static async fetchHotList(): Promise<string[]> {
+    const url = 'https://www.zhihu.com/api/v3/feed/topstory/hot-list?limit=50&desktop=true';
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        credentials: 'include',
+        headers: this.getHeaders()
+      });
+
+      if (!response.ok) {
+        console.error(`Failed to fetch hot list: ${response.status}`);
+        return [];
+      }
+
+      const data = await response.json();
+      if (data.data && Array.isArray(data.data)) {
+        return data.data.map((item: any) => {
+          const title = item.target?.title || item.target?.question?.title || '';
+          const excerpt = item.target?.excerpt || '';
+          return `标题: ${title}\n摘要: ${excerpt.substring(0, 100)}`;
+        });
+      }
+      return [];
+    } catch (e) {
+      console.error('Error fetching hot list:', e);
+      return [];
+    }
   }
 }
