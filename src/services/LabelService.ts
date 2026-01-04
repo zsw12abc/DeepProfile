@@ -1,4 +1,4 @@
-import type { AnalysisMode } from "~types";
+import type { AnalysisMode, MacroCategory } from "~types";
 import { LABEL_CATEGORIES, LabelDefinition, CategoryDefinition } from "./LabelDefinitions";
 import { getRelevantLabelsByTopic } from "./LabelUtils";
 
@@ -210,6 +210,22 @@ export class LabelService {
       }
     }
     
+    return result;
+  }
+
+  // New method to get labels for a specific category
+  getLabelsForCategory(category: MacroCategory): string {
+    if (category === 'general') {
+      return this.getStandardLabelsForLLM(); // For general, use all labels
+    }
+    const cat = this.getCategoryById(category);
+    if (!cat) return "无可用标签";
+
+    let result = `分类: ${cat.name} (${cat.id})\n`;
+    result += "标签:\n";
+    for (const label of cat.labels) {
+      result += `  - ${label.name} (${label.id}): ${label.description}\n`;
+    }
     return result;
   }
 }

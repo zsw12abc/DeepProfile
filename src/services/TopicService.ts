@@ -137,10 +137,7 @@ export class TopicService {
     `;
     
     try {
-      // We use a special mode or a different LLM call for this simple task
-      // Reusing generateProfile and parsing the result is a quick way for now.
-      const llmResponse = await LLMService.generateProfile(prompt);
-      const result = llmResponse.content.trim();
+      const result = await LLMService.generateRawText(prompt);
 
       if (CATEGORIES.includes(result as MacroCategory)) {
         return result as MacroCategory;
