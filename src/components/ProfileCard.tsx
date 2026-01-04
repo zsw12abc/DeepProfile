@@ -1,7 +1,9 @@
-import React, { useState } from "react"
+import React, { useState, useRef } from "react"
 import type { ZhihuContent, UserProfile } from "~services/ZhihuClient"
-import { calculateFinalLabel, getLabelInfo, parseLabelName, filterLabelsByTopic } from "~services/LabelUtils"
+import { calculateFinalLabel } from "~services/LabelUtils"
 import { TopicService, type MacroCategory } from "~services/TopicService"
+import { ExportService } from "~services/ExportService"
+import html2canvas from "html2canvas"
 
 interface ProfileData {
   nickname?: string
@@ -72,6 +74,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 }) => {
   const [showDebug, setShowDebug] = useState(false)
   const [expandedEvidence, setExpandedEvidence] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
+  const cardRef = useRef<HTMLDivElement>(null)
   
   let nickname = initialNickname || "未知用户"
   let topicClassification = "未知话题"
@@ -111,6 +115,65 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
   const toggleDebug = () => setShowDebug(!showDebug)
   const toggleEvidence = () => setExpandedEvidence(!expandedEvidence)
+
+  // 导出 Markdown
+  const handleExportMarkdown = () => {
+    if (!profileData) return;
+    
+    const category = TopicService.classify(cachedContext || "");
+    const md = ExportService.toMarkdown(profileData.profile as ProfileData, category, userHomeUrl);
+    
+    const blob = new Blob([md], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `DeepProfile_${displayName}_${new Date().toISOString().slice(0, 10)}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // 导出图片
+  const handleExportImage = async () => {
+    if (!cardRef.current) return;
+    setIsExporting(true);
+    
+    try {
+      // 临时展开所有内容以确保截图完整
+      const wasEvidenceExpanded = expandedEvidence;
+      const wasDebugShown = showDebug;
+      setExpandedEvidence(true);
+      setShowDebug(false); // 截图通常不需要调试信息
+      
+      // 等待 React 渲染更新
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const canvas = await html2canvas(cardRef.current, {
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        scale: 2, // 高清截图
+        logging: false
+      });
+      
+      const image = canvas.toDataURL("image/png");
+      const a = document.createElement('a');
+      a.href = image;
+      a.download = `DeepProfile_${displayName}_${new Date().toISOString().slice(0, 10)}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      
+      // 恢复状态
+      setExpandedEvidence(wasEvidenceExpanded);
+      setShowDebug(wasDebugShown);
+    } catch (e) {
+      console.error("Export image failed:", e);
+      alert("图片导出失败，请重试");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   // 计算进度条
   const renderProgressBar = () => {
@@ -187,6 +250,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
   return (
     <div
+      ref={cardRef}
       style={{
         position: "fixed",
         bottom: "20px",
@@ -233,26 +297,68 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             话题分类: <span style={{ fontWeight: "500", color: "#0084ff" }}>{topicClassification}</span>
           </div>
         </div>
-        <button
-          onClick={onClose}
-          style={{
-            background: "none",
-            border: "none",
-            fontSize: "18px",
-            cursor: "pointer",
-            color: "#999",
-            padding: "0",
-            width: "24px",
-            height: "24px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center"
-          }}
-          onMouseOver={(e) => (e.currentTarget.style.color = "#333")}
-          onMouseOut={(e) => (e.currentTarget.style.color = "#999")}
-        >
-          ×
-        </button>
+        <div style={{ display: "flex", gap: "8px" }}>
+          {profileData && !loading && (
+            <>
+              <button
+                onClick={handleExportMarkdown}
+                title="导出为 Markdown"
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: "16px",
+                  cursor: "pointer",
+                  padding: "4px",
+                  borderRadius: "4px",
+                  transition: "background-color 0.2s"
+                }}
+                onMouseOver={e => e.currentTarget.style.backgroundColor = "#f0f0f0"}
+                onMouseOut={e => e.currentTarget.style.backgroundColor = "transparent"}
+              >
+                📝
+              </button>
+              <button
+                onClick={handleExportImage}
+                title="导出为图片"
+                disabled={isExporting}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: "16px",
+                  cursor: isExporting ? "wait" : "pointer",
+                  padding: "4px",
+                  borderRadius: "4px",
+                  transition: "background-color 0.2s",
+                  opacity: isExporting ? 0.5 : 1
+                }}
+                onMouseOver={e => e.currentTarget.style.backgroundColor = "#f0f0f0"}
+                onMouseOut={e => e.currentTarget.style.backgroundColor = "transparent"}
+              >
+                📸
+              </button>
+            </>
+          )}
+          <button
+            onClick={onClose}
+            style={{
+              background: "none",
+              border: "none",
+              fontSize: "18px",
+              cursor: "pointer",
+              color: "#999",
+              padding: "0",
+              width: "24px",
+              height: "24px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center"
+            }}
+            onMouseOver={(e) => (e.currentTarget.style.color = "#333")}
+            onMouseOut={(e) => (e.currentTarget.style.color = "#999")}
+          >
+            ×
+          </button>
+        </div>
       </div>
 
       {renderProgressBar()}
