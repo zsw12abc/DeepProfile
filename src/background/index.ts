@@ -8,6 +8,11 @@ export {}
 
 console.log("DeepProfile Background Service Started")
 
+// Open options page when extension icon is clicked
+chrome.action.onClicked.addListener(() => {
+  chrome.runtime.openOptionsPage();
+});
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === "ANALYZE_PROFILE") {
     const tabId = sender.tab?.id
