@@ -49,11 +49,15 @@ interface ProfileCardProps {
     items: ZhihuContent[]
     userProfile: UserProfile | null
     debugInfo?: DebugInfo
+    fromCache?: boolean
+    cachedAt?: number
+    cachedContext?: string
   } | null
   loading: boolean
   statusMessage?: string
   error?: string
   onClose: () => void
+  onRefresh?: () => void // New prop for force refresh
 }
 
 const ProfileCard: React.FC<ProfileCardProps> = ({
@@ -63,7 +67,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   loading,
   statusMessage,
   error,
-  onClose
+  onClose,
+  onRefresh
 }) => {
   const [showDebug, setShowDebug] = useState(false)
   const [expandedEvidence, setExpandedEvidence] = useState(false)
@@ -75,6 +80,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   let evidence: Array<{ quote: string; analysis: string; source_title: string; source_id?: string }> = []
   let debugInfo: DebugInfo | undefined
   let items: ZhihuContent[] = []
+  let fromCache = false
+  let cachedAt = 0
+  let cachedContext = ""
 
   if (profileData) {
     try {
@@ -92,6 +100,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       evidence = parsedProfile.evidence || []
       debugInfo = profileData.debugInfo
       items = profileData.items || []
+      fromCache = profileData.fromCache || false
+      cachedAt = profileData.cachedAt || 0
+      cachedContext = profileData.cachedContext || ""
     } catch (e) {
       console.error("Failed to parse profile data:", e)
     }
@@ -116,6 +127,72 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     return (
       <div style={{ marginBottom: "16px", fontSize: "14px", color: "#666" }}>
         {statusMessage}
+      </div>
+    );
+  }
+
+  // Render cache status bar
+  const renderCacheStatus = () => {
+    if (!fromCache) return null;
+    
+    const date = new Date(cachedAt);
+    const timeStr = date.toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    
+    // Extract topic from context if available
+    let contextTopic = "未知";
+    if (cachedContext) {
+        const parts = cachedContext.split('|');
+        if (parts.length > 1) {
+            contextTopic = parts[1].trim(); // Usually the topic tag
+        } else {
+            contextTopic = parts[0].substring(0, 10) + "...";
+        }
+    }
+
+    return (
+      <div style={{
+        backgroundColor: "#f0f9ff",
+        border: "1px solid #bae6fd",
+        borderRadius: "8px",
+        padding: "8px 12px",
+        marginBottom: "16px",
+        fontSize: "12px",
+        color: "#0369a1",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center"
+      }}>
+        <div>
+          <span style={{ fontWeight: "600" }}>📅 历史记录 ({timeStr})</span>
+          <div style={{ fontSize: "11px", marginTop: "2px", opacity: 0.8 }}>
+            基于话题: {contextTopic}
+          </div>
+        </div>
+        {onRefresh && (
+          <button
+            onClick={onRefresh}
+            style={{
+              backgroundColor: "white",
+              border: "1px solid #0ea5e9",
+              color: "#0ea5e9",
+              borderRadius: "4px",
+              padding: "4px 8px",
+              fontSize: "11px",
+              cursor: "pointer",
+              fontWeight: "500"
+            }}
+            onMouseOver={e => {
+                e.currentTarget.style.backgroundColor = "#0ea5e9";
+                e.currentTarget.style.color = "white";
+            }}
+            onMouseOut={e => {
+                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.color = "#0ea5e9";
+            }}
+          >
+            🔄 重新分析
+          </button>
+        )}
       </div>
     );
   }
@@ -192,6 +269,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
       {/* 进度条区域 - 放在最上面 */}
       {renderProgressBar()}
+
+      {/* 缓存状态提示 */}
+      {renderCacheStatus()}
 
       {error && (
         <div style={{ marginBottom: "16px", padding: "12px", backgroundColor: "#ffebee", borderRadius: "6px", color: "#c62828" }}>

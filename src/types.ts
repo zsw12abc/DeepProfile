@@ -60,3 +60,14 @@ export const DEFAULT_CONFIG: AppConfig = {
     }
   }
 };
+
+// History System Types
+export interface HistoryRecord {
+  userId: string;
+  platform: SupportedPlatform;
+  profileData: any; // The full profile JSON object
+  context?: string; // The context used when generating this profile
+  timestamp: number; // When it was generated
+  model: string; // Which model was used
+  version: string; // Data structure version
+}

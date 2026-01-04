@@ -2,6 +2,7 @@ import { LLMService } from "~services/LLMService"
 import { ZhihuClient } from "~services/ZhihuClient"
 import { ConfigService } from "~services/ConfigService"
 import { ProfileService } from "~services/ProfileService"
+import { HistoryService } from "~services/HistoryService"
 import type { SupportedPlatform } from "~types"
 
 export {}
@@ -17,7 +18,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === "ANALYZE_PROFILE") {
     const tabId = sender.tab?.id
     
-    handleAnalysis(request.userId, request.context, tabId, request.platform)
+    handleAnalysis(request.userId, request.context, tabId, request.platform, request.forceRefresh)
       .then((result) => sendResponse({ success: true, data: result }))
       .catch((error) => sendResponse({ success: false, error: error.message }))
     return true // Keep the message channel open for async response
@@ -159,10 +160,29 @@ async function sendProgress(tabId: number | undefined, message: string) {
   }
 }
 
-async function handleAnalysis(userId: string, context?: string, tabId?: number, platform: SupportedPlatform = 'zhihu') {
-  console.log(`Analyzing user: ${userId}, Platform: ${platform}, Context: ${context}`)
+async function handleAnalysis(userId: string, context?: string, tabId?: number, platform: SupportedPlatform = 'zhihu', forceRefresh: boolean = false) {
+  console.log(`Analyzing user: ${userId}, Platform: ${platform}, Context: ${context}, ForceRefresh: ${forceRefresh}`)
   const startTime = Date.now();
   
+  // 1. Check cache first (if not forced)
+  if (!forceRefresh) {
+    // Pass context to getRecord to ensure we only get cache that matches the current context
+    const cachedRecord = await HistoryService.getRecord(userId, platform, context);
+    if (cachedRecord) {
+      console.log(`Cache hit for user ${userId} with context ${context}`);
+      await sendProgress(tabId, "已从本地缓存加载结果 (秒开!)");
+      
+      return {
+        profile: cachedRecord.profileData,
+        items: [], // We don't store raw items in cache to save space
+        userProfile: null, // We'll need to fetch this if we want to show it, but for cache speed we skip
+        fromCache: true,
+        cachedAt: cachedRecord.timestamp,
+        cachedContext: cachedRecord.context
+      };
+    }
+  }
+
   const config = await ConfigService.getConfig()
   const limit = config.analyzeLimit || 15
 
@@ -205,12 +225,21 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
       cleanText = contextForLLM + cleanText;
   }
   
-
-  
   try {
       const llmResponse = await LLMService.generateProfile(cleanText)
       
       const totalDuration = Date.now() - startTime;
+
+      // 2. Save to History
+      await HistoryService.saveRecord({
+        userId,
+        platform,
+        profileData: llmResponse.content,
+        context: context,
+        timestamp: Date.now(),
+        model: llmResponse.model,
+        version: "1.0"
+      });
 
       let debugInfo = undefined;
       if (config.enableDebug) {
@@ -238,7 +267,8 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
         profile: llmResponse.content,
         items: items,
         userProfile: userProfile,
-        debugInfo: debugInfo
+        debugInfo: debugInfo,
+        fromCache: false
       }
   } catch (error) {
       let msg = error.message;

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react"
 import { ConfigService } from "~services/ConfigService"
-import { DEFAULT_CONFIG, type AIProvider, type AppConfig, type AnalysisMode, type SupportedPlatform } from "~types"
+import { HistoryService } from "~services/HistoryService"
+import { DEFAULT_CONFIG, type AIProvider, type AppConfig, type AnalysisMode, type SupportedPlatform, type HistoryRecord } from "~types"
 
 const PROVIDERS: { value: AIProvider; label: string }[] = [
   { value: "openai", label: "OpenAI" },
@@ -15,10 +16,11 @@ const PLATFORMS = [
   { id: 'general', name: '通用设置', icon: '⚙️' },
   { id: 'zhihu', name: '知乎设置', icon: '🔵' },
   { id: 'reddit', name: 'Reddit 设置', icon: '🟠' },
+  { id: 'history', name: '历史记录', icon: '📅' },
   { id: 'debug', name: '开发者选项', icon: '🛠️' },
 ]
 
-type PlatformId = 'general' | 'zhihu' | 'reddit' | 'debug';
+type PlatformId = 'general' | 'zhihu' | 'reddit' | 'debug' | 'history';
 
 const Card: React.FC<{ title: string; children: React.ReactNode; icon?: string }> = ({ title, children, icon }) => (
   <div style={{
@@ -75,12 +77,47 @@ export default function Options() {
   const [isTesting, setIsTesting] = useState(false)
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null)
   const [activePlatform, setActivePlatform] = useState<PlatformId>('general')
+  
+  const [historyRecords, setHistoryRecords] = useState<HistoryRecord[]>([])
+  const [loadingHistory, setLoadingHistory] = useState(false)
 
   useEffect(() => {
     ConfigService.getConfig().then((c) => {
         setConfig({ ...DEFAULT_CONFIG, ...c })
     })
   }, [])
+
+  useEffect(() => {
+    if (activePlatform === 'history') {
+      loadHistory();
+    }
+  }, [activePlatform]);
+
+  const loadHistory = async () => {
+    setLoadingHistory(true);
+    try {
+      const records = await HistoryService.getAllRecords();
+      setHistoryRecords(records);
+    } catch (e) {
+      console.error("Failed to load history:", e);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  const handleDeleteRecord = async (userId: string, platform: SupportedPlatform) => {
+    if (confirm(`确定要删除用户 ${userId} 的历史记录吗？`)) {
+      await HistoryService.deleteRecord(userId, platform);
+      await loadHistory(); // Reload list
+    }
+  };
+
+  const handleClearAllHistory = async () => {
+    if (confirm("确定要清空所有历史记录吗？此操作不可恢复。")) {
+      await HistoryService.clearAll();
+      await loadHistory(); // Reload list
+    }
+  };
 
   const fetchModels = useCallback(async (provider: AIProvider, apiKey: string, baseUrl: string) => {
     if (!apiKey && provider !== 'ollama') {
@@ -528,6 +565,111 @@ export default function Options() {
               }}>
                   🚧 Reddit 平台支持正在开发中...
               </div>
+          </Card>
+        );
+      case 'history':
+        return (
+          <Card title="历史记录管理" icon="📅">
+            <div style={{ marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ fontSize: "14px", color: "#666" }}>
+                共 {historyRecords.length} 条记录 (保留最近 100 条，24小时过期)
+              </div>
+              {historyRecords.length > 0 && (
+                <button
+                  onClick={handleClearAllHistory}
+                  style={{
+                    padding: "8px 16px",
+                    backgroundColor: "#fee2e2",
+                    color: "#c53030",
+                    border: "none",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    fontSize: "13px",
+                    fontWeight: "600"
+                  }}
+                >
+                  🗑️ 清空所有
+                </button>
+              )}
+            </div>
+
+            {loadingHistory ? (
+              <div style={{ textAlign: "center", padding: "40px", color: "#a0aec0" }}>
+                加载中...
+              </div>
+            ) : historyRecords.length === 0 ? (
+              <div style={{ 
+                textAlign: "center", 
+                padding: "40px", 
+                backgroundColor: "#f8fafc", 
+                borderRadius: "10px",
+                color: "#a0aec0",
+                border: "1px dashed #e2e8f0"
+              }}>
+                暂无历史记录
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                {historyRecords.map((record) => {
+                  const date = new Date(record.timestamp);
+                  const timeStr = date.toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                  const nickname = record.profileData.nickname || record.userId;
+                  const topic = record.profileData.topic_classification || "未知话题";
+                  
+                  return (
+                    <div key={`${record.platform}-${record.userId}`} style={{
+                      padding: "16px",
+                      backgroundColor: "#fff",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "10px",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      transition: "all 0.2s",
+                      boxShadow: "0 2px 4px rgba(0,0,0,0.02)"
+                    }}>
+                      <div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                          <span style={{ 
+                            fontSize: "12px", 
+                            padding: "2px 6px", 
+                            borderRadius: "4px", 
+                            backgroundColor: record.platform === 'zhihu' ? '#e1f0fa' : '#ffedd5',
+                            color: record.platform === 'zhihu' ? '#2980b9' : '#c05621',
+                            fontWeight: "600"
+                          }}>
+                            {record.platform === 'zhihu' ? '知乎' : 'Reddit'}
+                          </span>
+                          <span style={{ fontWeight: "600", color: "#2d3748" }}>{nickname}</span>
+                          <span style={{ fontSize: "13px", color: "#a0aec0" }}>({record.userId})</span>
+                        </div>
+                        <div style={{ fontSize: "13px", color: "#718096" }}>
+                          <span style={{ marginRight: "12px" }}>🕒 {timeStr}</span>
+                          <span>🏷️ {topic}</span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteRecord(record.userId, record.platform)}
+                        style={{
+                          padding: "8px",
+                          backgroundColor: "transparent",
+                          border: "none",
+                          cursor: "pointer",
+                          fontSize: "16px",
+                          color: "#cbd5e0",
+                          transition: "color 0.2s"
+                        }}
+                        onMouseOver={e => e.currentTarget.style.color = "#e53e3e"}
+                        onMouseOut={e => e.currentTarget.style.color = "#cbd5e0"}
+                        title="删除此记录"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </Card>
         );
       case 'debug':
