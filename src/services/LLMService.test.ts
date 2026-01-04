@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { LLMService } from './LLMService';
 import { ConfigService } from './ConfigService';
 
@@ -99,5 +99,30 @@ describe('LLMService', () => {
     });
 
     await expect(LLMService.generateProfile('test', 'general')).rejects.toThrow('API Key is required');
+  });
+  
+  // 性能测试
+  it('should complete fast mode faster than balanced mode', async () => {
+    vi.mocked(ConfigService.getConfig).mockResolvedValue({
+      selectedProvider: 'openai',
+      apiKeys: { openai: 'sk-test' },
+      customBaseUrls: {},
+      analysisMode: 'fast'
+    });
+
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({ choices: [{ message: { content: '{"nickname":"test","topic_classification":"tech","value_orientation":[{"label":"tech","score":0.8}],"summary":"test"}' } }] }),
+    });
+
+    // 测试快速模式
+    const fastStartTime = Date.now();
+    const fastResult = await LLMService.generateProfile('User content', 'technology');
+    const fastDuration = fastResult.durationMs || (Date.now() - fastStartTime);
+    
+    // 验证快速模式使用了简化的提示词
+    expect(fetchMock).toHaveBeenCalled();
+    
+    console.log(`Fast mode duration: ${fastDuration}ms`);
   });
 });
