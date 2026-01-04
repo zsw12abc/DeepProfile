@@ -1,5 +1,6 @@
 import type { AnalysisMode } from "~types";
 import { LABEL_CATEGORIES, LabelDefinition, CategoryDefinition } from "./LabelDefinitions";
+import { getRelevantLabelsByTopic } from "./LabelUtils";
 
 export interface ClassificationResult {
   category: string;
@@ -52,23 +53,26 @@ export class LabelService {
       };
     }
 
-    // 这里可以实现更复杂的分析逻辑
-    // 目前返回占位符结果，实际应用中应根据内容分析得出具体分数
-    const applicableLabels = this.getLabelsByCategory(category.id);
+    // 获取与话题相关的标签
+    const relevantLabels = getRelevantLabelsByTopic(topicClassification);
+    const relevantLabelIds = relevantLabels.map(l => l.id);
     
     // 模拟分析结果 - 实际应用中应根据内容进行分析
     const results: Array<{ labelId: string; score: number; name: string; }> = [];
     
-    for (const label of applicableLabels) {
-      // 这里应该根据内容分析得出实际分数
-      // 为了演示，我们返回一些示例分数
-      const score = this.calculateScoreFromContent(content, label);
-      if (Math.abs(score) > 0.3) { // 只返回绝对值大于0.3的标签
-        results.push({
-          labelId: label.id,
-          score,
-          name: label.name
-        });
+    // 只对相关标签进行分析
+    for (const label of this.categories.flatMap(cat => cat.labels)) {
+      if (relevantLabelIds.includes(label.id)) {
+        // 这里应该根据内容分析得出实际分数
+        // 为了演示，我们返回一些示例分数
+        const score = this.calculateScoreFromContent(content, label);
+        if (Math.abs(score) > 0.3) { // 只返回绝对值大于0.3的标签
+          results.push({
+            labelId: label.id,
+            score,
+            name: label.name
+          });
+        }
       }
     }
 

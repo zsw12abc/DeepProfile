@@ -8,7 +8,7 @@ import { StringOutputParser } from "@langchain/core/output_parsers"
 import { RunnableSequence } from "@langchain/core/runnables"
 
 export interface LLMResponse {
-  content: string;
+  content: any;
   usage?: {
     prompt_tokens: number;
     completion_tokens: number;
@@ -29,7 +29,7 @@ export class LLMService {
     
     let basePrompt = `你是一个专业的政治倾向与心理分析师。请根据以下用户的动态（回答和文章），生成一份详细的用户画像。
 
-请严格按照以下 JSON 格式返回结果（不要包含 Markdown 代码块标记）：
+请严格按照以下 JSON 格式返回结果（不要包含 Markdown 代码块标记，返回格式化后的JSON，包含适当的缩进和换行以提高可读性）：
 
 {
   "nickname": "用户昵称（如果无法获取则留空）",
@@ -71,6 +71,19 @@ ${standardLabels}
 9.  严禁对非政治内容强行关联政治标签。如果话题是动漫，就不要输出政治标签，而是输出与动漫相关的标签。
 10. 请始终使用 "political_leaning" 字段，格式为 [{"label": "标签名", "score": 0.X}]，不要使用 "value_orientation" 字段。
 11. 请直接返回JSON格式内容，不要添加任何Markdown代码块标记（如\`\`\`json 或 \`\`\`）。
+12. 请返回格式化后的JSON，包含适当的缩进和换行，以提高可读性。
+`;
+
+    // 根据话题分类添加额外指导
+    // 注意：实际话题分类会在运行时提供，这里仅作为示例
+    basePrompt += `
+12. 话题相关性指导：
+    - 如果话题分类为"政治"，请重点关注政治倾向、经济观点等标签
+    - 如果话题分类为"科技"，请重点关注技术观点、创新导向等标签
+    - 如果话题分类为"经济"，请重点关注经济政策相关标签
+    - 如果话题分类为"文化"，请重点关注文化价值观相关标签
+    - 如果话题分类为"环境"，请重点关注环境保护相关标签
+    - 请确保输出的标签与话题分类高度相关
 `;
 
     if (mode === 'fast') {
@@ -195,7 +208,7 @@ class LangChainProvider implements LLMProvider {
         });
         break;
       default:
-        throw new Error(`Unsupported provider: ${this.provider}`);
+        throw new Error(`Unsupported provider: ${this.provider}`)
     }
   }
 
@@ -224,15 +237,15 @@ class LangChainProvider implements LLMProvider {
 
       // 验证和处理响应
       const validatedContent = this.validateAndFixResponse(result);
+      const parsedContent = JSON.parse(validatedContent); // 解析为对象而不是保持为字符串
       
       // 调试输出 - 显示LLM返回的标签分数
       const debugConfig = await ConfigService.getConfig();
       if (debugConfig.enableDebug) {
         try {
-          const parsedResult = JSON.parse(validatedContent);
-          if (parsedResult.political_leaning && parsedResult.political_leaning.length > 0) {
+          if (parsedContent.political_leaning && parsedContent.political_leaning.length > 0) {
             console.log("【LANGCHAIN LABEL SCORES】LLM评判的标签分数：");
-            for (const label of parsedResult.political_leaning) {
+            for (const label of parsedContent.political_leaning) {
               console.log(`  - ${label.label}: ${label.score}`);
             }
           } else {
@@ -246,40 +259,66 @@ class LangChainProvider implements LLMProvider {
       // Note: LangChain doesn't provide token usage in the same way as direct API calls
       // We'll return undefined for usage for now
       return {
-          content: validatedContent,
+          content: parsedContent,  // 直接返回解析后的对象
           usage: undefined,
           durationMs,
           model: this.model
       }
     } catch (error) {
       console.error("LangChain API Error:", error);
+      // 检查错误是否与不当内容相关
+      if (error.message && (error.message.includes('inappropriate content') || error.message.includes('不当内容'))) {
+        // 返回一个默认的、安全的响应
+        const defaultResponse = JSON.stringify({
+          nickname: "",
+          topic_classification: "内容分析",
+          political_leaning: [],
+          summary: "由于内容安全策略，无法生成详细分析",
+          evidence: []
+        }, null, 2);  // 格式化JSON，增加缩进
+        
+        const durationMs = Date.now() - startTime;
+        return {
+          content: defaultResponse,
+          usage: undefined,
+          durationMs,
+          model: this.model
+        };
+      }
       throw error;
     }
   }
   
   private validateAndFixResponse(response: string): string {
     try {
-      // 清理响应内容，移除可能的Markdown代码块标记
-      let cleanedResponse = response.trim();
-      
-      // 处理各种可能的Markdown代码块标记
-      // 移除开头的 ```json
-      if (cleanedResponse.startsWith('```json')) {
-        cleanedResponse = cleanedResponse.substring(7);
+      // 首先尝试直接解析响应，如果响应已经是格式良好的JSON字符串（带转义）
+      let parsed;
+      try {
+        // 直接尝试解析，这会处理像"{\"nickname\": \"...\"}"这样的转义字符串
+        parsed = JSON.parse(response);
+      } catch (parseError) {
+        // 如果直接解析失败，尝试清理Markdown标记后再解析
+        let cleanedResponse = response.trim();
+        
+        // 处理各种可能的Markdown代码块标记
+        // 移除开头的 ```json
+        if (cleanedResponse.startsWith('```json')) {
+          cleanedResponse = cleanedResponse.substring(7);
+        }
+        // 移除开头的 ```
+        if (cleanedResponse.startsWith('```')) {
+          cleanedResponse = cleanedResponse.substring(3);
+        }
+        // 移除结尾的 ```
+        if (cleanedResponse.endsWith('```')) {
+          cleanedResponse = cleanedResponse.substring(0, cleanedResponse.length - 3);
+        }
+        
+        cleanedResponse = cleanedResponse.trim();
+        
+        // 尝试解析清理后的响应
+        parsed = JSON.parse(cleanedResponse);
       }
-      // 移除开头的 ```
-      if (cleanedResponse.startsWith('```')) {
-        cleanedResponse = cleanedResponse.substring(3);
-      }
-      // 移除结尾的 ```
-      if (cleanedResponse.endsWith('```')) {
-        cleanedResponse = cleanedResponse.substring(0, cleanedResponse.length - 3);
-      }
-      
-      cleanedResponse = cleanedResponse.trim();
-      
-      // 尝试解析响应
-      const parsed = JSON.parse(cleanedResponse);
       
       // 验证必需字段
       if (!parsed.political_leaning) {
@@ -302,7 +341,7 @@ class LangChainProvider implements LLMProvider {
         });
       }
       
-      return JSON.stringify(parsed);
+      return JSON.stringify(parsed, null, 2);  // 格式化JSON，增加缩进
     } catch (e) {
       console.error("Response validation error:", e, "Raw response:", response);
       // 如果解析失败，尝试更激进的清理方法
@@ -336,7 +375,7 @@ class LangChainProvider implements LLMProvider {
             });
           }
           
-          return JSON.stringify(parsed);
+          return JSON.stringify(parsed, null, 2);  // 格式化JSON，增加缩进
         }
       } catch (ex) {
         console.error("Failed to extract JSON from response:", ex);
@@ -349,7 +388,7 @@ class LangChainProvider implements LLMProvider {
         political_leaning: [],
         summary: "分析失败",
         evidence: []
-      });
+      }, null, 2);  // 格式化JSON，增加缩进
     }
   }
 }
@@ -387,7 +426,28 @@ class OllamaProvider implements LLMProvider {
     const durationMs = Date.now() - startTime;
 
     if (!response.ok) {
-      throw new Error(`Ollama API Error: ${response.status}`)
+      // 检查是否是内容安全错误
+      const errorText = await response.text();
+      console.error(`Ollama API Error: ${response.status}`, errorText);
+      
+      if (errorText.includes('inappropriate') || errorText.includes('不当内容')) {
+        const defaultResponse = JSON.stringify({
+          nickname: "",
+          topic_classification: "内容分析",
+          political_leaning: [],
+          summary: "由于内容安全策略，无法生成详细分析",
+          evidence: []
+        }, null, 2);  // 格式化JSON，增加缩进
+        
+        return {
+          content: defaultResponse,
+          usage: undefined,
+          durationMs,
+          model: this.model
+        };
+      }
+      
+      throw new Error(`Ollama API Error: ${response.status} - ${errorText}`)
     }
 
     const data = await response.json()
@@ -405,15 +465,15 @@ class OllamaProvider implements LLMProvider {
     // 验证和处理响应
     const content = data.response || "{}";
     const validatedContent = this.validateAndFixResponse(content);
+    const parsedContent = JSON.parse(validatedContent); // 解析为对象而不是保持为字符串
     
     // 调试输出 - 显示LLM返回的标签分数
     const debugConfig = await ConfigService.getConfig();
     if (debugConfig.enableDebug) {
       try {
-        const parsedResult = JSON.parse(validatedContent);
-        if (parsedResult.political_leaning && parsedResult.political_leaning.length > 0) {
+        if (parsedContent.political_leaning && parsedContent.political_leaning.length > 0) {
           console.log("【LANGCHAIN LABEL SCORES】LLM评判的标签分数：");
-          for (const label of parsedResult.political_leaning) {
+          for (const label of parsedContent.political_leaning) {
             console.log(`  - ${label.label}: ${label.score}`);
           }
         } else {
@@ -425,7 +485,7 @@ class OllamaProvider implements LLMProvider {
     }
     
     return {
-        content: validatedContent,
+        content: parsedContent,  // 直接返回解析后的对象
         usage,
         durationMs,
         model: this.model
@@ -477,7 +537,7 @@ class OllamaProvider implements LLMProvider {
         });
       }
       
-      return JSON.stringify(parsed);
+      return JSON.stringify(parsed, null, 2);  // 格式化JSON，增加缩进
     } catch (e) {
       console.error("Response validation error:", e, "Raw response:", response);
       // 如果解析失败，尝试更激进的清理方法
@@ -511,7 +571,7 @@ class OllamaProvider implements LLMProvider {
             });
           }
           
-          return JSON.stringify(parsed);
+          return JSON.stringify(parsed, null, 2);  // 格式化JSON，增加缩进
         }
       } catch (ex) {
         console.error("Failed to extract JSON from response:", ex);
@@ -524,7 +584,7 @@ class OllamaProvider implements LLMProvider {
         political_leaning: [],
         summary: "分析失败",
         evidence: []
-      });
+      }, null, 2);  // 格式化JSON，增加缩进
     }
   }
 }

@@ -28,7 +28,16 @@ const RedditOverlay = () => {
       }
     }
     chrome.runtime.onMessage.addListener(messageListener)
-    return () => chrome.runtime.onMessage.removeListener(messageListener)
+    
+    // 安全地清理事件监听器
+    return () => {
+      try {
+        chrome.runtime.onMessage.removeListener(messageListener)
+      } catch (e) {
+        // 忽略上下文失效错误
+        console.debug("Extension context may have been invalidated, ignoring error:", e)
+      }
+    }
   }, [])
 
   useEffect(() => {
@@ -129,7 +138,15 @@ const RedditOverlay = () => {
       subtree: true
     })
 
-    return () => observer.disconnect()
+    // 安全地清理DOM观察器
+    return () => {
+      try {
+        observer.disconnect()
+      } catch (e) {
+        // 忽略上下文失效错误
+        console.debug("Extension context may have been invalidated, ignoring error:", e)
+      }
+    }
   }, [])
 
   const handleAnalyze = async (userId: string, nickname?: string, context?: string) => {

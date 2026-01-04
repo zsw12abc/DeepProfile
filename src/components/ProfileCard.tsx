@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import type { ZhihuContent, UserProfile } from "~services/ZhihuClient"
-import { calculateFinalLabel, getLabelInfo, parseLabelName } from "~services/LabelUtils"
+import { calculateFinalLabel, getLabelInfo, parseLabelName, filterLabelsByTopic } from "~services/LabelUtils"
 
 interface ProfileData {
   nickname?: string
@@ -27,7 +27,7 @@ interface DebugInfo {
   fetchStrategy?: string;
   tokens?: {
     prompt_tokens: number;
-    completion_tokens: number;
+    completion_tokens: number,
     total_tokens: number;
   };
 }
@@ -36,7 +36,16 @@ interface ProfileCardProps {
   userId: string
   initialNickname?: string
   profileData: {
-    profile: string
+    profile: {  // 现在 profile 是 LLMResponse 对象
+      content: any,  // 解析后的画像数据
+      usage?: {
+        prompt_tokens: number;
+        completion_tokens: number;
+        total_tokens: number;
+      };
+      durationMs: number;
+      model: string;
+    },
     items: ZhihuContent[]
     userProfile: UserProfile | null
     debugInfo?: DebugInfo
@@ -47,160 +56,7 @@ interface ProfileCardProps {
   onClose: () => void
 }
 
-// 中英文标签映射
-const labelMapping: { [key: string]: string } = {
-  // 政治倾向
-  "left-right": "左右倾向",
-  "left": "左派",
-  "right": "右派",
-  "liberal-conservative": "自由保守",
-  "liberal": "自由派",
-  "conservative": "保守派",
-  "radical-moderate": "激进温和",
-  "radical": "激进派",
-  "moderate": "温和派",
-  "libertarian-authoritarian": "自由威权",
-  "libertarian": "自由意志",
-  "authoritarian": "威权主义",
-  "capitalist-socialist": "资本主义-社会主义",
-  "capitalist": "资本主义",
-  "socialist": "社会主义",
-  "nationalist-globalist": "民族主义-全球主义",
-  "nationalist": "民族主义",
-  "globalist": "全球主义",
-  
-  // 经济观点
-  "market-intervention": "市场干预",
-  "market": "市场主导",
-  "intervention": "政府干预",
-  "wealth-distribution": "财富分配",
-  "wealth": "财富",
-  "distribution": "分配",
-  "free-competition": "自由竞争",
-  "equal-distribution": "平等分配",
-  
-  // 社会观点
-  "individual-collective": "个人集体",
-  "individual": "个人主义",
-  "collective": "集体主义",
-  "traditional-progressive": "传统进步",
-  "traditional": "传统派",
-  "progressive": "进步派",
-  
-  // 科技观点
-  "technology-view": "科技观点",
-  "innovation-security": "创新安全",
-  "innovation": "创新导向",
-  "security": "安全导向",
-  "open-proprietary": "开放封闭",
-  "open": "开放",
-  "proprietary": "封闭",
-  
-  // 文化观点
-  "cultural-view": "文化观点",
-  "local-global": "本土全球",
-  "local": "本土化",
-  // global is already defined above
-  "material-spiritual": "物质精神",
-  "material": "物质",
-  "spiritual": "精神",
-  
-  // 环境观点
-  "environment-view": "环境观点",
-  "development-protection": "发展保护",
-  "development": "发展",
-  "protection": "保护"
-};
-
-// 将英文标签转换为中文
-const getChineseLabel = (label: string): string => {
-  if (!label) return label;
-  const lowerLabel = label.toLowerCase().trim();
-  
-  // 尝试直接匹配
-  if (labelMapping[lowerLabel]) return labelMapping[lowerLabel];
-  
-  // 尝试处理包含 vs 的情况
-  if (lowerLabel.includes(' vs ')) {
-    const parts = lowerLabel.split(' vs ');
-    const left = labelMapping[parts[0]] || parts[0];
-    const right = labelMapping[parts[1]] || parts[1];
-    return `${left} vs ${right}`;
-  }
-  
-  // 尝试处理包含 - 的情况 (如果是复合词，且在mapping中找不到整体)
-  if (lowerLabel.includes('-')) {
-    // 检查是否是已知的复合键
-    if (labelMapping[lowerLabel]) return labelMapping[lowerLabel];
-  }
-  
-  return label;
-};
-
-// Helper to render political leaning tags
-const renderPoliticalLeaning = (data: ProfileData) => {
-  if (!data?.political_leaning) return null;
-  
-  const tags = Array.isArray(data.political_leaning) ? data.political_leaning : [];
-  
-  if (tags.length === 0) return null;
-
-  // Filter tags with absolute score >= 0.3 (significant scores)
-  const significantTags = tags.filter(tag => 
-    typeof tag === 'object' && tag.score !== undefined && Math.abs(tag.score) >= 0.3
-  ) as Array<{ label: string; score: number }>;
-  
-  if (significantTags.length === 0) return null;
-
-  return (
-    <div style={{ marginBottom: "16px" }}>
-      <div style={{ fontSize: "12px", fontWeight: "bold", color: "#8590a6", marginBottom: "6px" }}>
-        倾向标签
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-        {significantTags.map((tag, i) => {
-          const { label, score } = tag;
-          const finalLabel = calculateFinalLabel(label, score);
-          // 转换为中文标签
-          const chineseLabel = getChineseLabel(finalLabel.label);
-          
-          return (
-            <div key={i} style={{ display: "flex", alignItems: "center", fontSize: "12px" }}>
-              <span
-                style={{
-                  backgroundColor: "#e3f2fd",
-                  color: "#0084ff",
-                  padding: "4px 8px",
-                  borderRadius: "4px",
-                  fontWeight: "500",
-                  marginRight: "8px",
-                  minWidth: "100px",
-                  textAlign: "center"
-                }}>
-                {chineseLabel}
-              </span>
-              <div style={{ flex: 1, height: "6px", backgroundColor: "#eee", borderRadius: "3px", overflow: "hidden" }}>
-                <div 
-                  style={{ 
-                    width: `${finalLabel.percentage}%`, 
-                    height: "100%", 
-                    backgroundColor: finalLabel.percentage > 70 ? "#0084ff" : "#90caf9",
-                    borderRadius: "3px"
-                  }} 
-                />
-              </div>
-              <span style={{ marginLeft: "8px", color: "#999", fontSize: "11px", width: "60px", textAlign: "right" }}>
-                {finalLabel.percentage}%
-              </span>
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  );
-};
-
-export const ProfileCard: React.FC<ProfileCardProps> = ({
+const ProfileCard: React.FC<ProfileCardProps> = ({
   userId,
   initialNickname,
   profileData,
@@ -209,89 +65,57 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
   error,
   onClose
 }) => {
-  const [isEvidenceExpanded, setIsEvidenceExpanded] = useState(false)
-
-  let data: ProfileData | null = null
+  const [showDebug, setShowDebug] = useState(false)
+  const [expandedEvidence, setExpandedEvidence] = useState(false)
   
-  if (profileData?.profile) {
+  let nickname = initialNickname || "未知用户"
+  let topicClassification = "未知话题"
+  let politicalLeaning: Array<{ label: string; score: number }> = []
+  let summary = ""
+  let evidence: Array<{ quote: string; analysis: string; source_title: string; source_id?: string }> = []
+  let debugInfo: DebugInfo | undefined
+  let items: ZhihuContent[] = []
+
+  if (profileData) {
     try {
-      const cleanedProfile = profileData.profile.replace(/^```json\s*|```\s*$/g, '').trim();
-      data = JSON.parse(cleanedProfile)
+      // 现在 profileData.profile 已经是解析后的对象，无需再访问 .content
+      const parsedProfile = profileData.profile;
+      nickname = parsedProfile.nickname || nickname
+      topicClassification = parsedProfile.topic_classification || topicClassification
+      
+      // 应用话题相关性过滤
+      if (Array.isArray(parsedProfile.political_leaning)) {
+        politicalLeaning = filterLabelsByTopic(parsedProfile.political_leaning, topicClassification);
+      }
+      
+      summary = parsedProfile.summary || ""
+      evidence = parsedProfile.evidence || []
+      debugInfo = profileData.debugInfo
+      items = profileData.items || []
     } catch (e) {
-      console.error("Failed to parse profile JSON:", e, "Raw profile:", profileData.profile);
-      data = { summary: profileData.profile }
+      console.error("Failed to parse profile data:", e)
     }
   }
 
-  const getSourceUrl = (sourceId?: string) => {
-    if (!sourceId || !profileData?.items) return null
-    const item = profileData.items.find(i => String(i.id) === String(sourceId))
+  const displayName = nickname || `用户${userId.substring(0, 8)}`
+  const userHomeUrl = `https://www.zhihu.com/people/${userId}`
+
+  const toggleDebug = () => setShowDebug(!showDebug)
+  const toggleEvidence = () => setExpandedEvidence(!expandedEvidence)
+
+  // 计算进度条
+  const renderProgressBar = () => {
+    if (!loading && !statusMessage) return null; // 如果不是loading状态且没有状态消息，不显示进度条
     
-    if (item) {
-        if (item.type === 'answer') {
-            if (item.question_id) {
-                return `https://www.zhihu.com/question/${item.question_id}/answer/${item.id}`;
-            }
-            return `https://www.zhihu.com/answer/${item.id}`;
-        } else if (item.type === 'article') {
-            return `https://www.zhihu.com/p/${item.id}`;
-        }
-    }
-    return null
-  }
-
-  const userHomeUrl = profileData?.userProfile?.url_token 
-    ? `https://www.zhihu.com/people/${profileData.userProfile.url_token}`
-    : `https://www.zhihu.com/people/${userId}`
-
-  const displayName = data?.nickname || profileData?.userProfile?.name || initialNickname || userId
-
-  const renderValueOrientation = () => {
-    if (!data?.value_orientation) return null;
+    // 判断是否已经收到LLM响应
+    const hasLLMResponse = profileData !== null;
+    
+    // 如果已经收到LLM响应，则不显示进度条
+    if (hasLLMResponse) return null;
     
     return (
-      <div style={{ marginBottom: "16px" }}>
-        <div style={{ fontSize: "12px", fontWeight: "bold", color: "#8590a6", marginBottom: "6px" }}>
-          价值取向
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          {data.value_orientation.map((item, i) => {
-            // 正确处理 value_orientation 格式，显示 label 而不是 dimension
-            const displayLabel = item.label; // 直接使用 label 字段
-            const displayScore = item.score;
-
-            return (
-              <div key={i} style={{ display: "flex", alignItems: "center", fontSize: "12px" }}>
-                <span
-                  style={{
-                    backgroundColor: "#e3f2fd",
-                    color: "#0084ff",
-                    padding: "4px 8px",
-                    borderRadius: "4px",
-                    fontWeight: "500",
-                    marginRight: "8px",
-                    minWidth: "100px",
-                    textAlign: "center"
-                  }}>
-                  {getChineseLabel(displayLabel)}
-                </span>
-                <div style={{ flex: 1, height: "6px", backgroundColor: "#eee", borderRadius: "3px", overflow: "hidden" }}>
-                  <div 
-                    style={{ 
-                      width: `${Math.abs(displayScore) * 100}%`, 
-                      height: "100%", 
-                      backgroundColor: Math.abs(displayScore) > 0.7 ? "#0084ff" : "#90caf9",
-                      borderRadius: "3px"
-                    }} 
-                  />
-                </div>
-                <span style={{ marginLeft: "8px", color: "#999", fontSize: "11px", width: "40px", textAlign: "right" }}>
-                  {Math.round(Math.abs(displayScore) * 100)}%
-                </span>
-              </div>
-            )
-          })}
-        </div>
+      <div style={{ marginBottom: "16px", fontSize: "14px", color: "#666" }}>
+        {statusMessage}
       </div>
     );
   }
@@ -340,147 +164,379 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
                 </a>
             )}
           </h3>
-          <span style={{ fontSize: "12px", color: "#8590a6" }}>
-            {profileData?.userProfile?.headline || "用户画像分析"}
-          </span>
+          <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
+            话题分类: <span style={{ fontWeight: "500", color: "#0084ff" }}>{topicClassification}</span>
+          </div>
         </div>
         <button
           onClick={onClose}
           style={{
+            background: "none",
             border: "none",
-            background: "transparent",
+            fontSize: "18px",
             cursor: "pointer",
-            fontSize: "20px",
             color: "#999",
-            padding: "0 5px"
-          }}>
-          ✕
+            padding: "0",
+            width: "24px",
+            height: "24px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center"
+          }}
+          onMouseOver={(e) => (e.currentTarget.style.color = "#333")}
+          onMouseOut={(e) => (e.currentTarget.style.color = "#999")}
+        >
+          ×
         </button>
       </div>
 
-      {loading && (
-        <div style={{ textAlign: "center", padding: "30px 20px", color: "#0084ff" }}>
-          <div style={{ marginBottom: "10px", fontSize: "24px" }} className="spin">⏳</div>
-          <div style={{ fontWeight: "500" }}>{statusMessage || "正在分析..."} </div>
-          <div style={{ fontSize: "12px", color: "#999", marginTop: "5px" }}>请稍候，AI 正在阅读内容</div>
-          <style>{`
-            @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-            .spin { display: inline-block; animation: spin 2s linear infinite; }
-          `}</style>
-        </div>
-      )}
+      {/* 进度条区域 - 放在最上面 */}
+      {renderProgressBar()}
 
       {error && (
-        <div style={{ color: "#f44336", backgroundColor: "#ffebee", padding: "10px", borderRadius: "4px" }}>
-          Error: {error}
+        <div style={{ marginBottom: "16px", padding: "12px", backgroundColor: "#ffebee", borderRadius: "6px", color: "#c62828" }}>
+          错误: {error}
         </div>
       )}
 
-      {!loading && !error && data && (
+      {loading ? (
+        <div style={{ textAlign: "center", padding: "20px 0" }}>
+          <div style={{ fontSize: "16px", marginBottom: "12px", color: "#0084ff" }}>正在分析用户画像...</div>
+          <div style={{ fontSize: "12px", color: "#666" }}>请稍候，这可能需要几秒钟</div>
+        </div>
+      ) : profileData ? (
         <div>
-          {/* 政治倾向标签 (带概率) - 优先显示 */}
-          {renderPoliticalLeaning(data)}
-          
-          {/* 价值取向 (备用) - 如果没有政治倾向标签则显示 */}
-          {!data.political_leaning && renderValueOrientation()}
-
-          {data.summary && (
+          {/* 倾向标签放在最上面 */}
+          {politicalLeaning && politicalLeaning.length > 0 && (
             <div style={{ marginBottom: "16px" }}>
-              <div style={{ fontSize: "12px", fontWeight: "bold", color: "#8590a6", marginBottom: "6px" }}>
-                画像总结
-              </div>
-              <div style={{ lineHeight: "1.6", color: "#444", textAlign: "justify" }}>
-                {data.summary}
+              <h4 style={{ margin: "0 0 8px 0", fontSize: "14px", fontWeight: "600", color: "#333" }}>倾向标签</h4>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {politicalLeaning.map((item, index) => {
+                  if (typeof item === 'string') {
+                    return (
+                      <div
+                        key={index}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          padding: "6px 12px",
+                          backgroundColor: "#f0f0f0",
+                          borderRadius: "12px",
+                          fontSize: "12px",
+                          color: "#666"
+                        }}
+                      >
+                        <span style={{ flex: "1", textAlign: "left" }}>{item}</span>
+                      </div>
+                    );
+                  } else {
+                    const { label: labelName, score } = item;
+                    const { label, percentage } = calculateFinalLabel(labelName, score);
+                    
+                    // 计算颜色，越极端越深
+                    const intensity = Math.min(100, percentage);
+                    const color = score >= 0 
+                      ? `hsl(210, 70%, ${70 - intensity * 0.3}%)` // 蓝色系偏向正分
+                      : `hsl(0, 70%, ${70 - Math.abs(intensity) * 0.3}%)`; // 红色系偏向负分
+
+                    return (
+                      <div
+                        key={index}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          padding: "6px 12px",
+                          backgroundColor: "#f8f8f8",
+                          borderRadius: "12px",
+                          fontSize: "12px"
+                        }}
+                      >
+                        <span style={{ 
+                          flex: "0 0 auto", 
+                          width: "120px", 
+                          color: "#333",
+                          backgroundColor: "#e8e8e8",
+                          padding: "4px 8px",
+                          borderRadius: "8px",
+                          fontSize: "11px",
+                          textAlign: "center"
+                        }}>
+                          {label}
+                        </span>
+                        <div style={{
+                          flex: "1",
+                          height: "12px",
+                          backgroundColor: "#e0e0e0",
+                          borderRadius: "6px",
+                          marginLeft: "10px",
+                          overflow: "hidden"
+                        }}>
+                          <div 
+                            style={{
+                              height: "100%",
+                              width: `${percentage}%`,
+                              backgroundColor: color,
+                              borderRadius: "6px"
+                            }}
+                          />
+                        </div>
+                        <span style={{ flex: "0 0 auto", width: "40px", textAlign: "right", color: "#666", fontSize: "11px" }}>
+                          {Math.round(percentage)}%
+                        </span>
+                      </div>
+                    );
+                  }
+                })}
               </div>
             </div>
           )}
 
-          {data.evidence && data.evidence.length > 0 && (
-            <div>
-              <div 
-                onClick={() => setIsEvidenceExpanded(!isEvidenceExpanded)}
-                style={{ 
-                  fontSize: "12px", 
-                  fontWeight: "bold", 
-                  color: "#8590a6", 
-                  marginBottom: "6px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  userSelect: "none"
-                }}>
-                <span style={{ marginRight: "4px" }}>{isEvidenceExpanded ? "▼" : "▶"}</span>
-                分析依据 ({data.evidence.length})
+          {summary && (
+            <div style={{ marginBottom: "16px", lineHeight: "1.5" }}>
+              <h4 style={{ margin: "0 0 8px 0", fontSize: "14px", fontWeight: "600", color: "#333" }}>用户总结</h4>
+              <div style={{ fontSize: "13px", color: "#555", lineHeight: "1.5" }}>
+                {summary}
+              </div>
+            </div>
+          )}
+
+          {evidence && evidence.length > 0 && (
+            <div style={{ marginBottom: "16px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                <h4 style={{ margin: "0", fontSize: "14px", fontWeight: "600", color: "#333" }}>分析依据</h4>
+                <button
+                  onClick={toggleEvidence}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "#0084ff",
+                    cursor: "pointer",
+                    fontSize: "12px",
+                    fontWeight: "500"
+                  }}
+                >
+                  {expandedEvidence ? "收起" : "展开"}
+                </button>
               </div>
               
-              {isEvidenceExpanded && (
-                <div style={{ 
-                  maxHeight: "300px", 
-                  overflowY: "auto", 
-                  paddingRight: "4px",
-                  marginTop: "8px"
-                }}>
-                  {data.evidence.map((item, i) => {
-                    const url = getSourceUrl(item.source_id);
+              {expandedEvidence && (
+                <div style={{ fontSize: "12px" }}>
+                  {evidence.map((item, index) => {
+                    // 查找对应的项目以获取URL
+                    const sourceItem = items.find(i => i.id === item.source_id);
+                    const sourceUrl = sourceItem?.url;
+                    const sourceTitle = sourceItem?.title || item.source_title;
+
                     return (
-                      <div key={i} style={{ marginBottom: "12px", backgroundColor: "#f9f9f9", padding: "10px", borderRadius: "6px" }}>
-                        <div style={{ fontStyle: "italic", color: "#666", marginBottom: "6px", fontSize: "13px", borderLeft: "3px solid #ddd", paddingLeft: "8px" }}>
+                      <div key={index} style={{ marginBottom: "12px", paddingBottom: "12px", borderBottom: index < evidence.length - 1 ? "1px solid #f0f0f0" : "none" }}>
+                        <div style={{ fontStyle: "italic", color: "#555", marginBottom: "4px" }}>
                           "{item.quote}"
                         </div>
-                        <div style={{ fontSize: "12px", marginBottom: "6px" }}>
-                          {url ? (
+                        <div style={{ color: "#666", marginBottom: "4px" }}>
+                          {item.analysis}
+                        </div>
+                        <div style={{ fontSize: "11px", color: "#888" }}>
+                          {/* 显示来源链接 */}
+                          来源: 
+                          {sourceUrl ? (
                             <a 
-                              href={url} 
+                              href={sourceUrl} 
                               target="_blank" 
                               rel="noopener noreferrer"
-                              style={{ color: "#0084ff", textDecoration: "none" }}
+                              style={{ 
+                                color: "#0084ff", 
+                                textDecoration: "none",
+                                marginLeft: "4px"
+                              }}
+                              onMouseOver={e => e.currentTarget.style.textDecoration = "underline"}
+                              onMouseOut={e => e.currentTarget.style.textDecoration = "none"}
                             >
-                              📄 {item.source_title}
+                              {sourceTitle?.length > 30 ? sourceTitle.substring(0, 30) + "..." : sourceTitle}
                             </a>
                           ) : (
-                            <span style={{ color: "#999" }}>📄 {item.source_title}</span>
+                            // 如果找不到匹配的URL，尝试根据source_id构建知乎链接
+                            (() => {
+                              // 检查是否有source_id
+                              if (item.source_id) {
+                                // 首先尝试在items中查找，通过ID匹配
+                                const itemWithId = items.find(i => i.id === item.source_id);
+                                if (itemWithId) {
+                                  // 如果找到了匹配的项目，尝试构建完整链接
+                                  if (itemWithId.question_id && itemWithId.id) {
+                                    // 构建标准的知乎回答链接格式
+                                    const constructedUrl = `https://www.zhihu.com/question/${itemWithId.question_id}/answer/${itemWithId.id}`;
+                                    return (
+                                      <a 
+                                        href={constructedUrl} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        style={{ 
+                                          color: "#0084ff", 
+                                          textDecoration: "none",
+                                          marginLeft: "4px"
+                                        }}
+                                        onMouseOver={e => e.currentTarget.style.textDecoration = "underline"}
+                                        onMouseOut={e => e.currentTarget.style.textDecoration = "none"}
+                                      >
+                                        {sourceTitle?.length > 30 ? sourceTitle.substring(0, 30) + "..." : sourceTitle}
+                                      </a>
+                                    );
+                                  } else if (itemWithId.url) {
+                                    // 如果项目有直接的URL，使用它
+                                    return (
+                                      <a 
+                                        href={itemWithId.url} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        style={{ 
+                                          color: "#0084ff", 
+                                          textDecoration: "none",
+                                          marginLeft: "4px"
+                                        }}
+                                        onMouseOver={e => e.currentTarget.style.textDecoration = "underline"}
+                                        onMouseOut={e => e.currentTarget.style.textDecoration = "none"}
+                                      >
+                                        {sourceTitle?.length > 30 ? sourceTitle.substring(0, 30) + "..." : sourceTitle}
+                                      </a>
+                                    );
+                                  }
+                                }
+                                
+                                // 如果在items中找不到，尝试根据ID类型构建链接
+                                if (/^\d+$/.test(item.source_id)) {
+                                  // 如果是纯数字ID，尝试构建可能的知乎链接
+                                  // 但由于我们没有问题ID，只能构建基于答案ID的链接
+                                  // 但知乎通常需要问题ID和答案ID
+                                  // 这里我们尝试使用答案ID作为路径的一部分
+                                  const constructedUrl = `https://www.zhihu.com/question/unknown/answer/${item.source_id}`;
+                                  return (
+                                    <a 
+                                      href={constructedUrl} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      style={{ 
+                                        color: "#0084ff", 
+                                        textDecoration: "none",
+                                        marginLeft: "4px"
+                                      }}
+                                      onMouseOver={e => e.currentTarget.style.textDecoration = "underline"}
+                                      onMouseOut={e => e.currentTarget.style.textDecoration = "none"}
+                                    >
+                                      {sourceTitle?.length > 30 ? sourceTitle.substring(0, 30) + "..." : sourceTitle}
+                                    </a>
+                                  );
+                                } else {
+                                  // 如果不是纯数字，尝试使用source_id作为可能的URL路径
+                                  let constructedUrl = item.source_id;
+                                  if (!item.source_id.startsWith('http')) {
+                                    // 如果不是完整URL，尝试构建
+                                    if (item.source_id.startsWith('/')) {
+                                      constructedUrl = `https://www.zhihu.com${item.source_id}`;
+                                    } else {
+                                      constructedUrl = `https://www.zhihu.com/question/${item.source_id}`;
+                                    }
+                                  }
+                                  return (
+                                    <a 
+                                      href={constructedUrl} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      style={{ 
+                                        color: "#0084ff", 
+                                        textDecoration: "none",
+                                        marginLeft: "4px"
+                                      }}
+                                      onMouseOver={e => e.currentTarget.style.textDecoration = "underline"}
+                                      onMouseOut={e => e.currentTarget.style.textDecoration = "none"}
+                                    >
+                                      {sourceTitle?.length > 30 ? sourceTitle.substring(0, 30) + "..." : sourceTitle}
+                                    </a>
+                                  );
+                                }
+                              } else {
+                                // 如果没有source_id，尝试通过标题匹配
+                                const itemWithMatchingTitle = items.find(i => 
+                                  i.title && sourceTitle && 
+                                  (i.title.includes(sourceTitle) || sourceTitle.includes(i.title))
+                                );
+                                if (itemWithMatchingTitle?.url) {
+                                  return (
+                                    <a 
+                                      href={itemWithMatchingTitle.url} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      style={{ 
+                                        color: "#0084ff", 
+                                        textDecoration: "none",
+                                        marginLeft: "4px"
+                                      }}
+                                      onMouseOver={e => e.currentTarget.style.textDecoration = "underline"}
+                                      onMouseOut={e => e.currentTarget.style.textDecoration = "none"}
+                                    >
+                                      {sourceTitle?.length > 30 ? sourceTitle.substring(0, 30) + "..." : sourceTitle}
+                                    </a>
+                                  );
+                                } else {
+                                  return (
+                                    <span style={{ marginLeft: "4px" }}>
+                                      {sourceTitle?.length > 30 ? sourceTitle.substring(0, 30) + "..." : sourceTitle}
+                                    </span>
+                                  );
+                                }
+                              }
+                            })()
                           )}
                         </div>
-                        <div style={{ fontSize: "12px", color: "#333" }}>
-                          💡 {item.analysis}
-                        </div>
                       </div>
-                    )
+                    );
                   })}
                 </div>
               )}
             </div>
           )}
 
-          {profileData?.debugInfo && (
-            <div style={{ 
-              marginTop: "20px", 
-              padding: "10px", 
-              backgroundColor: "#f5f5f5", 
-              borderRadius: "6px",
-              fontSize: "11px",
-              color: "#666",
-              fontFamily: "monospace"
-            }}>
-              <div style={{ fontWeight: "bold", marginBottom: "4px" }}>🛠️ Debug Info</div>
-              <div>Topic Class: {data.topic_classification || "N/A"}</div>
-              <div>Context: {profileData.debugInfo.context || "None"}</div>
-              <div>Strategy: {profileData.debugInfo.fetchStrategy}</div>
-              <div>Source: {profileData.debugInfo.sourceInfo}</div>
-              <div>Model: {profileData.debugInfo.model}</div>
-              <div>Total Time: {profileData.debugInfo.totalDurationMs}ms</div>
-              <div>LLM Time: {profileData.debugInfo.llmDurationMs}ms</div>
-              <div>Breakdown: {profileData.debugInfo.itemsBreakdown}</div>
-              {profileData.debugInfo.tokens && (
-                <div>
-                  Tokens: {profileData.debugInfo.tokens.total_tokens} 
-                  (In: {profileData.debugInfo.tokens.prompt_tokens}, Out: {profileData.debugInfo.tokens.completion_tokens})
+          {debugInfo && (
+            <div style={{ borderTop: "1px solid #eee", paddingTop: "16px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                <h4 style={{ margin: "0", fontSize: "14px", fontWeight: "600", color: "#333" }}>调试信息</h4>
+                <button
+                  onClick={toggleDebug}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "#0084ff",
+                    cursor: "pointer",
+                    fontSize: "12px",
+                    fontWeight: "500"
+                  }}
+                >
+                  {showDebug ? "隐藏" : "显示"}
+                </button>
+              </div>
+              
+              {showDebug && (
+                <div style={{ fontSize: "11px", color: "#666", lineHeight: "1.4" }}>
+                  <div>模型: {debugInfo.model}</div>
+                  <div>总耗时: {(debugInfo.totalDurationMs / 1000).toFixed(1)}s</div>
+                  <div>LLM耗时: {(debugInfo.llmDurationMs / 1000).toFixed(1)}s</div>
+                  <div>数据项数: {debugInfo.itemsCount}</div>
+                  <div>数据构成: {debugInfo.itemsBreakdown}</div>
+                  <div>来源信息: {debugInfo.sourceInfo}</div>
+                  {debugInfo.tokens && (
+                    <div>
+                      Token使用: {debugInfo.tokens.prompt_tokens}+{debugInfo.tokens.completion_tokens}={debugInfo.tokens.total_tokens}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           )}
         </div>
-      )}
+      ) : null}
     </div>
   )
 }
+
+// 修改导出方式，使其可以被命名导入
+export { ProfileCard };
+export default ProfileCard;
