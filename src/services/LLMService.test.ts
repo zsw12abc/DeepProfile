@@ -30,9 +30,9 @@ describe('LLMService', () => {
       json: async () => ({ choices: [{ message: { content: 'Analysis Result' } }] }),
     });
 
-    const result = await LLMService.generateProfile('User content');
+    const result = await LLMService.generateProfile('User content', 'general');
 
-    expect(result).toBe('Analysis Result');
+    expect(result.content).toBe('Analysis Result');
     expect(fetchMock).toHaveBeenCalledWith(
       'https://api.openai.com/v1/chat/completions',
       expect.objectContaining({
@@ -57,7 +57,7 @@ describe('LLMService', () => {
       json: async () => ({ choices: [{ message: { content: 'DeepSeek Result' } }] }),
     });
 
-    await LLMService.generateProfile('User content');
+    await LLMService.generateProfile('User content', 'general');
 
     expect(fetchMock).toHaveBeenCalledWith(
       'https://api.deepseek.com/v1/chat/completions',
@@ -81,8 +81,8 @@ describe('LLMService', () => {
       }),
     });
 
-    const result = await LLMService.generateProfile('User content');
-    expect(result).toBe('Gemini Result');
+    const result = await LLMService.generateProfile('User content', 'general');
+    expect(result.content).toBe('Gemini Result');
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining('generativelanguage.googleapis.com'),
       expect.objectContaining({
@@ -98,6 +98,6 @@ describe('LLMService', () => {
       customBaseUrls: {},
     });
 
-    await expect(LLMService.generateProfile('test')).rejects.toThrow('API Key is required');
+    await expect(LLMService.generateProfile('test', 'general')).rejects.toThrow('API Key is required');
   });
 });

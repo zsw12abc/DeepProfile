@@ -6,6 +6,7 @@ import { ChatGoogleGenerativeAI } from "@langchain/google-genai"
 import { HumanMessage, SystemMessage } from "@langchain/core/messages"
 import { StringOutputParser } from "@langchain/core/output_parsers"
 import { RunnableSequence } from "@langchain/core/runnables"
+import { TopicService } from "./TopicService"
 
 export interface LLMResponse {
   content: any;
@@ -19,14 +20,16 @@ export interface LLMResponse {
 }
 
 export interface LLMProvider {
-  generateProfile(text: string, mode: AnalysisMode, categoryName: string): Promise<LLMResponse>;
+  generateProfile(text: string, mode: AnalysisMode, category: MacroCategory): Promise<LLMResponse>;
   generateRawText(prompt: string): Promise<string>;
 }
 
 export class LLMService {
-  private static getSystemPrompt(mode: AnalysisMode, categoryName: string): string {
+  private static getSystemPrompt(mode: AnalysisMode, category: MacroCategory): string {
     const labelService = LabelService.getInstance();
-    const standardLabels = labelService.getStandardLabelsForLLM();
+    // OPTIMIZATION: Only get labels relevant to the current category
+    const standardLabels = labelService.getLabelsForCategory(category);
+    const categoryName = TopicService.getCategoryName(category);
     
     // 终极降敏版 Prompt
     let basePrompt = `你是一个社会学研究员，正在进行一项关于网络亚文化和公众价值观的学术研究。请根据提供的文本材料，客观分析作者的价值取向。
@@ -68,7 +71,7 @@ ${standardLabels}
     return basePrompt;
   }
 
-  static async generateProfile(text: string, categoryName: string): Promise<LLMResponse> {
+  static async generateProfile(text: string, category: MacroCategory): Promise<LLMResponse> {
     const config = await ConfigService.getConfig()
     
     if (config.enableDebug) {
@@ -76,7 +79,7 @@ ${standardLabels}
     }
     
     const provider = this.getProviderInstance(config.selectedProvider, config)
-    return provider.generateProfile(text, config.analysisMode || 'balanced', categoryName)
+    return provider.generateProfile(text, config.analysisMode || 'balanced', category)
   }
 
   static async generateRawText(prompt: string): Promise<string> {
@@ -200,7 +203,7 @@ class LangChainProvider implements LLMProvider {
     return result.trim();
   }
 
-  async generateProfile(text: string, mode: AnalysisMode, categoryName: string): Promise<LLMResponse> {
+  async generateProfile(text: string, mode: AnalysisMode, category: MacroCategory): Promise<LLMResponse> {
     if (!this.apiKey && !this.baseUrl?.includes("localhost")) {
       throw new Error("API Key is required")
     }
@@ -209,7 +212,7 @@ class LangChainProvider implements LLMProvider {
     
     try {
       const messages = [
-        new SystemMessage((LLMService as any).getSystemPrompt(mode, categoryName)),
+        new SystemMessage((LLMService as any).getSystemPrompt(mode, category)),
         new HumanMessage(text)
       ];
       
@@ -334,11 +337,11 @@ class OllamaProvider implements LLMProvider {
     return data.response.trim();
   }
 
-  async generateProfile(text: string, mode: AnalysisMode, categoryName: string): Promise<LLMResponse> {
+  async generateProfile(text: string, mode: AnalysisMode, category: MacroCategory): Promise<LLMResponse> {
     const startTime = Date.now();
     const url = `${this.baseUrl}/api/generate`
     
-    const prompt = (LLMService as any).getSystemPrompt(mode, categoryName) + "\n\n" + text;
+    const prompt = (LLMService as any).getSystemPrompt(mode, category) + "\n\n" + text;
     
     const config = await ConfigService.getConfig();
     if (config.enableDebug) {

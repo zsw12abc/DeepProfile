@@ -3,21 +3,40 @@ import { LABEL_CATEGORIES } from "./LabelDefinitions";
 // 后备映射：确保即使无法加载LabelDefinitions，也能将ID转换为中文名称
 // 格式必须为 "左侧选项 vs 右侧选项"，与LabelDefinitions保持一致
 const FALLBACK_ID_NAMES: Record<string, string> = {
-  "left-right": "左派 vs 右派",
-  "liberal-conservative": "保守派 vs 自由派",
-  "radical-moderate": "温和派 vs 激进派",
-  "libertarian-authoritarian": "自由意志 vs 威权主义",
-  "capitalist-socialist": "社会主义 vs 资本主义",
-  "nationalist-globalist": "民族主义 vs 全球主义",
-  "market-intervention": "政府干预 vs 市场主导",
-  "wealth-distribution": "平等分配 vs 自由竞争",
-  "individual-collective": "集体主义 vs 个人主义",
-  "traditional-progressive": "传统派 vs 进步派",
-  "innovation-security": "安全导向 vs 创新导向",
-  "open-proprietary": "封闭 vs 开放",
-  "local-global": "本土化 vs 全球化",
-  "material-spiritual": "精神 vs 物质",
-  "development-protection": "保护 vs 发展"
+  "ideology": "左派 vs 右派",
+  "authority": "自由意志 vs 威权主义",
+  "change": "进步派 vs 传统派",
+  "geopolitics": "全球主义 vs 民族主义",
+  "radicalism": "激进派 vs 温和派",
+  "establishment": "建制派 vs 民粹派",
+  "market_vs_gov": "市场主导 vs 政府干预",
+  "competition_vs_equality": "自由竞争 vs 平等分配",
+  "speculation_vs_value": "投机 vs 价值",
+  "micro_vs_macro": "微观实操 vs 宏观叙事",
+  "real_vs_virtual": "实体经济 vs 虚拟经济",
+  "individualism_vs_collectivism": "个人主义 vs 集体主义",
+  "elite_vs_grassroots": "精英/奋斗 vs 草根/躺平",
+  "feminism_vs_patriarchy": "女权 vs 父权",
+  "urban_vs_rural": "城市 vs 乡土",
+  "generational_conflict": "代际冲突",
+  "open_vs_closed": "开放 vs 封闭",
+  "innovation_vs_security": "创新导向 vs 安全导向",
+  "optimism_vs_conservatism": "技术乐观 vs 技术保守",
+  "decentralization_vs_centralization": "去中心化 vs 中心化",
+  "local_vs_global": "本土化 vs 全球化/西化",
+  "spiritual_vs_material": "精神 vs 物质",
+  "serious_vs_popular": "严肃 vs 通俗",
+  "secular_vs_religious": "世俗 vs 宗教/神秘学",
+  "protection_vs_development": "环境保护 vs 经济发展",
+  "climate_believer_vs_skeptic": "气候确信 vs 气候怀疑",
+  "2d_vs_3d": "二次元 vs 三次元",
+  "hardcore_vs_casual": "硬核 vs 休闲",
+  "niche_vs_mainstream": "亚文化 vs 主流",
+  "frugal_vs_luxury": "节俭 vs 奢华",
+  "stable_vs_risk": "稳定 vs 风险",
+  "cat_vs_dog": "猫派 vs 狗派",
+  "family_vs_single": "婚育 vs 单身",
+  "discipline_vs_hedonism": "养生/自律 vs 享乐"
 };
 
 // 将标签名称解析为左右选项
@@ -102,30 +121,30 @@ export function getRelevantLabelsByTopic(topic: string) {
       topicLower.includes('自由') || topicLower.includes('保守') || topicLower.includes('威权') ||
       topicLower.includes('社会主义') || topicLower.includes('资本主义') || 
       topicLower.includes('民族') || topicLower.includes('全球')) {
-    relevantCategories.push('political-orientation', 'economic-view', 'social-view');
+    relevantCategories.push('politics', 'economy', 'society');
   } else if (topicLower.includes('经济') || topicLower.includes('市场') || 
              topicLower.includes('政府') || topicLower.includes('资本主义') || 
              topicLower.includes('社会主义') || topicLower.includes('财富') || 
              topicLower.includes('分配')) {
-    relevantCategories.push('economic-view', 'political-orientation');
+    relevantCategories.push('economy', 'politics');
   } else if (topicLower.includes('社会') || topicLower.includes('个人') || 
              topicLower.includes('集体') || topicLower.includes('传统') || 
              topicLower.includes('进步') || topicLower.includes('文化')) {
-    relevantCategories.push('social-view', 'cultural-view', 'political-orientation');
+    relevantCategories.push('society', 'culture', 'politics');
   } else if (topicLower.includes('科技') || topicLower.includes('技术') || 
              topicLower.includes('创新') || topicLower.includes('AI') || 
              topicLower.includes('人工智能')) {
-    relevantCategories.push('technology-view');
+    relevantCategories.push('technology');
   } else if (topicLower.includes('文化') || topicLower.includes('本土') || 
              topicLower.includes('全球') || topicLower.includes('物质') || 
              topicLower.includes('精神')) {
-    relevantCategories.push('cultural-view', 'social-view');
+    relevantCategories.push('culture', 'society');
   } else if (topicLower.includes('环境') || topicLower.includes('生态') || 
              topicLower.includes('发展') || topicLower.includes('保护')) {
-    relevantCategories.push('environment-view');
+    relevantCategories.push('environment');
   } else {
     // 默认返回政治和社会相关的分类
-    relevantCategories.push('political-orientation', 'social-view', 'economic-view');
+    relevantCategories.push('politics', 'society', 'economy');
   }
   
   // 获取相关分类的所有标签
@@ -250,7 +269,7 @@ export function getMostRelevantLabelsByTopic(topic: string): string[] {
     if (topicLower.includes('科技') || topicLower.includes('技术') || topicLower.includes('创新') || 
         topicLower.includes('ai') || topicLower.includes('软件') || topicLower.includes('硬件') ||
         topicLower.includes('数码') || topicLower.includes('编程') || topicLower.includes('算法')) {
-      matchedCategories.push('technology-view');
+      matchedCategories.push('technology');
     } else if (topicLower.includes('娱乐') || topicLower.includes('游戏') || topicLower.includes('动漫') || 
                topicLower.includes('电影') || topicLower.includes('音乐') || topicLower.includes('体育') ||
                topicLower.includes('明星') || topicLower.includes('综艺')) {
@@ -258,10 +277,10 @@ export function getMostRelevantLabelsByTopic(topic: string): string[] {
       return []; // 娱乐话题可能不需要政治倾向标签
     } else if (topicLower.includes('财经') || topicLower.includes('投资') || topicLower.includes('股票') ||
                topicLower.includes('金融') || topicLower.includes('商业') || topicLower.includes('创业')) {
-      matchedCategories.push('economic-view');
+      matchedCategories.push('economy');
     } else {
       // 默认返回政治和社会相关的分类
-      matchedCategories.push('political-orientation', 'social-view');
+      matchedCategories.push('politics', 'society');
     }
   }
 

@@ -671,7 +671,7 @@ export default function Options() {
                         const timeStr = date.toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
                         const categoryName = TopicService.getCategoryName(profile.category as MacroCategory);
                         const summary = profile.profileData.summary;
-                        const labels = profile.profileData.political_leaning || [];
+                        const labels = profile.profileData.value_orientation || profile.profileData.political_leaning || [];
 
                         return (
                           <details key={profile.category} style={{ fontSize: "13px", color: "#4a5568", padding: "8px", borderRadius: "6px", backgroundColor: "#f8fafc" }}>
