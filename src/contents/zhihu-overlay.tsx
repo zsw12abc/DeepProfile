@@ -47,18 +47,47 @@ const ZhihuOverlay = () => {
   useEffect(() => {
     // Function to inject analyze buttons
     const injectButtons = () => {
-      const links = document.querySelectorAll('.UserLink-link[href*="/people/"]')
+      // 1. 清理孤儿按钮 (Clean up orphaned buttons)
+      document.querySelectorAll('.deep-profile-btn').forEach(btn => {
+          const prev = btn.previousElementSibling as HTMLAnchorElement | null;
+          if (!prev || prev.tagName !== 'A' || !prev.href.includes('www.zhihu.com/people/')) {
+              btn.remove();
+          }
+      });
+
+      // 2. 检查并重置状态 (Reset state for moved links)
+      const injectedLinks = document.querySelectorAll('a[data-deep-profile-injected="true"]');
+      injectedLinks.forEach(link => {
+          const next = link.nextElementSibling;
+          if (!next || !next.classList.contains('deep-profile-btn')) {
+              link.removeAttribute('data-deep-profile-injected');
+          }
+      });
+
+      // 3. 注入新按钮 (Inject new buttons)
+      const links = document.querySelectorAll('a[href*="www.zhihu.com/people/"]')
       
-      links.forEach((link) => {
+      links.forEach((element) => {
+        const link = element as HTMLAnchorElement
         if (link.getAttribute("data-deep-profile-injected")) return
         
-        const href = link.getAttribute("href") || ""
-        const match = href.match(/\/people\/([^/?]+)/)
+        // 使用严格正则匹配：
+        // 1. 必须包含 www.zhihu.com/people/
+        // 2. 紧接着是用户ID ([^/?#]+)，不包含斜杠
+        // 3. ID后面必须是结束，或者是 / 结束，或者是参数/锚点开始
+        // 这样就自然排除了 /people/xxx/answers 这种情况
+        const match = link.href.match(/www\.zhihu\.com\/people\/([^/?#]+)\/?(\?|$|#)/)
+        
         if (!match) return
+        
         const userId = match[1]
 
+        // 过滤逻辑：
+        // 1. 排除包含图片的链接（通常是头像）
         if (link.querySelector('img')) return
+        // 2. 排除没有文本的链接
         if (!link.textContent?.trim()) return
+        // 3. 排除悬浮卡片内的链接
         if (link.closest('.Popover-content')) return
 
         const btn = document.createElement("span")
@@ -105,7 +134,7 @@ const ZhihuOverlay = () => {
               }
           }
 
-          const richContext = contextParts.filter(Boolean).join(' | '); // Use a separator
+          const richContext = contextParts.filter(Boolean).join(' | ');
 
           handleAnalyze(userId, nickname, richContext)
         }
