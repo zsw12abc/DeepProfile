@@ -10,11 +10,15 @@ export const config: PlasmoCSConfig = {
 const RedditOverlay = () => {
   const [targetUser, setTargetUser] = useState<string | null>(null)
   const [initialNickname, setInitialNickname] = useState<string | undefined>()
+  const [currentContext, setCurrentContext] = useState<string | undefined>()
   const [profileData, setProfileData] = useState<{
-    profile: string
+    profile: any // Changed to any to match ProfileCard props
     items: ZhihuContent[]
     userProfile: UserProfile | null
     debugInfo?: any
+    fromCache?: boolean
+    cachedAt?: number
+    cachedContext?: string
   } | null>(null)
   const [loading, setLoading] = useState(false)
   const [statusMessage, setStatusMessage] = useState("正在初始化...")
@@ -149,20 +153,24 @@ const RedditOverlay = () => {
     }
   }, [])
 
-  const handleAnalyze = async (userId: string, nickname?: string, context?: string) => {
+  const handleAnalyze = async (userId: string, nickname?: string, context?: string, forceRefresh: boolean = false) => {
     setTargetUser(userId)
     setInitialNickname(nickname)
+    setCurrentContext(context)
     setLoading(true)
-    setStatusMessage("正在连接后台服务...")
+    setStatusMessage(forceRefresh ? "正在强制刷新..." : "正在连接后台服务...")
     setError(undefined)
-    setProfileData(null)
+    if (forceRefresh) {
+        setProfileData(null)
+    }
 
     try {
       const response = await chrome.runtime.sendMessage({
         type: "ANALYZE_PROFILE",
         userId,
         context, // Send rich context to background
-        platform: 'reddit' // Specify platform
+        platform: 'reddit', // Specify platform
+        forceRefresh
       })
 
       if (response.success) {
@@ -177,6 +185,12 @@ const RedditOverlay = () => {
     }
   }
 
+  const handleRefresh = () => {
+      if (targetUser) {
+          handleAnalyze(targetUser, initialNickname, currentContext, true);
+      }
+  }
+
   if (!targetUser) return null
 
   return (
@@ -188,6 +202,7 @@ const RedditOverlay = () => {
       statusMessage={statusMessage}
       error={error}
       onClose={() => setTargetUser(null)}
+      onRefresh={handleRefresh}
     />
   )
 }

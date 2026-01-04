@@ -60,3 +60,28 @@ export const DEFAULT_CONFIG: AppConfig = {
     }
   }
 };
+
+// --- New History System Types ---
+
+/**
+ * Stores the analysis result for a single macro-category.
+ */
+export interface CategoryProfile {
+  category: string; // e.g., 'politics_society'
+  profileData: any; // The full profile JSON object from LLM
+  timestamp: number;
+  model: string;
+  context: string; // The original, specific context string for reference
+}
+
+/**
+ * Represents a single user's entire history on a specific platform.
+ * It contains multiple category-specific profiles.
+ */
+export interface UserHistoryRecord {
+  userId: string;
+  platform: SupportedPlatform;
+  // A dictionary of profiles, keyed by the macro-category.
+  profiles: Record<string, CategoryProfile>; 
+  lastUpdated: number; // Timestamp of the last update to any category
+}

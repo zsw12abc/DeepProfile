@@ -2,6 +2,8 @@ import { LLMService } from "~services/LLMService"
 import { ZhihuClient } from "~services/ZhihuClient"
 import { ConfigService } from "~services/ConfigService"
 import { ProfileService } from "~services/ProfileService"
+import { HistoryService } from "~services/HistoryService"
+import { TopicService } from "~services/TopicService"
 import type { SupportedPlatform } from "~types"
 
 export {}
@@ -17,7 +19,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === "ANALYZE_PROFILE") {
     const tabId = sender.tab?.id
     
-    handleAnalysis(request.userId, request.context, tabId, request.platform)
+    handleAnalysis(request.userId, request.context, tabId, request.platform, request.forceRefresh)
       .then((result) => sendResponse({ success: true, data: result }))
       .catch((error) => sendResponse({ success: false, error: error.message }))
     return true // Keep the message channel open for async response
@@ -159,10 +161,39 @@ async function sendProgress(tabId: number | undefined, message: string) {
   }
 }
 
-async function handleAnalysis(userId: string, context?: string, tabId?: number, platform: SupportedPlatform = 'zhihu') {
-  console.log(`Analyzing user: ${userId}, Platform: ${platform}, Context: ${context}`)
+async function handleAnalysis(userId: string, context?: string, tabId?: number, platform: SupportedPlatform = 'zhihu', forceRefresh: boolean = false) {
+  console.log(`Analyzing user: ${userId}, Platform: ${platform}, Context: ${context}, ForceRefresh: ${forceRefresh}`)
   const startTime = Date.now();
   
+  // 1. Classify the context into a macro category
+  let macroCategory = TopicService.classify(context || "");
+  if (macroCategory === 'general') {
+    console.log("Keyword classification failed, falling back to LLM classification...");
+    await sendProgress(tabId, "关键词分类失败，尝试使用 AI 分类...");
+    macroCategory = await TopicService.classifyWithLLM(context || "");
+  }
+  const categoryName = TopicService.getCategoryName(macroCategory);
+  console.log(`Context classified as: ${macroCategory} (${categoryName})`);
+
+  // 2. Check cache first (if not forced)
+  if (!forceRefresh) {
+    // Use macroCategory for cache lookup
+    const cachedProfile = await HistoryService.getProfile(userId, platform, macroCategory);
+    if (cachedProfile) {
+      console.log(`Cache hit for user ${userId} in category ${macroCategory}`);
+      await sendProgress(tabId, `已加载该用户的【${categoryName}】画像 (秒开!)`);
+      
+      return {
+        profile: cachedProfile.profileData,
+        items: [], 
+        userProfile: null, 
+        fromCache: true,
+        cachedAt: cachedProfile.timestamp,
+        cachedContext: cachedProfile.context // Return the original context stored in cache
+      };
+    }
+  }
+
   const config = await ConfigService.getConfig()
   const limit = config.analyzeLimit || 15
 
@@ -205,12 +236,21 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
       cleanText = contextForLLM + cleanText;
   }
   
-
-  
   try {
-      const llmResponse = await LLMService.generateProfile(cleanText)
+      // Pass categoryName to generateProfile for context-aware prompting
+      const llmResponse = await LLMService.generateProfile(cleanText, categoryName)
       
       const totalDuration = Date.now() - startTime;
+
+      // 3. Save to History using macroCategory
+      await HistoryService.saveProfile(
+        userId,
+        platform,
+        macroCategory, // Store macroCategory as the key
+        llmResponse.content,
+        context || "", // Store original context for reference
+        llmResponse.model
+      );
 
       let debugInfo = undefined;
       if (config.enableDebug) {
@@ -238,7 +278,8 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
         profile: llmResponse.content,
         items: items,
         userProfile: userProfile,
-        debugInfo: debugInfo
+        debugInfo: debugInfo,
+        fromCache: false
       }
   } catch (error) {
       let msg = error.message;

@@ -1,5 +1,5 @@
 import type { PlasmoCSConfig } from "plasmo"
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useRef } from "react"
 import { ProfileCard } from "~components/ProfileCard"
 import type { ZhihuContent, UserProfile } from "~services/ZhihuClient"
 
@@ -10,11 +10,15 @@ export const config: PlasmoCSConfig = {
 const ZhihuOverlay = () => {
   const [targetUser, setTargetUser] = useState<string | null>(null)
   const [initialNickname, setInitialNickname] = useState<string | undefined>()
+  const [currentContext, setCurrentContext] = useState<string | undefined>()
   const [profileData, setProfileData] = useState<{
-    profile: string
+    profile: any // Changed to any to match ProfileCard props
     items: ZhihuContent[]
     userProfile: UserProfile | null
     debugInfo?: any
+    fromCache?: boolean
+    cachedAt?: number
+    cachedContext?: string
   } | null>(null)
   const [loading, setLoading] = useState(false)
   const [statusMessage, setStatusMessage] = useState("正在初始化...")
@@ -136,20 +140,24 @@ const ZhihuOverlay = () => {
     }
   }, [])
 
-  const handleAnalyze = async (userId: string, nickname?: string, context?: string) => {
+  const handleAnalyze = async (userId: string, nickname?: string, context?: string, forceRefresh: boolean = false) => {
     setTargetUser(userId)
     setInitialNickname(nickname)
+    setCurrentContext(context)
     setLoading(true)
-    setStatusMessage("正在连接后台服务...")
+    setStatusMessage(forceRefresh ? "正在强制刷新..." : "正在连接后台服务...")
     setError(undefined)
-    setProfileData(null)
+    if (forceRefresh) {
+        setProfileData(null)
+    }
 
     try {
       const response = await chrome.runtime.sendMessage({
         type: "ANALYZE_PROFILE",
         userId,
         context, // Send rich context to background
-        platform: 'zhihu' // Specify platform
+        platform: 'zhihu', // Specify platform
+        forceRefresh
       })
 
       if (response.success) {
@@ -164,6 +172,12 @@ const ZhihuOverlay = () => {
     }
   }
 
+  const handleRefresh = () => {
+      if (targetUser) {
+          handleAnalyze(targetUser, initialNickname, currentContext, true);
+      }
+  }
+
   if (!targetUser) return null
 
   return (
@@ -175,6 +189,7 @@ const ZhihuOverlay = () => {
       statusMessage={statusMessage}
       error={error}
       onClose={() => setTargetUser(null)}
+      onRefresh={handleRefresh}
     />
   )
 }
