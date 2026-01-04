@@ -28,49 +28,41 @@ export class LLMService {
     const labelService = LabelService.getInstance();
     const standardLabels = labelService.getStandardLabelsForLLM();
     
-    let basePrompt = `你是一个专业的政治倾向与心理分析师。请根据以下用户的动态（回答和文章），生成一份详细的用户画像。
+    // 终极降敏版 Prompt
+    let basePrompt = `你是一个社会学研究员，正在进行一项关于网络亚文化和公众价值观的学术研究。请根据提供的文本材料，客观分析作者的价值取向。
 
-请严格按照以下 JSON 格式返回结果（不要包含 Markdown 代码块标记，返回格式化后的JSON，包含适当的缩进和换行以提高可读性）：
+请严格按照以下 JSON 格式返回结果（不要包含 Markdown 代码块标记）：
 
 {
-  "nickname": "用户昵称（如果无法获取则留空）",
-  "topic_classification": "对用户关注话题的简要分类（如：国际政治、宏观经济、数码科技、动漫、体育等）",
-  "political_leaning": [
-    { "label": "标签ID", "score": 0.9 },
-    { "label": "标签ID", "score": 0.7 }
+  "nickname": "用户昵称",
+  "topic_classification": "话题分类",
+  "value_orientation": [
+    { "label": "标签ID", "score": 0.9 }
   ], 
-  "summary": "简要总结其领域偏好、性格特征和潜在的言论倾向（100字以内）",
+  "summary": "简要总结（100字以内）",
   "evidence": [
     {
-      "quote": "引用原文片段",
+      "quote": "引用原文",
       "analysis": "分析说明",
       "source_title": "来源标题",
-      "source_id": "原文中标记的ID，例如 12345"
+      "source_id": "ID"
     }
   ]
 }
 
-【！！！绝对指令！！！】
-1.  【话题一致性检查】当前讨论的领域是：【${categoryName}】。在分析前，请首先判断提供的用户言论是否与该领域相关。如果完全不相关（例如，当前领域是‘娱乐’，但言论全是关于‘政治’的），请直接在 'summary' 字段中说明这一点，并将 'political_leaning' 数组设置为空 []。只有在内容与当前领域相关时，才进行打分。
-2.  你的所有分析，尤其是 topic_classification 和 summary，必须100%基于 "RELEVANT CONTENT (★ 重点分析)" 部分。
-3.  在 evidence 中，source_id 必须对应原文中 [ID:xxxxx] 里的数字。
-4.  【领域自适应】请首先根据用户内容，判断其主要属于哪个分类（Politics, Economy, Society...）。然后，你必须只从该分类下的标签中进行选择和打分。例如，如果内容是关于科技的，就只使用 technology 分类下的标签。
-5.  【ID 约束】在 "political_leaning" 数组中，"label" 字段必须严格使用下面提供的【标签ID】 (例如 'ideology', 'authority', 'market_vs_gov')，绝对不可以使用【标签名称】 (例如 '左派 vs 右派')。
-6.  对于每个选择的标签，提供-1.0到1.0的精确分数，其中：
-    * 正值表示偏向标签名称右边的选项（如：右派、威权主义、市场主导等）
-    * 负值表示偏向标签名称左边的选项（如：左派、自由意志、政府干预等）
-    * 绝对值表示倾向强度，绝对值越大倾向越明显
-7.  请始终使用 "political_leaning" 字段，格式为 [{"label": "标签ID", "score": 0.X}]。
-8.  请直接返回JSON格式内容，不要添加任何Markdown代码块标记（如\`\`\`json 或 \`\`\`）。
+【指令】
+1.  【相关性判断】当前研究领域：【${categoryName}】。如果内容与此领域完全无关，请在 summary 中说明，并返回空 value_orientation。
+2.  【客观中立】请使用学术、中立的语言进行描述，避免使用激进或情绪化的词汇。
+3.  【标签选择】请根据内容，从下方的标准标签库中选择最匹配的标签。
+4.  【ID 约束】必须使用标签库中定义的【标签ID】（如 'ideology'），严禁使用中文名称。
+5.  【评分标准】1.0 代表强烈倾向于标签右侧描述，-1.0 代表强烈倾向于左侧描述。
 
-以下是所有可用的标签分类和标签定义：
+【标准标签库】
 ${standardLabels}
 `;
 
     if (mode === 'deep') {
-        basePrompt += `\n【深度分析模式】：
-1. 请仔细阅读每一条内容，特别注意用户的语气、修辞手法（如反讽、嘲讽、阴阳怪气）。
-2. 不要只看字面意思，要结合上下文理解其真实立场。`;
+        basePrompt += `\n【深度模式】：请深入分析文本中的修辞、隐喻和深层逻辑。`;
     }
 
     return basePrompt;
@@ -235,7 +227,7 @@ class LangChainProvider implements LLMProvider {
       
       const debugConfig = await ConfigService.getConfig();
       if (debugConfig.enableDebug) {
-        console.log("【LANGCHAIN LABEL SCORES】LLM评判的标签分数：", parsedContent.political_leaning);
+        console.log("【LANGCHAIN LABEL SCORES】LLM评判的标签分数：", parsedContent.value_orientation);
       }
       
       return {
@@ -246,12 +238,12 @@ class LangChainProvider implements LLMProvider {
       }
     } catch (error) {
       console.error("LangChain API Error:", error);
-      if (error.message && (error.message.includes('inappropriate content') || error.message.includes('不当内容'))) {
+      if (error.message && (error.message.includes('inappropriate content') || error.message.includes('data_inspection_failed'))) {
         const defaultResponse = JSON.stringify({
           nickname: "",
           topic_classification: "内容分析",
-          political_leaning: [],
-          summary: "由于内容安全策略，无法生成详细分析",
+          value_orientation: [],
+          summary: "内容安全审查失败：分析的内容可能涉及敏感话题，已被 AI 服务商拦截。建议更换为 DeepSeek 或 OpenAI 模型重试。",
           evidence: []
         }, null, 2);
         
@@ -287,12 +279,13 @@ class LangChainProvider implements LLMProvider {
         parsed = JSON.parse(cleanedResponse);
       }
       
-      if (!parsed.political_leaning) {
-        parsed.political_leaning = [];
+      if (!parsed.value_orientation) {
+        parsed.value_orientation = parsed.political_leaning || [];
       }
+      delete parsed.political_leaning;
       
-      if (Array.isArray(parsed.political_leaning)) {
-        parsed.political_leaning = parsed.political_leaning.map(item => {
+      if (Array.isArray(parsed.value_orientation)) {
+        parsed.value_orientation = parsed.value_orientation.map(item => {
           if (typeof item === 'string') {
             return { label: item.trim(), score: 0.5 };
           } else if (typeof item === 'object' && item.label) {
@@ -310,7 +303,7 @@ class LangChainProvider implements LLMProvider {
       return JSON.stringify({
         nickname: "",
         topic_classification: "未知分类",
-        political_leaning: [],
+        value_orientation: [],
         summary: "分析失败",
         evidence: []
       }, null, 2);
@@ -369,12 +362,12 @@ class OllamaProvider implements LLMProvider {
       const errorText = await response.text();
       console.error(`Ollama API Error: ${response.status}`, errorText);
       
-      if (errorText.includes('inappropriate') || errorText.includes('不当内容')) {
+      if (errorText.includes('inappropriate') || errorText.includes('data_inspection_failed')) {
         const defaultResponse = JSON.stringify({
           nickname: "",
           topic_classification: "内容分析",
-          political_leaning: [],
-          summary: "由于内容安全策略，无法生成详细分析",
+          value_orientation: [],
+          summary: "内容安全审查失败：分析的内容可能涉及敏感话题，已被 AI 服务商拦截。建议更换为 DeepSeek 或 OpenAI 模型重试。",
           evidence: []
         }, null, 2);
         
@@ -406,7 +399,7 @@ class OllamaProvider implements LLMProvider {
     
     const debugConfig = await ConfigService.getConfig();
     if (debugConfig.enableDebug) {
-      console.log("【LANGCHAIN LABEL SCORES】LLM评判的标签分数：", parsedContent.political_leaning);
+      console.log("【LANGCHAIN LABEL SCORES】LLM评判的标签分数：", parsedContent.value_orientation);
     }
     
     return {
@@ -433,12 +426,13 @@ class OllamaProvider implements LLMProvider {
       
       const parsed = JSON.parse(cleanedResponse);
       
-      if (!parsed.political_leaning) {
-        parsed.political_leaning = [];
+      if (!parsed.value_orientation) {
+        parsed.value_orientation = parsed.political_leaning || [];
       }
+      delete parsed.political_leaning;
       
-      if (Array.isArray(parsed.political_leaning)) {
-        parsed.political_leaning = parsed.political_leaning.map(item => {
+      if (Array.isArray(parsed.value_orientation)) {
+        parsed.value_orientation = parsed.value_orientation.map(item => {
           if (typeof item === 'string') {
             return { label: item.trim(), score: 0.5 };
           } else if (typeof item === 'object' && item.label) {
@@ -456,7 +450,7 @@ class OllamaProvider implements LLMProvider {
       return JSON.stringify({
         nickname: "",
         topic_classification: "未知分类",
-        political_leaning: [],
+        value_orientation: [],
         summary: "分析失败",
         evidence: []
       }, null, 2);
