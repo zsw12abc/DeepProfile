@@ -214,12 +214,12 @@ export class LabelService {
   }
 
   // New method to get labels for a specific category
-  getLabelsForCategory(category: MacroCategory): string {
+  getLabelsForCategory(category: string): string {
     if (category === 'general') {
       return this.getStandardLabelsForLLM(); // For general, use all labels
     }
     const cat = this.getCategoryById(category);
-    if (!cat) return "无可用标签";
+    if (!cat) return this.getStandardLabelsForLLM(); // Fallback to all if not found
 
     let result = `分类: ${cat.name} (${cat.id})\n`;
     result += "标签:\n";

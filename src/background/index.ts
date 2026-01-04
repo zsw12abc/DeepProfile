@@ -237,8 +237,8 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
   }
   
   try {
-      // Pass categoryName to generateProfile for context-aware prompting
-      const llmResponse = await LLMService.generateProfile(cleanText, categoryName)
+      // Pass macroCategory (ID) to generateProfile for optimized prompting
+      const llmResponse = await LLMService.generateProfile(cleanText, macroCategory)
       
       const totalDuration = Date.now() - startTime;
 

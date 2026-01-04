@@ -1,16 +1,6 @@
 ﻿
 import { LLMService } from "./LLMService";
-
-export type MacroCategory = 
-  | 'politics'       // 政治 (Politics)
-  | 'economy'        // 经济 (Economy)
-  | 'society'        // 社会 (Society)
-  | 'technology'     // 科技 (Technology)
-  | 'culture'        // 文化 (Culture)
-  | 'environment'    // 环境 (Environment)
-  | 'entertainment'  // 娱乐 (Entertainment)
-  | 'lifestyle_career' // 生活与职场 (Lifestyle & Career)
-  | 'general';       // 通用/其他
+import type { MacroCategory } from "~types";
 
 const CATEGORIES: MacroCategory[] = [
   'politics', 'economy', 'society', 'technology', 

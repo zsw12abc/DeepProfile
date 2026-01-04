@@ -4,6 +4,17 @@ export type AnalysisMode = 'fast' | 'balanced' | 'deep';
 
 export type SupportedPlatform = 'zhihu' | 'reddit' | 'twitter' | 'weibo';
 
+export type MacroCategory = 
+  | 'politics'       // 政治 (Politics)
+  | 'economy'        // 经济 (Economy)
+  | 'society'        // 社会 (Society)
+  | 'technology'     // 科技 (Technology)
+  | 'culture'        // 文化 (Culture)
+  | 'environment'    // 环境 (Environment)
+  | 'entertainment'  // 娱乐 (Entertainment)
+  | 'lifestyle_career' // 生活与职场 (Lifestyle & Career)
+  | 'general';       // 通用/其他
+
 export interface PlatformConfig {
   enabled: boolean;
   baseUrl: string;
@@ -12,6 +23,7 @@ export interface PlatformConfig {
 }
 
 export interface AppConfig {
+  globalEnabled: boolean; // Master switch
   selectedProvider: AIProvider;
   apiKeys: Record<string, string>;
   customBaseUrls: Record<string, string>;
@@ -24,6 +36,7 @@ export interface AppConfig {
 }
 
 export const DEFAULT_CONFIG: AppConfig = {
+  globalEnabled: true,
   selectedProvider: 'openai',
   apiKeys: {},
   customBaseUrls: {},

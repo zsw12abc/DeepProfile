@@ -6,6 +6,7 @@ import { ChatGoogleGenerativeAI } from "@langchain/google-genai"
 import { HumanMessage, SystemMessage } from "@langchain/core/messages"
 import { StringOutputParser } from "@langchain/core/output_parsers"
 import { RunnableSequence } from "@langchain/core/runnables"
+import { TopicService } from "./TopicService"
 
 export interface LLMResponse {
   content: any;
@@ -19,17 +20,45 @@ export interface LLMResponse {
 }
 
 export interface LLMProvider {
-  generateProfile(text: string, mode: AnalysisMode, categoryName: string): Promise<LLMResponse>;
+  generateProfile(text: string, mode: AnalysisMode, category: MacroCategory): Promise<LLMResponse>;
   generateRawText(prompt: string): Promise<string>;
 }
 
 export class LLMService {
-  private static getSystemPrompt(mode: AnalysisMode, categoryName: string): string {
+  private static getSystemPrompt(mode: AnalysisMode, category: MacroCategory): string {
     const labelService = LabelService.getInstance();
-    const standardLabels = labelService.getStandardLabelsForLLM();
+    // OPTIMIZATION: Only get labels relevant to the current category
+    const standardLabels = labelService.getLabelsForCategory(category);
+    const categoryName = TopicService.getCategoryName(category);
     
-    // 终极降敏版 Prompt
-    let basePrompt = `你是一个社会学研究员，正在进行一项关于网络亚文化和公众价值观的学术研究。请根据提供的文本材料，客观分析作者的价值取向。
+    if (mode === 'fast') {
+      // 快速模式：简化提示词，减少处理时间
+      return `你是一个社会学研究员，正在进行一项关于网络亚文化和公众价值观的学术研究。请根据提供的文本材料，客观分析作者的价值取向。
+
+请严格按照以下 JSON 格式返回结果（不要包含 Markdown 代码块标记）：
+
+{
+  "nickname": "用户昵称",
+  "topic_classification": "话题分类",
+  "value_orientation": [
+    { "label": "标签ID", "score": 0.9 }
+  ], 
+  "summary": "简要总结（100字以内）"
+}
+
+【指令】
+1.  当前研究领域：【${categoryName}】。如果内容与此领域完全无关，请在 summary 中说明，并返回空 value_orientation。
+2.  请使用学术、中立的语言进行描述。
+3.  请根据内容，从下方的标准标签库中选择最匹配的标签。
+4.  必须使用标签库中定义的【标签ID】（如 'ideology'），严禁使用中文名称。
+5.  评分标准：1.0 代表强烈倾向于标签右侧描述，-1.0 代表强烈倾向于左侧描述。
+
+【标准标签库】
+${standardLabels}
+`;
+    } else {
+      // 平衡和深度模式：完整提示词
+      let basePrompt = `你是一个社会学研究员，正在进行一项关于网络亚文化和公众价值观的学术研究。请根据提供的文本材料，客观分析作者的价值取向。
 
 请严格按照以下 JSON 格式返回结果（不要包含 Markdown 代码块标记）：
 
@@ -61,14 +90,15 @@ export class LLMService {
 ${standardLabels}
 `;
 
-    if (mode === 'deep') {
-        basePrompt += `\n【深度模式】：请深入分析文本中的修辞、隐喻和深层逻辑。`;
-    }
+      if (mode === 'deep') {
+          basePrompt += `\n【深度模式】：请深入分析文本中的修辞、隐喻和深层逻辑。`;
+      }
 
-    return basePrompt;
+      return basePrompt;
+    }
   }
 
-  static async generateProfile(text: string, categoryName: string): Promise<LLMResponse> {
+  static async generateProfile(text: string, category: MacroCategory): Promise<LLMResponse> {
     const config = await ConfigService.getConfig()
     
     if (config.enableDebug) {
@@ -76,7 +106,7 @@ ${standardLabels}
     }
     
     const provider = this.getProviderInstance(config.selectedProvider, config)
-    return provider.generateProfile(text, config.analysisMode || 'balanced', categoryName)
+    return provider.generateProfile(text, config.analysisMode || 'balanced', category)
   }
 
   static async generateRawText(prompt: string): Promise<string> {
@@ -200,7 +230,7 @@ class LangChainProvider implements LLMProvider {
     return result.trim();
   }
 
-  async generateProfile(text: string, mode: AnalysisMode, categoryName: string): Promise<LLMResponse> {
+  async generateProfile(text: string, mode: AnalysisMode, category: MacroCategory): Promise<LLMResponse> {
     if (!this.apiKey && !this.baseUrl?.includes("localhost")) {
       throw new Error("API Key is required")
     }
@@ -208,21 +238,34 @@ class LangChainProvider implements LLMProvider {
     const startTime = Date.now();
     
     try {
+      // 设置一个非常长的超时时间（5分钟），作为最后的兜底
+      // 用户反馈不希望因为超时而浪费Token，因此给予足够的时间
+      const timeout = 300000; // 5 minutes
+      
       const messages = [
-        new SystemMessage((LLMService as any).getSystemPrompt(mode, categoryName)),
+        new SystemMessage((LLMService as any).getSystemPrompt(mode, category)),
         new HumanMessage(text)
       ];
       
-      const chain = RunnableSequence.from([
-        () => this.llm,
-        new StringOutputParser()
+      // 直接调用LLM，避免额外的链式调用开销
+      const result = await Promise.race([
+        this.llm.invoke(messages),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('LLM request timeout')), timeout)
+        )
       ]);
-      
-      const result = await chain.invoke(messages);
       
       const durationMs = Date.now() - startTime;
 
-      const validatedContent = this.validateAndFixResponse(result);
+      // 如果返回的是对象而不是字符串，需要提取内容
+      let resultContent = result;
+      if (typeof result === 'object' && result.content) {
+        resultContent = result.content;
+      } else if (typeof result === 'object' && result.text) {
+        resultContent = result.text;
+      }
+      
+      const validatedContent = this.validateAndFixResponse(resultContent);
       const parsedContent = JSON.parse(validatedContent);
       
       const debugConfig = await ConfigService.getConfig();
@@ -334,79 +377,103 @@ class OllamaProvider implements LLMProvider {
     return data.response.trim();
   }
 
-  async generateProfile(text: string, mode: AnalysisMode, categoryName: string): Promise<LLMResponse> {
+  async generateProfile(text: string, mode: AnalysisMode, category: MacroCategory): Promise<LLMResponse> {
     const startTime = Date.now();
     const url = `${this.baseUrl}/api/generate`
     
-    const prompt = (LLMService as any).getSystemPrompt(mode, categoryName) + "\n\n" + text;
+    const prompt = (LLMService as any).getSystemPrompt(mode, category) + "\n\n" + text;
     
     const config = await ConfigService.getConfig();
     if (config.enableDebug) {
       console.log("【LANGCHAIN REQUEST】发送给LLM的内容：", prompt);
     }
     
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: this.model,
-        prompt: prompt,
-        format: "json", 
-        stream: false
+    // 设置一个非常长的超时时间（5分钟），作为最后的兜底
+    const timeout = 300000; // 5 minutes
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Connection": "keep-alive" // 保持连接，提高重复请求性能
+        },
+        body: JSON.stringify({
+          model: this.model,
+          prompt: prompt,
+          format: "json", 
+          stream: false,
+          options: {
+            temperature: mode === 'fast' ? 0.3 : 0.5, // 快速模式使用更低的温度，更快收敛
+            num_predict: mode === 'fast' ? 512 : 1024  // 快速模式预测更少token
+          }
+        }),
+        signal: controller.signal
       })
-    })
-
-    const durationMs = Date.now() - startTime;
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`Ollama API Error: ${response.status}`, errorText);
       
-      if (errorText.includes('inappropriate') || errorText.includes('data_inspection_failed')) {
-        const defaultResponse = JSON.stringify({
-          nickname: "",
-          topic_classification: "内容分析",
-          value_orientation: [],
-          summary: "内容安全审查失败：分析的内容可能涉及敏感话题，已被 AI 服务商拦截。建议更换为 DeepSeek 或 OpenAI 模型重试。",
-          evidence: []
-        }, null, 2);
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Ollama API Error: ${response.status}`, errorText);
         
-        return {
-          content: defaultResponse,
-          usage: undefined,
-          durationMs,
-          model: this.model
-        };
+        if (errorText.includes('inappropriate') || errorText.includes('data_inspection_failed')) {
+          const defaultResponse = JSON.stringify({
+            nickname: "",
+            topic_classification: "内容分析",
+            value_orientation: [],
+            summary: "内容安全审查失败：分析的内容可能涉及敏感话题，已被 AI 服务商拦截。建议更换为 DeepSeek 或 OpenAI 模型重试。",
+            evidence: []
+          }, null, 2);
+          
+          const durationMs = Date.now() - startTime;
+          return {
+            content: defaultResponse,
+            usage: undefined,
+            durationMs,
+            model: this.model
+          };
+        }
+        
+        throw new Error(`Ollama API Error: ${response.status} - ${errorText}`)
+      }
+
+      const data = await response.json()
+      const durationMs = Date.now() - startTime;
+      const usage = {
+          prompt_tokens: data.prompt_eval_count,
+          completion_tokens: data.eval_count,
+          total_tokens: (data.prompt_eval_count || 0) + (data.eval_count || 0)
+      };
+
+      if (config.enableDebug) {
+        console.log("【LANGCHAIN RESPONSE】LLM返回的JSON：", data.response);
+      }
+
+      const content = data.response || "{}";
+      const validatedContent = this.validateAndFixResponse(content);
+      const parsedContent = JSON.parse(validatedContent);
+      
+      const debugConfig = await ConfigService.getConfig();
+      if (debugConfig.enableDebug) {
+        console.log("【LANGCHAIN LABEL SCORES】LLM评判的标签分数：", parsedContent.value_orientation);
       }
       
-      throw new Error(`Ollama API Error: ${response.status} - ${errorText}`)
-    }
-
-    const data = await response.json()
-    const usage = {
-        prompt_tokens: data.prompt_eval_count,
-        completion_tokens: data.eval_count,
-        total_tokens: (data.prompt_eval_count || 0) + (data.eval_count || 0)
-    };
-
-    if (config.enableDebug) {
-      console.log("【LANGCHAIN RESPONSE】LLM返回的JSON：", data.response);
-    }
-
-    const content = data.response || "{}";
-    const validatedContent = this.validateAndFixResponse(content);
-    const parsedContent = JSON.parse(validatedContent);
-    
-    const debugConfig = await ConfigService.getConfig();
-    if (debugConfig.enableDebug) {
-      console.log("【LANGCHAIN LABEL SCORES】LLM评判的标签分数：", parsedContent.value_orientation);
-    }
-    
-    return {
-        content: parsedContent,
-        usage,
-        durationMs,
-        model: this.model
+      return {
+          content: parsedContent,
+          usage,
+          durationMs,
+          model: this.model
+      }
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        throw new Error('Ollama request timeout');
+      }
+      throw error;
     }
   }
   

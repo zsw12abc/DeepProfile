@@ -6,7 +6,9 @@ export class ConfigService {
   static async getConfig(): Promise<AppConfig> {
     try {
       const result = await chrome.storage.local.get(this.STORAGE_KEY)
-      return (result[this.STORAGE_KEY] as AppConfig) || DEFAULT_CONFIG
+      const storedConfig = result[this.STORAGE_KEY] as Partial<AppConfig> || {}
+      // Merge stored config with default config to ensure all fields exist
+      return { ...DEFAULT_CONFIG, ...storedConfig }
     } catch (error) {
       console.error("Failed to get config:", error)
       return DEFAULT_CONFIG

@@ -26,12 +26,26 @@ export interface FetchResult {
 export class ZhihuClient {
   private static BASE_URL = 'https://www.zhihu.com/api/v4';
 
-  private static getHeaders() {
+  private static async getCookieString(): Promise<string> {
+    if (typeof chrome !== 'undefined' && chrome.cookies) {
+      try {
+        const cookies = await chrome.cookies.getAll({ domain: "zhihu.com" });
+        return cookies.map(c => `${c.name}=${c.value}`).join('; ');
+      } catch (e) {
+        console.warn("Failed to get cookies:", e);
+      }
+    }
+    return '';
+  }
+
+  private static async getHeaders() {
+    const cookie = await this.getCookieString();
     return {
       'Content-Type': 'application/json',
       'X-Requested-With': 'XMLHttpRequest',
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Referer': 'https://www.zhihu.com/'
+      'Referer': 'https://www.zhihu.com/',
+      'Cookie': cookie
     };
   }
 
@@ -40,10 +54,11 @@ export class ZhihuClient {
       try {
         console.log(`Resolving Hash ID via API: ${idOrToken}`);
         const url = `${this.BASE_URL}/members/${idOrToken}?include=url_token`;
+        const headers = await this.getHeaders();
         const response = await fetch(url, {
           method: 'GET',
           credentials: 'include',
-          headers: this.getHeaders()
+          headers: headers
         });
 
         if (response.ok) {
@@ -64,10 +79,11 @@ export class ZhihuClient {
     const userToken = await this.resolveUserToken(username);
     const url = `${this.BASE_URL}/members/${userToken}`;
     try {
+      const headers = await this.getHeaders();
       const response = await fetch(url, {
         method: 'GET',
         credentials: 'include',
-        headers: this.getHeaders()
+        headers: headers
       });
       if (response.ok) {
         const data = await response.json();
@@ -158,10 +174,11 @@ export class ZhihuClient {
   private static async fetchAnswerContent(answerId: string): Promise<string | null> {
     try {
       const url = `${this.BASE_URL}/answers/${answerId}?include=content`;
+      const headers = await this.getHeaders();
       const response = await fetch(url, {
         method: 'GET',
         credentials: 'include',
-        headers: this.getHeaders()
+        headers: headers
       });
 
       if (!response.ok) {
@@ -224,10 +241,11 @@ export class ZhihuClient {
     const url = `${this.BASE_URL}/members/${userToken}/${type}?limit=${limit}&offset=0&sort_by=created&include=data[*].id,data[*].type,data[*].question.title,data[*].question.id,data[*].excerpt,data[*].created_time,has_more`;
     
     try {
+      const headers = await this.getHeaders();
       const response = await fetch(url, {
         method: 'GET',
         credentials: 'include',
-        headers: this.getHeaders()
+        headers: headers
       });
 
       if (!response.ok) {
@@ -248,6 +266,9 @@ export class ZhihuClient {
         content: item.excerpt || '', // 先用excerpt作为content，后续会增强
         created_time: item.created_time,
         question_id: item.question?.id,
+        url: item.type === 'answer' 
+            ? `https://www.zhihu.com/question/${item.question?.id}/answer/${item.id}`
+            : `https://zhuanlan.zhihu.com/p/${item.id}`,
         action_type: 'created'
       }));
     } catch (error) {
@@ -259,10 +280,11 @@ export class ZhihuClient {
   private static async fetchActivities(userToken: string, limit: number): Promise<ZhihuContent[]> {
     const url = `${this.BASE_URL}/members/${userToken}/activities?limit=${limit}&include=data[*].verb,data[*].target.id,data[*].target.type,data[*].target.question.title,data[*].target.question.id,data[*].target.excerpt,data[*].target.title,data[*].created_time`;
     try {
+      const headers = await this.getHeaders();
       const response = await fetch(url, {
         method: 'GET',
         credentials: 'include',
-        headers: this.getHeaders()
+        headers: headers
       });
 
       if (!response.ok) return [];
@@ -280,6 +302,9 @@ export class ZhihuClient {
           content: item.target.excerpt || '', // 先用excerpt，后续可能增强
           created_time: item.created_time,
           question_id: item.target.question?.id,
+          url: item.target.type === 'answer'
+            ? `https://www.zhihu.com/question/${item.target.question?.id}/answer/${item.target.id}`
+            : `https://zhuanlan.zhihu.com/p/${item.target.id}`,
           action_type: 'voted'
         }));
     } catch (error) {
@@ -352,10 +377,11 @@ export class ZhihuClient {
   static async fetchHotList(): Promise<string[]> {
     const url = 'https://www.zhihu.com/api/v3/feed/topstory/hot-list?limit=50&desktop=true';
     try {
+      const headers = await this.getHeaders();
       const response = await fetch(url, {
         method: 'GET',
         credentials: 'include',
-        headers: this.getHeaders()
+        headers: headers
       });
 
       if (!response.ok) {

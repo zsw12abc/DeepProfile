@@ -366,7 +366,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               {expandedEvidence && (
                 <div style={{ fontSize: "12px" }}>
                   {evidence.map((item, index) => {
-                    const sourceItem = items.find(i => i.id === item.source_id);
+                    let sourceItem = items.find(i => i.id === item.source_id);
+                    // Fallback: try matching by title if ID match fails
+                    if (!sourceItem && item.source_title) {
+                        sourceItem = items.find(i => i.title && (i.title === item.source_title || i.title.includes(item.source_title) || item.source_title.includes(i.title)));
+                    }
+
                     const sourceUrl = sourceItem?.url;
                     const sourceTitle = sourceItem?.title || item.source_title;
 
