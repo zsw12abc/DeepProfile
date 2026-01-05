@@ -185,6 +185,7 @@ class LangChainProvider implements LLMProvider {
 
   private initializeLLM() {
     const temperature = 0.5;
+    const timeout = 600000; // 10 minutes timeout for LangChain
 
     switch (this.provider) {
       case "openai":
@@ -196,12 +197,14 @@ class LangChainProvider implements LLMProvider {
           configuration: { baseURL: this.baseUrl },
           modelName: this.model,
           temperature: temperature,
+          timeout: timeout,
           response_format: { type: "json_object" }
         });
         this.rawLlm = new ChatOpenAI({
           openAIApiKey: this.apiKey,
           configuration: { baseURL: this.baseUrl },
           modelName: this.model,
+          timeout: timeout,
           temperature: 0 // For classification, we want deterministic output
         });
         break;
@@ -238,9 +241,9 @@ class LangChainProvider implements LLMProvider {
     const startTime = Date.now();
     
     try {
-      // 设置一个非常长的超时时间（5分钟），作为最后的兜底
+      // 设置一个非常长的超时时间（10分钟），作为最后的兜底
       // 用户反馈不希望因为超时而浪费Token，因此给予足够的时间
-      const timeout = 300000; // 5 minutes
+      const timeout = 600000; // 10 minutes
       
       const messages = [
         new SystemMessage((LLMService as any).getSystemPrompt(mode, category)),
@@ -388,8 +391,8 @@ class OllamaProvider implements LLMProvider {
       console.log("【LANGCHAIN REQUEST】发送给LLM的内容：", prompt);
     }
     
-    // 设置一个非常长的超时时间（5分钟），作为最后的兜底
-    const timeout = 300000; // 5 minutes
+    // 设置一个非常长的超时时间（10分钟），作为最后的兜底
+    const timeout = 600000; // 10 minutes
     
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);

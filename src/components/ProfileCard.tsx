@@ -1,7 +1,11 @@
-import React, { useState } from "react"
+import React, { useState, useRef } from "react"
 import type { ZhihuContent, UserProfile } from "~services/ZhihuClient"
-import { calculateFinalLabel, getLabelInfo, parseLabelName, filterLabelsByTopic } from "~services/LabelUtils"
+import { ZhihuClient } from "~services/ZhihuClient"
+import { calculateFinalLabel } from "~services/LabelUtils"
 import { TopicService, type MacroCategory } from "~services/TopicService"
+import { ExportService } from "~services/ExportService"
+import html2canvas from "html2canvas"
+import icon from "data-base64:../../assets/icon.png"
 
 interface ProfileData {
   nickname?: string
@@ -72,6 +76,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 }) => {
   const [showDebug, setShowDebug] = useState(false)
   const [expandedEvidence, setExpandedEvidence] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
+  const cardRef = useRef<HTMLDivElement>(null)
   
   let nickname = initialNickname || "未知用户"
   let topicClassification = "未知话题"
@@ -83,6 +89,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   let fromCache = false
   let cachedAt = 0
   let cachedContext = ""
+  let userProfile: UserProfile | null = null
 
   if (profileData) {
     try {
@@ -101,6 +108,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       fromCache = profileData.fromCache || false
       cachedAt = profileData.cachedAt || 0
       cachedContext = profileData.cachedContext || ""
+      userProfile = profileData.userProfile
     } catch (e) {
       console.error("Failed to parse profile data:", e)
     }
@@ -111,6 +119,169 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
   const toggleDebug = () => setShowDebug(!showDebug)
   const toggleEvidence = () => setExpandedEvidence(!expandedEvidence)
+
+  // 导出 Markdown
+  const handleExportMarkdown = () => {
+    if (!profileData) return;
+    
+    const category = TopicService.classify(cachedContext || "");
+    const md = ExportService.toMarkdown(profileData.profile as ProfileData, category, userHomeUrl, cachedAt || Date.now());
+    
+    const blob = new Blob([md], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `DeepProfile_${displayName}_${new Date().toISOString().slice(0, 10)}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // 导出图片
+  const handleExportImage = async () => {
+    if (!cardRef.current) return;
+    setIsExporting(true);
+    
+    try {
+      // 临时展开所有内容以确保截图完整
+      const wasEvidenceExpanded = expandedEvidence;
+      const wasDebugShown = showDebug;
+      setExpandedEvidence(true);
+      setShowDebug(false); // 截图通常不需要调试信息
+      
+      // 创建一个临时的、样式化的容器用于截图
+      const exportContainer = document.createElement('div');
+      exportContainer.style.position = 'absolute';
+      exportContainer.style.top = '-9999px';
+      exportContainer.style.left = '-9999px';
+      exportContainer.style.width = '400px'; // 固定宽度，类似身份证
+      exportContainer.style.backgroundColor = '#f0f2f5'; // 浅灰色背景
+      exportContainer.style.padding = '20px';
+      exportContainer.style.fontFamily = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+      document.body.appendChild(exportContainer);
+
+      // 构建 ID 卡片样式的内容
+      const dateStr = new Date().toLocaleDateString('zh-CN');
+      
+      // 渲染价值取向条
+      let valueOrientationHtml = '';
+      if (valueOrientation && valueOrientation.length > 0) {
+          valueOrientationHtml = valueOrientation.map(item => {
+              const { label: labelName, score } = item;
+              const { label, percentage } = calculateFinalLabel(labelName, score);
+              const intensity = Math.min(100, percentage);
+              const color = score >= 0 
+                ? `hsl(210, 70%, ${70 - intensity * 0.3}%)`
+                : `hsl(0, 70%, ${70 - Math.abs(intensity) * 0.3}%)`;
+              
+              return `
+                <div style="display: flex; align-items: center; margin-bottom: 8px; font-size: 12px;">
+                    <span style="width: 100px; font-weight: 500; color: #333;">${label}</span>
+                    <div style="flex: 1; height: 8px; background-color: #e0e0e0; border-radius: 4px; overflow: hidden;">
+                        <div style="height: 100%; width: ${percentage}%; background-color: ${color}; border-radius: 4px;"></div>
+                    </div>
+                    <span style="width: 30px; text-align: right; font-size: 11px; color: #666;">${Math.round(percentage)}%</span>
+                </div>
+              `;
+          }).join('');
+      }
+
+      // 获取 Base64 编码的头像
+      let avatarSrc = icon;
+      if (userProfile?.avatar_url) {
+        const base64Avatar = await ZhihuClient.fetchImageAsBase64(userProfile.avatar_url);
+        if (base64Avatar) {
+          avatarSrc = base64Avatar;
+        }
+      }
+      
+      // 二维码链接
+      const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent("https://chrome.google.com/webstore/detail/deepprofile")}`;
+
+      exportContainer.innerHTML = `
+        <div style="background-color: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            <div style="background: linear-gradient(135deg, #0084ff 0%, #0055ff 100%); padding: 24px 20px; color: white; position: relative;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 60px; height: 60px; background-color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); overflow: hidden;">
+                        <img src="${avatarSrc}" style="width: 100%; height: 100%; object-fit: cover;" />
+                    </div>
+                    <div>
+                        <h2 style="margin: 0; font-size: 20px; font-weight: 700;">${displayName}</h2>
+                        <div style="font-size: 12px; opacity: 0.9; margin-top: 4px;">DeepProfile 用户画像分析</div>
+                    </div>
+                </div>
+                <div style="position: absolute; top: 20px; right: 20px; text-align: right;">
+                    <div style="font-size: 10px; opacity: 0.8;">生成日期</div>
+                    <div style="font-size: 14px; font-weight: 600;">${dateStr}</div>
+                </div>
+            </div>
+            
+            <div style="padding: 24px;">
+                <div style="margin-bottom: 20px;">
+                    <div style="font-size: 12px; color: #8590a6; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">核心话题</div>
+                    <div style="font-size: 16px; font-weight: 600; color: #1a1a1a; background-color: #f0f2f5; display: inline-block; padding: 4px 12px; border-radius: 20px;">${topicClassification}</div>
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <div style="font-size: 12px; color: #8590a6; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">AI 总结</div>
+                    <div style="font-size: 14px; line-height: 1.6; color: #444; background-color: #f9f9f9; padding: 12px; border-radius: 8px; border-left: 3px solid #0084ff;">
+                        ${summary}
+                    </div>
+                </div>
+
+                ${valueOrientationHtml ? `
+                <div style="margin-bottom: 20px;">
+                    <div style="font-size: 12px; color: #8590a6; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">价值取向图谱</div>
+                    ${valueOrientationHtml}
+                </div>
+                ` : ''}
+                
+                <div style="border-top: 1px dashed #e0e0e0; margin-top: 20px; padding-top: 16px; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <img src="${qrCodeUrl}" style="width: 48px; height: 48px; border-radius: 4px;" crossOrigin="anonymous" />
+                        <div>
+                            <div style="font-size: 12px; font-weight: 600; color: #1a1a1a;">DeepProfile</div>
+                            <div style="font-size: 10px; color: #8590a6;">AI 驱动的用户画像分析</div>
+                        </div>
+                    </div>
+                    <div style="font-size: 10px; color: #999; text-align: right;">
+                        扫码安装插件<br/>开启你的 AI 分析之旅
+                    </div>
+                </div>
+            </div>
+        </div>
+      `;
+
+      // 等待图片加载
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const canvas = await html2canvas(exportContainer, {
+        useCORS: true,
+        backgroundColor: null,
+        scale: 2,
+        logging: false
+      });
+      
+      const image = canvas.toDataURL("image/png");
+      const a = document.createElement('a');
+      a.href = image;
+      a.download = `DeepProfile_Card_${displayName}_${new Date().toISOString().slice(0, 10)}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      document.body.removeChild(exportContainer);
+      
+      // 恢复状态
+      setExpandedEvidence(wasEvidenceExpanded);
+      setShowDebug(wasDebugShown);
+    } catch (e) {
+      console.error("Export image failed:", e);
+      alert("图片导出失败，请重试");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   // 计算进度条
   const renderProgressBar = () => {
@@ -187,6 +358,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
   return (
     <div
+      ref={cardRef}
       style={{
         position: "fixed",
         bottom: "20px",
@@ -212,47 +384,98 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           borderBottom: "1px solid #eee",
           paddingBottom: "10px"
         }}>
-        <div>
-          <h3 style={{ margin: 0, fontSize: "16px", fontWeight: "bold", color: "#1a1a1a" }}>
-            {loading ? (
-                <span>分析中: {displayName}</span>
-            ) : (
-                <a 
-                  href={userHomeUrl} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  style={{ color: "#1a1a1a", textDecoration: "none" }}
-                  onMouseOver={e => e.currentTarget.style.color = "#0084ff"}
-                  onMouseOut={e => e.currentTarget.style.color = "#1a1a1a"}
-                >
-                  {displayName}
-                </a>
-            )}
-          </h3>
-          <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
-            话题分类: <span style={{ fontWeight: "500", color: "#0084ff" }}>{topicClassification}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          {userProfile?.avatar_url && (
+            <img 
+              src={userProfile.avatar_url} 
+              alt="avatar" 
+              style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" }} 
+            />
+          )}
+          <div>
+            <h3 style={{ margin: 0, fontSize: "16px", fontWeight: "bold", color: "#1a1a1a" }}>
+              {loading ? (
+                  <span>分析中: {displayName}</span>
+              ) : (
+                  <a 
+                    href={userHomeUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    style={{ color: "#1a1a1a", textDecoration: "none" }}
+                    onMouseOver={e => e.currentTarget.style.color = "#0084ff"}
+                    onMouseOut={e => e.currentTarget.style.color = "#1a1a1a"}
+                  >
+                    {displayName}
+                  </a>
+              )}
+            </h3>
+            <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
+              话题分类: <span style={{ fontWeight: "500", color: "#0084ff" }}>{topicClassification}</span>
+            </div>
           </div>
         </div>
-        <button
-          onClick={onClose}
-          style={{
-            background: "none",
-            border: "none",
-            fontSize: "18px",
-            cursor: "pointer",
-            color: "#999",
-            padding: "0",
-            width: "24px",
-            height: "24px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center"
-          }}
-          onMouseOver={(e) => (e.currentTarget.style.color = "#333")}
-          onMouseOut={(e) => (e.currentTarget.style.color = "#999")}
-        >
-          ×
-        </button>
+        <div style={{ display: "flex", gap: "8px" }}>
+          {profileData && !loading && (
+            <>
+              <button
+                onClick={handleExportMarkdown}
+                title="导出为 Markdown"
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: "16px",
+                  cursor: "pointer",
+                  padding: "4px",
+                  borderRadius: "4px",
+                  transition: "background-color 0.2s"
+                }}
+                onMouseOver={e => e.currentTarget.style.backgroundColor = "#f0f0f0"}
+                onMouseOut={e => e.currentTarget.style.backgroundColor = "transparent"}
+              >
+                📝
+              </button>
+              <button
+                onClick={handleExportImage}
+                title="导出为图片"
+                disabled={isExporting}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: "16px",
+                  cursor: isExporting ? "wait" : "pointer",
+                  padding: "4px",
+                  borderRadius: "4px",
+                  transition: "background-color 0.2s",
+                  opacity: isExporting ? 0.5 : 1
+                }}
+                onMouseOver={e => e.currentTarget.style.backgroundColor = "#f0f0f0"}
+                onMouseOut={e => e.currentTarget.style.backgroundColor = "transparent"}
+              >
+                📸
+              </button>
+            </>
+          )}
+          <button
+            onClick={onClose}
+            style={{
+              background: "none",
+              border: "none",
+              fontSize: "18px",
+              cursor: "pointer",
+              color: "#999",
+              padding: "0",
+              width: "24px",
+              height: "24px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center"
+            }}
+            onMouseOver={(e) => (e.currentTarget.style.color = "#333")}
+            onMouseOut={(e) => (e.currentTarget.style.color = "#999")}
+          >
+            ×
+          </button>
+        </div>
       </div>
 
       {renderProgressBar()}
