@@ -85,15 +85,15 @@ async function testConnection(provider: string, apiKey: string, baseUrl: string,
             const errText = await response.text().catch(() => '');
             let friendlyMsg = `API Error (${response.status})`;
             
-            if (response.status === 401) friendlyMsg = "认证失败 (401): 请检查 API Key 是否正确。";
-            else if (response.status === 402) friendlyMsg = "余额不足 (402): 您的账户余额已耗尽，请充值。";
-            else if (response.status === 404) friendlyMsg = "模型未找到 (404): 请检查模型名称是否正确。";
-            else if (response.status === 429) friendlyMsg = "请求过多 (429): 触发了频率限制，请稍后再试。";
+            if (response.status === 401) friendlyMsg = "认证失败 (401) 🔑：请检查 API Key 是否正确哦。";
+            else if (response.status === 402) friendlyMsg = "钱包空空如也 (402) 💸：请给 AI 服务商充点值吧～";
+            else if (response.status === 404) friendlyMsg = "迷路了 (404) 🗺️：找不到这个模型，请检查模型名称。";
+            else if (response.status === 429) friendlyMsg = "太热情啦 (429) 🔥：AI 有点忙不过来，请稍后再试。";
             
-            throw new Error(`${friendlyMsg} \nDetails: ${errText.slice(0, 100)}`);
+            throw new Error(`${friendlyMsg} \n详情: ${errText.slice(0, 100)}`);
         }
 
-        return "Connection successful! API is working.";
+        return "连接成功！AI 随时待命 🚀";
     } catch (e) {
         throw e;
     }
@@ -118,7 +118,7 @@ async function listModels(provider: string, apiKey: string, baseUrl: string): Pr
             
             if (!response.ok) {
                 const errText = await response.text().catch(() => '');
-                throw new Error(`Failed to fetch models: ${response.status} ${errText}`);
+                throw new Error(`获取模型列表失败: ${response.status} ${errText}`);
             }
             
             const data = await response.json();
@@ -127,14 +127,14 @@ async function listModels(provider: string, apiKey: string, baseUrl: string): Pr
         else if (provider === 'ollama') {
             const url = `${baseUrl || 'http://localhost:11434'}/api/tags`;
             const response = await fetch(url);
-            if (!response.ok) throw new Error(`Failed to fetch models: ${response.status}`);
+            if (!response.ok) throw new Error(`获取模型列表失败: ${response.status}`);
             const data = await response.json();
             return data.models.map((m: any) => m.name).sort();
         }
         else if (provider === 'gemini') {
             const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
             const response = await fetch(url);
-            if (!response.ok) throw new Error(`Failed to fetch models: ${response.status}`);
+            if (!response.ok) throw new Error(`获取模型列表失败: ${response.status}`);
             const data = await response.json();
             return (data.models || [])
                 .filter((m: any) => m.supportedGenerationMethods?.includes('generateContent'))
@@ -214,7 +214,7 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
   
   if (!items || items.length === 0) {
     if (!userProfile) {
-        throw new Error("No user data found.")
+        throw new Error("哎呀，找不到这个用户的数据 🕵️‍♂️，可能是账号被封禁或设置了隐私保护。")
     }
   }
 
@@ -291,9 +291,12 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
       }
   } catch (error) {
       let msg = error.message;
-      if (msg.includes("402")) msg = "API 余额不足 (402)，请检查您的 AI 服务商账户。";
-      else if (msg.includes("401")) msg = "API Key 无效 (401)，请检查设置。";
-      else if (msg.includes("429")) msg = "API 请求过于频繁 (429)，请稍后再试。";
+      if (msg.includes("402")) msg = "钱包空空如也 (402) 💸，请给 AI 服务商充点值吧～";
+      else if (msg.includes("401")) msg = "芝麻开门失败 (401) 🔑，请检查 API Key 是否正确哦。";
+      else if (msg.includes("429")) msg = "太热情啦 (429) 🔥，AI 有点忙不过来，请稍后再试。";
+      else if (msg.includes("404")) msg = "迷路了 (404) 🗺️，找不到这个模型，请检查配置。";
+      else if (msg.includes("500")) msg = "AI 服务商罢工了 (500) 💥，请稍后再试。";
+      else if (msg.includes("Failed to fetch")) msg = "网络开小差了 🌐，请检查网络连接或代理设置。";
       
       throw new Error(msg);
   }

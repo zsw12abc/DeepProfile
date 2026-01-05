@@ -27,26 +27,15 @@ export interface FetchResult {
 export class ZhihuClient {
   private static BASE_URL = 'https://www.zhihu.com/api/v4';
 
-  private static async getCookieString(): Promise<string> {
-    if (typeof chrome !== 'undefined' && chrome.cookies) {
-      try {
-        const cookies = await chrome.cookies.getAll({ domain: "zhihu.com" });
-        return cookies.map(c => `${c.name}=${c.value}`).join('; ');
-      } catch (e) {
-        console.warn("Failed to get cookies:", e);
-      }
-    }
-    return '';
-  }
-
+  // Removed manual cookie fetching as credentials: 'include' handles it
   private static async getHeaders() {
-    const cookie = await this.getCookieString();
     return {
       'Content-Type': 'application/json',
       'X-Requested-With': 'XMLHttpRequest',
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Referer': 'https://www.zhihu.com/',
-      'Cookie': cookie
+      // User-Agent is usually handled by the browser, setting it manually might be blocked in some contexts but keeping for now
+      // 'User-Agent': 'Mozilla/5.0 ...', 
+      // Referrer is often immutable in fetch, but we can try. 
+      // If this fails, we might need declarativeNetRequest rules.
     };
   }
 
@@ -86,6 +75,12 @@ export class ZhihuClient {
         credentials: 'include',
         headers: headers
       });
+      
+      if (response.status === 403) {
+          console.error("Zhihu API 403 Forbidden. Please check if you are logged in to Zhihu.");
+          throw new Error("哎呀，被知乎拦截了 (403) 🚧。请试着刷新一下知乎页面，或者确认是否登录了哦～");
+      }
+
       if (response.ok) {
         const data = await response.json();
         return {
@@ -97,6 +92,7 @@ export class ZhihuClient {
       }
     } catch (e) {
       console.warn('Failed to fetch user profile', e);
+      throw e; // Re-throw to let the UI handle the error message
     }
     return null;
   }
