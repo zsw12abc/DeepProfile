@@ -68,20 +68,21 @@ ${processedComments}
     try {
       // 清理可能的 Markdown 标记
       let cleanStr = jsonStr.trim();
-      if (cleanStr.startsWith('```json')) cleanStr = cleanStr.substring(7);
-      if (cleanStr.startsWith('```')) cleanStr = cleanStr.substring(3);
-      if (cleanStr.endsWith('```')) cleanStr = cleanStr.substring(0, cleanStr.length - 3);
+      if (cleanStr.startsWith('```json')) {
+        cleanStr = cleanStr.substring(7);
+      }
+      if (cleanStr.startsWith('```')) {
+        cleanStr = cleanStr.substring(3);
+      }
+      if (cleanStr.endsWith('```')) {
+        cleanStr = cleanStr.substring(0, cleanStr.length - 3);
+      }
+      cleanStr = cleanStr.trim();
       
       return JSON.parse(cleanStr);
     } catch (e) {
-      console.error("Failed to parse comment analysis result:", e);
-      // 返回兜底数据
-      return {
-        summary: "分析结果解析失败",
-        stance_ratio: { support: 0, oppose: 0, neutral: 1 },
-        key_points: [],
-        sentiment: 'neutral'
-      };
+      console.error("Failed to parse comment analysis result:", e, "Raw string:", jsonStr);
+      throw new Error("AI 返回的数据格式不正确，无法解析。");
     }
   }
 }
