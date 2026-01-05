@@ -120,3 +120,29 @@ export interface ProfileData {
     source_id?: string
   }>
 }
+
+// --- Comment Analysis Types ---
+
+export interface CommentItem {
+  id: string;
+  author: string;
+  content: string;
+  likes?: number;
+  replyTo?: string;
+}
+
+export interface CommentAnalysisResult {
+  summary: string; // 总体舆论总结
+  stance_ratio: {
+    support: number; // 支持方比例 (0-1)
+    oppose: number;  // 反对方比例 (0-1)
+    neutral: number; // 中立/吃瓜比例 (0-1)
+  };
+  key_points: Array<{
+    point: string; // 观点
+    count: number; // 提及次数/热度
+    type: 'support' | 'oppose' | 'neutral';
+    example_quotes: string[]; // 典型评论摘录
+  }>;
+  sentiment: 'positive' | 'negative' | 'neutral' | 'controversial'; // 总体情绪
+}

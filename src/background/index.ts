@@ -4,6 +4,7 @@ import { ConfigService } from "~services/ConfigService"
 import { ProfileService } from "~services/ProfileService"
 import { HistoryService } from "~services/HistoryService"
 import { TopicService } from "~services/TopicService"
+import { CommentAnalysisService } from "~services/CommentAnalysisService"
 import type { SupportedPlatform } from "~types"
 
 export {}
@@ -23,6 +24,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       .then((result) => sendResponse({ success: true, data: result }))
       .catch((error) => sendResponse({ success: false, error: error.message }))
     return true // Keep the message channel open for async response
+  }
+
+  if (request.type === "ANALYZE_COMMENTS") {
+      CommentAnalysisService.analyzeComments(request.comments, request.contextTitle)
+          .then((result) => sendResponse({ success: true, data: result }))
+          .catch((error) => sendResponse({ success: false, error: error.message }));
+      return true;
   }
   
   if (request.type === "LIST_MODELS") {
