@@ -217,43 +217,34 @@ const CommentAnalysisPanel = ({ contextTitle, containerElement }: { contextTitle
 const ZhihuComments = () => {
     useEffect(() => {
         const injectButton = () => {
-            const containers = document.querySelectorAll('.Comments-container');
+            // 适配页面内评论区和弹窗评论区
+            const containers = document.querySelectorAll('.Comments-container, .Modal-content');
             
             containers.forEach(container => {
                 // 1. 寻找 Header
                 let header: HTMLElement | null = null;
                 let sortContainer: HTMLElement | null = null;
 
-                const children = Array.from(container.children) as HTMLElement[];
-                for (const child of children) {
-                    if (child.innerText.includes('默认') && child.innerText.includes('最新')) {
-                        const findFlexRow = (el: HTMLElement): HTMLElement | null => {
-                            if (getComputedStyle(el).display === 'flex' && el.innerText.includes('条评论')) {
-                                return el;
-                            }
-                            for (const c of Array.from(el.children) as HTMLElement[]) {
-                                const found = findFlexRow(c);
-                                if (found) return found;
-                            }
-                            return null;
-                        };
-                        
-                        const flexRow = findFlexRow(child) || child; 
-                        header = flexRow;
-                        
-                        const sortBtns = Array.from(header.querySelectorAll('div')).find(d => d.innerText.includes('默认') && d.innerText.includes('最新'));
-                        if (sortBtns) sortContainer = sortBtns as HTMLElement;
-                        
-                        break;
+                // 优先使用更具体的选择器
+                header = container.querySelector('.css-1onritu') || 
+                         container.querySelector('.CommentListV2-header') || 
+                         container.querySelector('.Comments-header');
+
+                // 如果找不到，再使用基于内容的通用查找
+                if (!header) {
+                    const children = Array.from(container.children) as HTMLElement[];
+                    for (const child of children) {
+                        if (child.innerText.includes('默认') && child.innerText.includes('最新')) {
+                            header = child;
+                            break;
+                        }
                     }
                 }
 
-                if (!header) {
-                    header = container.querySelector('.CommentListV2-header') || 
-                             container.querySelector('.Comments-header');
-                }
-
                 if (!header) return; 
+
+                // 在 header 内部找到排序容器
+                sortContainer = Array.from(header.querySelectorAll('div')).find(d => d.innerText.includes('默认') && d.innerText.includes('最新')) as HTMLElement;
 
                 // 检查是否已经有面板在运行
                 if (container.querySelector('.deep-profile-embedded-panel')) return;
@@ -283,12 +274,20 @@ const ZhihuComments = () => {
                 btn.onclick = (e) => {
                     e.stopPropagation(); 
                     
-                    // 关键修复：用面板替换按钮
+                    // 创建嵌入面板的容器
                     const panelContainer = document.createElement('div');
                     panelContainer.className = 'deep-profile-embedded-panel';
                     
-                    // 替换按钮
-                    btn.parentNode.replaceChild(panelContainer, btn);
+                    // 插入位置：Header 之后
+                    if (header.parentNode) {
+                        header.parentNode.insertBefore(panelContainer, header.nextSibling);
+                    } else {
+                        // 这是一个 fallback，理论上不应该发生
+                        container.insertBefore(panelContainer, container.firstChild);
+                    }
+                    
+                    // 隐藏按钮
+                    btn.style.display = 'none';
 
                     // 获取当前上下文标题
                     let title = "";

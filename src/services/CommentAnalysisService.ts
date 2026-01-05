@@ -64,25 +64,35 @@ ${processedComments}
     }
   }
 
-  private static parseResult(jsonStr: string): CommentAnalysisResult {
-    try {
-      // 清理可能的 Markdown 标记
-      let cleanStr = jsonStr.trim();
-      if (cleanStr.startsWith('```json')) {
-        cleanStr = cleanStr.substring(7);
-      }
-      if (cleanStr.startsWith('```')) {
-        cleanStr = cleanStr.substring(3);
-      }
-      if (cleanStr.endsWith('```')) {
-        cleanStr = cleanStr.substring(0, cleanStr.length - 3);
-      }
-      cleanStr = cleanStr.trim();
-      
-      return JSON.parse(cleanStr);
-    } catch (e) {
-      console.error("Failed to parse comment analysis result:", e, "Raw string:", jsonStr);
-      throw new Error("AI 返回的数据格式不正确，无法解析。");
+  private static parseResult(responseStr: string): CommentAnalysisResult {
+    let jsonText = responseStr.trim();
+
+    // 1. 尝试移除包裹的 Markdown
+    const jsonMatch = jsonText.match(/```json\s*([\s\S]*?)\s*```/);
+    if (jsonMatch && jsonMatch[1]) {
+        jsonText = jsonMatch[1];
     }
+
+    try {
+        // 2. 尝试直接解析
+        return JSON.parse(jsonText);
+    } catch (e) {
+        console.warn("[DeepProfile] Direct JSON.parse failed. Trying to extract from a larger structure.", e);
+        // 3. 如果直接解析失败，尝试从完整的 LLM 响应对象中提取
+        try {
+            const outerObject = JSON.parse(responseStr); // 使用原始字符串
+            if (outerObject.choices && outerObject.choices[0]?.message?.content) {
+                // 提取 content 字段，它本身应该是一个 JSON 字符串
+                const contentStr = outerObject.choices[0].message.content;
+                return JSON.parse(contentStr);
+            }
+        } catch (e2) {
+            // 4. 如果所有尝试都失败
+            console.error("[DeepProfile] Could not parse JSON from LLM response.", e2, "Original response string:", responseStr);
+            throw new Error("AI 返回的数据格式不正确，无法解析。");
+        }
+    }
+    // 如果代码能运行到这里，说明发生了意料之外的情况
+    throw new Error("无法从AI响应中解析出有效的JSON。");
   }
 }
