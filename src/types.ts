@@ -145,4 +145,9 @@ export interface CommentAnalysisResult {
     example_quotes: string[]; // 典型评论摘录
   }>;
   sentiment: 'positive' | 'negative' | 'neutral' | 'controversial'; // 总体情绪
+  deep_analysis?: { // 深度模式下的额外分析
+    has_fallacy: boolean;
+    fallacy_type?: string;
+    example?: string;
+  };
 }

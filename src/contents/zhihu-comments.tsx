@@ -236,6 +236,17 @@ const CommentAnalysisPanel = ({ contextTitle, containerElement, answerId }: { co
                           ))}
                       </div>
                   ))}
+                  {result.deep_analysis && result.deep_analysis.has_fallacy && (
+                    <div style={{ marginTop: 12, borderTop: '1px solid #ebebeb', paddingTop: 12, fontSize: 13 }}>
+                        <div style={{ fontWeight: 500, marginBottom: 4, color: '#444' }}>
+                            🧠 深度洞察
+                        </div>
+                        <div style={{ fontSize: 12, color: '#8590a6' }}>
+                            {`检测到可能存在的逻辑谬误: ${result.deep_analysis.fallacy_type || '未知类型'}`}
+                            {result.deep_analysis.example && ` (例如: "${result.deep_analysis.example}")`}
+                        </div>
+                    </div>
+                  )}
               </div>
           )}
       </div>
