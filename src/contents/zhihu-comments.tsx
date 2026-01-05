@@ -8,7 +8,7 @@ export const config: PlasmoCSConfig = {
 }
 
 // 嵌入式 UI 组件
-const CommentAnalysisPanel = ({ contextTitle, containerElement }: { contextTitle: string, containerElement: Element }) => {
+const CommentAnalysisPanel = ({ contextTitle, containerElement, answerId }: { contextTitle: string, containerElement: Element, answerId?: string }) => {
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState("正在分析当前页面的评论...");
   const [result, setResult] = useState<CommentAnalysisResult | null>(null);
@@ -94,13 +94,43 @@ const CommentAnalysisPanel = ({ contextTitle, containerElement }: { contextTitle
             throw new Error(`评论太少 (${comments.length}条)，无法进行有效分析。请确保评论区已加载。`);
         }
 
+        // 1.5 提取上下文内容 (回答/文章正文)
+        let contextContent = "";
+        try {
+            // 尝试从 container 往上找
+            let contentContainer = containerElement.closest('.ContentItem') || containerElement.closest('.Post-content');
+            
+            if (contentContainer) {
+                const richContent = contentContainer.querySelector('.RichContent-inner') || contentContainer.querySelector('.Post-RichText');
+                if (richContent) {
+                    contextContent = richContent.textContent || "";
+                }
+            } else {
+                // 尝试全局查找 (仅当页面上只有一个主要内容时有效，或者作为兜底)
+                if (window.location.href.includes('/answer/') || window.location.href.includes('/p/')) {
+                     const mainContent = document.querySelector('.RichContent-inner') || document.querySelector('.Post-RichText');
+                     if (mainContent) {
+                         contextContent = mainContent.textContent || "";
+                     }
+                }
+            }
+            
+            if (contextContent) {
+                console.log(`[DeepProfile] Extracted context content length: ${contextContent.length}`);
+            }
+        } catch (e) {
+            console.warn("[DeepProfile] Failed to extract context content:", e);
+        }
+
         setStatus("AI 正在阅读大家的观点...");
 
         // 2. 调用 Service
         const response = await chrome.runtime.sendMessage({
             type: "ANALYZE_COMMENTS",
             comments,
-            contextTitle
+            contextTitle,
+            contextContent, // 传递提取的内容
+            answerId // 传递 answerId 作为 fallback
         });
 
         if (response.success) {
@@ -294,10 +324,48 @@ const ZhihuComments = () => {
                     const questionHeader = document.querySelector('.QuestionHeader-title');
                     if (questionHeader) title = questionHeader.textContent || "";
                     
+                    // 尝试获取 answerId
+                    let answerId = undefined;
+                    // 1. 从 URL 获取
+                    const urlMatch = window.location.href.match(/answer\/(\d+)/);
+                    if (urlMatch) {
+                        answerId = urlMatch[1];
+                    } else {
+                        // 2. 从 DOM 获取 (RichContent 容器通常包含 data-zop 属性，里面有 itemId)
+                        const richContent = container.closest('.ContentItem') || document.querySelector('.RichContent');
+                        if (richContent) {
+                            // 尝试查找 data-zop 属性
+                            const dataZop = richContent.getAttribute('data-zop');
+                            if (dataZop) {
+                                try {
+                                    const zopData = JSON.parse(dataZop);
+                                    if (zopData.itemId) {
+                                        answerId = String(zopData.itemId);
+                                    }
+                                } catch (e) {
+                                    // ignore
+                                }
+                            }
+                            
+                            // 如果没有 data-zop，尝试查找 meta 标签
+                            if (!answerId) {
+                                const meta = richContent.querySelector('meta[itemprop="url"]');
+                                if (meta) {
+                                    const content = meta.getAttribute('content');
+                                    const match = content?.match(/answer\/(\d+)/);
+                                    if (match) {
+                                        answerId = match[1];
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     const root = createRoot(panelContainer);
                     root.render(<CommentAnalysisPanel 
                         contextTitle={title} 
-                        containerElement={container} 
+                        containerElement={container}
+                        answerId={answerId}
                     />);
                 };
 

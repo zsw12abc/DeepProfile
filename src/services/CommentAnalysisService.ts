@@ -4,7 +4,7 @@ import { ConfigService } from "./ConfigService";
 
 export class CommentAnalysisService {
   
-  static async analyzeComments(comments: CommentItem[], contextTitle: string): Promise<CommentAnalysisResult> {
+  static async analyzeComments(comments: CommentItem[], contextTitle: string, contextContent?: string): Promise<CommentAnalysisResult> {
     if (!comments || comments.length === 0) {
       throw new Error("没有找到可分析的评论");
     }
@@ -17,16 +17,25 @@ export class CommentAnalysisService {
     }).join('\n');
 
     // 2. 构建 Prompt
+    let promptContext = `话题【${contextTitle}】`;
+    if (contextContent) {
+        // 限制上下文长度，防止超出 Token 限制
+        const truncatedContent = contextContent.length > 2000 ? contextContent.slice(0, 2000) + "..." : contextContent;
+        promptContext += `\n\n【话题/回答原文摘要】\n${truncatedContent}`;
+    }
+
     const prompt = `
-你是一个舆情分析专家。请分析以下关于话题【${contextTitle}】的评论区内容。
+你是一个舆情分析专家。请分析以下评论区内容。
+评论区是关于：${promptContext}
 
 【评论数据】
 ${processedComments}
 
 【分析要求】
 1.  **立场分布**: 统计支持(Support)、反对(Oppose)和中立(Neutral)的比例。
-    *   支持：支持答主/作者观点，或对内容表示赞同。
-    *   反对：反驳答主/作者观点，或提出批评。
+    *   **重要**：判断支持/反对时，必须基于【话题/回答原文】的观点。
+    *   支持：支持答主/作者的观点，或对内容表示赞同。
+    *   反对：反驳答主/作者的观点，或提出批评。
     *   中立：吃瓜、玩梗、无关讨论或理中客。
 2.  **核心观点**: 提取评论区中反复出现的 3-5 个核心论点。
 3.  **典型摘录**: 为每个核心观点摘录 1-2 条原话。

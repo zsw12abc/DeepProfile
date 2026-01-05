@@ -142,9 +142,10 @@ export class ZhihuClient {
 
   // 增强内容，为内容为空的回答获取详细内容
   private static async enhanceContent(items: ZhihuContent[]): Promise<ZhihuContent[]> {
-    // 过滤出内容为空的回答
+    // 过滤出内容为空的回答或文章
     const itemsWithEmptyContent = items.filter(item => 
-      (!item.content || item.content.trim() === '' || item.content === '[无正文内容]') && item.type === 'answer'
+      (!item.content || item.content.trim() === '' || item.content === '[无正文内容]') && 
+      (item.type === 'answer' || item.type === 'article')
     );
     
     console.log(`Found ${itemsWithEmptyContent.length} items with empty content to enhance`);
@@ -152,7 +153,7 @@ export class ZhihuClient {
     // 对于内容为空的回答，获取详细内容
     for (const item of itemsWithEmptyContent) {
       try {
-        const detailedContent = await this.fetchAnswerContent(item.id);
+        const detailedContent = await this.fetchDetailContent(item.id, item.type as 'answer' | 'article');
         if (detailedContent) {
           // 更新原数组中的内容
           const index = items.findIndex(i => i.id === item.id);
@@ -161,17 +162,18 @@ export class ZhihuClient {
           }
         }
       } catch (error) {
-        console.error(`Failed to fetch detailed content for answer ${item.id}:`, error);
+        console.error(`Failed to fetch detailed content for ${item.type} ${item.id}:`, error);
       }
     }
     
     return items;
   }
 
-  // 获取单个回答的详细内容
-  private static async fetchAnswerContent(answerId: string): Promise<string | null> {
+  // 获取单个回答或文章的详细内容
+  static async fetchDetailContent(id: string, type: 'answer' | 'article'): Promise<string | null> {
+    const endpoint = type === 'answer' ? 'answers' : 'articles';
     try {
-      const url = `${this.BASE_URL}/answers/${answerId}?include=content`;
+      const url = `${this.BASE_URL}/${endpoint}/${id}?include=content`;
       const headers = await this.getHeaders();
       const response = await fetch(url, {
         method: 'GET',
@@ -180,14 +182,14 @@ export class ZhihuClient {
       });
 
       if (!response.ok) {
-        console.error(`Failed to fetch answer ${answerId}: ${response.status} ${response.statusText}`);
+        console.error(`Failed to fetch ${type} ${id}: ${response.status} ${response.statusText}`);
         return null;
       }
 
       const data = await response.json();
       return data.content || null;
     } catch (error) {
-      console.error(`Error fetching answer ${answerId}:`, error);
+      console.error(`Error fetching ${type} ${id}:`, error);
       return null;
     }
   }
@@ -417,5 +419,10 @@ export class ZhihuClient {
       console.error("Failed to convert image to base64:", e);
       return null;
     }
+  }
+
+  // --- New Feature: Fetch Answer Content for Context ---
+  static async fetchAnswerContentForContext(answerId: string): Promise<string | null> {
+    return this.fetchDetailContent(answerId, 'answer');
   }
 }

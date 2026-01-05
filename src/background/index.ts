@@ -27,7 +27,28 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 
   if (request.type === "ANALYZE_COMMENTS") {
-      CommentAnalysisService.analyzeComments(request.comments, request.contextTitle)
+      // 如果有 answerId，先获取回答内容
+      const analyzeWithContext = async () => {
+          let contextTitle = request.contextTitle;
+          let contextContent = request.contextContent;
+          
+          // 如果前端没有提取到内容，但提供了 answerId，则尝试从 API 获取
+          if (!contextContent && request.answerId) {
+              try {
+                  const answerContent = await ZhihuClient.fetchAnswerContentForContext(request.answerId);
+                  if (answerContent) {
+                      // 截取一部分内容作为上下文，避免过长
+                      contextContent = answerContent.replace(/<[^>]*>?/gm, '').slice(0, 1000);
+                  }
+              } catch (e) {
+                  console.warn("Failed to fetch answer content for context:", e);
+              }
+          }
+          
+          return CommentAnalysisService.analyzeComments(request.comments, contextTitle, contextContent);
+      };
+
+      analyzeWithContext()
           .then((result) => sendResponse({ success: true, data: result }))
           .catch((error) => sendResponse({ success: false, error: error.message }));
       return true;
