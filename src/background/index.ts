@@ -179,6 +179,8 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
   if (!forceRefresh) {
     // Use macroCategory for cache lookup
     const cachedProfile = await HistoryService.getProfile(userId, platform, macroCategory);
+    const userRecord = await HistoryService.getUserRecord(userId, platform);
+    
     if (cachedProfile) {
       console.log(`Cache hit for user ${userId} in category ${macroCategory}`);
       await sendProgress(tabId, `已加载该用户的【${categoryName}】画像 (秒开!)`);
@@ -186,7 +188,7 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
       return {
         profile: cachedProfile.profileData,
         items: [], 
-        userProfile: null, 
+        userProfile: userRecord?.userInfo || null, // Return cached user info if available
         fromCache: true,
         cachedAt: cachedProfile.timestamp,
         cachedContext: cachedProfile.context // Return the original context stored in cache
@@ -249,7 +251,13 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
         macroCategory, // Store macroCategory as the key
         llmResponse.content,
         context || "", // Store original context for reference
-        llmResponse.model
+        llmResponse.model,
+        userProfile ? {
+            name: userProfile.name,
+            headline: userProfile.headline,
+            avatar_url: userProfile.avatar_url,
+            url_token: userProfile.url_token
+        } : undefined
       );
 
       let debugInfo = undefined;

@@ -15,6 +15,7 @@ export interface UserProfile {
   name: string;
   headline: string;
   url_token: string;
+  avatar_url?: string;
 }
 
 export interface FetchResult {
@@ -77,7 +78,7 @@ export class ZhihuClient {
 
   static async fetchUserProfile(username: string): Promise<UserProfile | null> {
     const userToken = await this.resolveUserToken(username);
-    const url = `${this.BASE_URL}/members/${userToken}`;
+    const url = `${this.BASE_URL}/members/${userToken}?include=avatar_url`;
     try {
       const headers = await this.getHeaders();
       const response = await fetch(url, {
@@ -90,7 +91,8 @@ export class ZhihuClient {
         return {
           name: data.name,
           headline: data.headline,
-          url_token: data.url_token
+          url_token: data.url_token,
+          avatar_url: data.avatar_url.replace('_l', '') // Get original size avatar
         };
       }
     } catch (e) {
@@ -401,6 +403,23 @@ export class ZhihuClient {
     } catch (e) {
       console.error('Error fetching hot list:', e);
       return [];
+    }
+  }
+
+  // --- Helper: Fetch Image as Base64 ---
+  static async fetchImageAsBase64(url: string): Promise<string | null> {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch (e) {
+      console.error("Failed to convert image to base64:", e);
+      return null;
     }
   }
 }

@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react"
 import type { ZhihuContent, UserProfile } from "~services/ZhihuClient"
+import { ZhihuClient } from "~services/ZhihuClient"
 import { calculateFinalLabel } from "~services/LabelUtils"
 import { TopicService, type MacroCategory } from "~services/TopicService"
 import { ExportService } from "~services/ExportService"
@@ -88,6 +89,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   let fromCache = false
   let cachedAt = 0
   let cachedContext = ""
+  let userProfile: UserProfile | null = null
 
   if (profileData) {
     try {
@@ -106,6 +108,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       fromCache = profileData.fromCache || false
       cachedAt = profileData.cachedAt || 0
       cachedContext = profileData.cachedContext || ""
+      userProfile = profileData.userProfile
     } catch (e) {
       console.error("Failed to parse profile data:", e)
     }
@@ -159,8 +162,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       document.body.appendChild(exportContainer);
 
       // 构建 ID 卡片样式的内容
-      // 这里我们手动构建 HTML 结构，而不是直接克隆 cardRef
-      // 这样可以完全控制导出图片的样式，使其更像一张精美的卡片
       const dateStr = new Date().toLocaleDateString('zh-CN');
       
       // 渲染价值取向条
@@ -186,12 +187,24 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           }).join('');
       }
 
+      // 获取 Base64 编码的头像
+      let avatarSrc = icon;
+      if (userProfile?.avatar_url) {
+        const base64Avatar = await ZhihuClient.fetchImageAsBase64(userProfile.avatar_url);
+        if (base64Avatar) {
+          avatarSrc = base64Avatar;
+        }
+      }
+      
+      // 二维码链接
+      const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent("https://chrome.google.com/webstore/detail/deepprofile")}`;
+
       exportContainer.innerHTML = `
         <div style="background-color: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
             <div style="background: linear-gradient(135deg, #0084ff 0%, #0055ff 100%); padding: 24px 20px; color: white; position: relative;">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="width: 60px; height: 60px; background-color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
-                        <img src="${icon}" style="width: 40px; height: 40px;" />
+                    <div style="width: 60px; height: 60px; background-color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); overflow: hidden;">
+                        <img src="${avatarSrc}" style="width: 100%; height: 100%; object-fit: cover;" />
                     </div>
                     <div>
                         <h2 style="margin: 0; font-size: 20px; font-weight: 700;">${displayName}</h2>
@@ -225,20 +238,28 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 ` : ''}
                 
                 <div style="border-top: 1px dashed #e0e0e0; margin-top: 20px; padding-top: 16px; display: flex; justify-content: space-between; align-items: center;">
-                    <div style="font-size: 12px; color: #999;">Powered by DeepProfile</div>
-                    <div style="font-size: 12px; color: #0084ff; font-weight: 600;">chrome.google.com/webstore</div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <img src="${qrCodeUrl}" style="width: 48px; height: 48px; border-radius: 4px;" crossOrigin="anonymous" />
+                        <div>
+                            <div style="font-size: 12px; font-weight: 600; color: #1a1a1a;">DeepProfile</div>
+                            <div style="font-size: 10px; color: #8590a6;">AI 驱动的用户画像分析</div>
+                        </div>
+                    </div>
+                    <div style="font-size: 10px; color: #999; text-align: right;">
+                        扫码安装插件<br/>开启你的 AI 分析之旅
+                    </div>
                 </div>
             </div>
         </div>
       `;
 
       // 等待图片加载
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       const canvas = await html2canvas(exportContainer, {
         useCORS: true,
-        backgroundColor: null, // 透明背景，因为我们有圆角
-        scale: 2, // 高清截图
+        backgroundColor: null,
+        scale: 2,
         logging: false
       });
       
@@ -363,25 +384,34 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           borderBottom: "1px solid #eee",
           paddingBottom: "10px"
         }}>
-        <div>
-          <h3 style={{ margin: 0, fontSize: "16px", fontWeight: "bold", color: "#1a1a1a" }}>
-            {loading ? (
-                <span>分析中: {displayName}</span>
-            ) : (
-                <a 
-                  href={userHomeUrl} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  style={{ color: "#1a1a1a", textDecoration: "none" }}
-                  onMouseOver={e => e.currentTarget.style.color = "#0084ff"}
-                  onMouseOut={e => e.currentTarget.style.color = "#1a1a1a"}
-                >
-                  {displayName}
-                </a>
-            )}
-          </h3>
-          <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
-            话题分类: <span style={{ fontWeight: "500", color: "#0084ff" }}>{topicClassification}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          {userProfile?.avatar_url && (
+            <img 
+              src={userProfile.avatar_url} 
+              alt="avatar" 
+              style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" }} 
+            />
+          )}
+          <div>
+            <h3 style={{ margin: 0, fontSize: "16px", fontWeight: "bold", color: "#1a1a1a" }}>
+              {loading ? (
+                  <span>分析中: {displayName}</span>
+              ) : (
+                  <a 
+                    href={userHomeUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    style={{ color: "#1a1a1a", textDecoration: "none" }}
+                    onMouseOver={e => e.currentTarget.style.color = "#0084ff"}
+                    onMouseOut={e => e.currentTarget.style.color = "#1a1a1a"}
+                  >
+                    {displayName}
+                  </a>
+              )}
+            </h3>
+            <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
+              话题分类: <span style={{ fontWeight: "500", color: "#0084ff" }}>{topicClassification}</span>
+            </div>
           </div>
         </div>
         <div style={{ display: "flex", gap: "8px" }}>

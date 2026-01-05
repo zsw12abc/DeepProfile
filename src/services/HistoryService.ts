@@ -1,4 +1,4 @@
-﻿import type { UserHistoryRecord, CategoryProfile, SupportedPlatform } from "~types";
+﻿import type { UserHistoryRecord, CategoryProfile, SupportedPlatform, UserBasicInfo } from "~types";
 
 const STORAGE_KEY = "deep_profile_history";
 const MAX_USERS = 200; // Keep history for last 200 users
@@ -15,7 +15,8 @@ export class HistoryService {
     category: string, 
     profileData: any,
     context: string,
-    model: string
+    model: string,
+    userInfo?: UserBasicInfo
   ): Promise<void> {
     const history = await this.getAllUserRecords();
     
@@ -34,6 +35,11 @@ export class HistoryService {
         profiles: {},
         lastUpdated: 0
       };
+    }
+
+    // Update user info if provided
+    if (userInfo) {
+        userRecord.userInfo = { ...userRecord.userInfo, ...userInfo };
     }
 
     // 2. Update the specific category profile

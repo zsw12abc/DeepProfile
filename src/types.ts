@@ -76,6 +76,13 @@ export const DEFAULT_CONFIG: AppConfig = {
 
 // --- New History System Types ---
 
+export interface UserBasicInfo {
+  name: string;
+  headline?: string;
+  avatar_url?: string;
+  url_token?: string;
+}
+
 /**
  * Stores the analysis result for a single macro-category.
  */
@@ -94,7 +101,22 @@ export interface CategoryProfile {
 export interface UserHistoryRecord {
   userId: string;
   platform: SupportedPlatform;
+  userInfo?: UserBasicInfo; // Added user info storage
   // A dictionary of profiles, keyed by the macro-category.
   profiles: Record<string, CategoryProfile>; 
   lastUpdated: number; // Timestamp of the last update to any category
+}
+
+// Re-export ProfileData for convenience
+export interface ProfileData {
+  nickname?: string
+  topic_classification?: string
+  value_orientation?: Array<{ label: string; score: number }>
+  summary?: string
+  evidence?: Array<{
+    quote: string
+    analysis: string
+    source_title: string
+    source_id?: string
+  }>
 }
