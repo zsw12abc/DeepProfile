@@ -301,6 +301,26 @@ class LangChainProvider implements LLMProvider {
           model: this.model
         };
       }
+      
+      // 优化 400 错误提示
+      if (error.message && error.message.includes('400') && error.message.includes('Output data may contain inappropriate content')) {
+          const defaultResponse = JSON.stringify({
+            nickname: "",
+            topic_classification: "内容分析",
+            value_orientation: [],
+            summary: "内容安全审查失败：分析的内容可能涉及敏感话题，已被 AI 服务商拦截。建议更换为 DeepSeek 或 OpenAI 模型重试。",
+            evidence: []
+          }, null, 2);
+          
+          const durationMs = Date.now() - startTime;
+          return {
+            content: defaultResponse,
+            usage: undefined,
+            durationMs,
+            model: this.model
+          };
+      }
+
       throw error;
     }
   }

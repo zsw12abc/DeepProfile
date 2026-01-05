@@ -4,6 +4,7 @@ import { ConfigService } from "~services/ConfigService"
 import { ProfileService } from "~services/ProfileService"
 import { HistoryService } from "~services/HistoryService"
 import { TopicService } from "~services/TopicService"
+import { CommentAnalysisService } from "~services/CommentAnalysisService"
 import type { SupportedPlatform } from "~types"
 
 export {}
@@ -23,6 +24,34 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       .then((result) => sendResponse({ success: true, data: result }))
       .catch((error) => sendResponse({ success: false, error: error.message }))
     return true // Keep the message channel open for async response
+  }
+
+  if (request.type === "ANALYZE_COMMENTS") {
+      // 如果有 answerId，先获取回答内容
+      const analyzeWithContext = async () => {
+          let contextTitle = request.contextTitle;
+          let contextContent = request.contextContent;
+          
+          // 如果前端没有提取到内容，但提供了 answerId，则尝试从 API 获取
+          if (!contextContent && request.answerId) {
+              try {
+                  const answerContent = await ZhihuClient.fetchAnswerContentForContext(request.answerId);
+                  if (answerContent) {
+                      // 截取一部分内容作为上下文，避免过长
+                      contextContent = answerContent.replace(/<[^>]*>?/gm, '').slice(0, 1000);
+                  }
+              } catch (e) {
+                  console.warn("Failed to fetch answer content for context:", e);
+              }
+          }
+          
+          return CommentAnalysisService.analyzeComments(request.comments, contextTitle, contextContent);
+      };
+
+      analyzeWithContext()
+          .then((result) => sendResponse({ success: true, data: result }))
+          .catch((error) => sendResponse({ success: false, error: error.message }));
+      return true;
   }
   
   if (request.type === "LIST_MODELS") {
