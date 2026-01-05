@@ -1,6 +1,7 @@
 ﻿
 import { LLMService } from "./LLMService";
 import type { MacroCategory } from "~types";
+import { I18nService } from "./I18nService";
 
 const CATEGORIES: MacroCategory[] = [
   'politics', 'economy', 'society', 'technology', 
@@ -103,16 +104,16 @@ export class TopicService {
 
   static getCategoryName(category: MacroCategory): string {
     switch (category) {
-      case 'politics': return '🏛️ 政治 (Politics)';
-      case 'economy': return '💰 经济 (Economy)';
-      case 'society': return '👥 社会 (Society)';
-      case 'technology': return '💻 科技 (Technology)';
-      case 'culture': return '🎨 文化 (Culture)';
-      case 'environment': return '🌍 环境 (Environment)';
-      case 'entertainment': return '🎮 娱乐 (Entertainment)';
-      case 'lifestyle_career': return '💼 生活与职场 (Lifestyle & Career)';
-      case 'general': return '🌐 通用综合';
-      default: return '未知分类';
+      case 'politics': return I18nService.t('category_politics');
+      case 'economy': return I18nService.t('category_economy');
+      case 'society': return I18nService.t('category_society');
+      case 'technology': return I18nService.t('category_technology');
+      case 'culture': return I18nService.t('category_culture');
+      case 'environment': return I18nService.t('category_environment');
+      case 'entertainment': return I18nService.t('category_entertainment');
+      case 'lifestyle_career': return I18nService.t('category_lifestyle_career');
+      case 'general': return I18nService.t('category_general');
+      default: return category;
     }
   }
 

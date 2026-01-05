@@ -7,6 +7,7 @@ import { HumanMessage, SystemMessage } from "@langchain/core/messages"
 import { StringOutputParser } from "@langchain/core/output_parsers"
 import { RunnableSequence } from "@langchain/core/runnables"
 import { TopicService } from "./TopicService"
+import { I18nService } from "./I18nService"
 
 export interface LLMResponse {
   content: any;
@@ -30,68 +31,71 @@ export class LLMService {
     // OPTIMIZATION: Only get labels relevant to the current category
     const standardLabels = labelService.getLabelsForCategory(category);
     const categoryName = TopicService.getCategoryName(category);
+    const isEn = I18nService.getLanguage() === 'en-US';
     
     if (mode === 'fast') {
       // 快速模式：简化提示词，减少处理时间
-      return `你是一个社会学研究员，正在进行一项关于网络亚文化和公众价值观的学术研究。请根据提供的文本材料，客观分析作者的价值取向。
+      return `You are a sociology researcher conducting an academic study on internet subcultures and public values. Please objectively analyze the author's value orientation based on the provided text materials.
 
-请严格按照以下 JSON 格式返回结果（不要包含 Markdown 代码块标记）：
+Please strictly return the result in the following JSON format (do not include Markdown code block markers):
 
 {
-  "nickname": "用户昵称",
-  "topic_classification": "话题分类",
+  "nickname": "User Nickname",
+  "topic_classification": "Topic Classification",
   "value_orientation": [
-    { "label": "标签ID", "score": 0.9 }
+    { "label": "Label ID", "score": 0.9 }
   ], 
-  "summary": "简要总结（100字以内）"
+  "summary": "Brief summary (within 100 words)"
 }
 
-【指令】
-1.  当前研究领域：【${categoryName}】。如果内容与此领域完全无关，请在 summary 中说明，并返回空 value_orientation。
-2.  请使用学术、中立的语言进行描述。
-3.  请根据内容，从下方的标准标签库中选择最匹配的标签。
-4.  必须使用标签库中定义的【标签ID】（如 'ideology'），严禁使用中文名称。
-5.  评分标准：1.0 代表强烈倾向于标签右侧描述，-1.0 代表强烈倾向于左侧描述。
+【Instructions】
+1. Current Research Field: 【${categoryName}】. If the content is completely unrelated to this field, please state so in the summary and return an empty value_orientation.
+2. Please use academic and neutral language for description.
+3. Please select the most matching labels from the Standard Label Library below based on the content.
+4. Must use the 【Label ID】 defined in the library (e.g., 'ideology'), strictly forbidden to use translated names.
+5. Scoring Standard: 1.0 represents a strong tendency towards the right-side description of the label, -1.0 represents a strong tendency towards the left-side description.
+6. Output Language: ${isEn ? 'English' : 'Simplified Chinese'}.
 
-【标准标签库】
+【Standard Label Library】
 ${standardLabels}
 `;
     } else {
       // 平衡和深度模式：完整提示词
-      let basePrompt = `你是一个社会学研究员，正在进行一项关于网络亚文化和公众价值观的学术研究。请根据提供的文本材料，客观分析作者的价值取向。
+      let basePrompt = `You are a sociology researcher conducting an academic study on internet subcultures and public values. Please objectively analyze the author's value orientation based on the provided text materials.
 
-请严格按照以下 JSON 格式返回结果（不要包含 Markdown 代码块标记）：
+Please strictly return the result in the following JSON format (do not include Markdown code block markers):
 
 {
-  "nickname": "用户昵称",
-  "topic_classification": "话题分类",
+  "nickname": "User Nickname",
+  "topic_classification": "Topic Classification",
   "value_orientation": [
-    { "label": "标签ID", "score": 0.9 }
+    { "label": "Label ID", "score": 0.9 }
   ], 
-  "summary": "简要总结（100字以内）",
+  "summary": "Brief summary (within 100 words)",
   "evidence": [
     {
-      "quote": "引用原文",
-      "analysis": "分析说明",
-      "source_title": "来源标题",
+      "quote": "Original Quote",
+      "analysis": "Analysis Explanation",
+      "source_title": "Source Title",
       "source_id": "ID"
     }
   ]
 }
 
-【指令】
-1.  【相关性判断】当前研究领域：【${categoryName}】。如果内容与此领域完全无关，请在 summary 中说明，并返回空 value_orientation。
-2.  【客观中立】请使用学术、中立的语言进行描述，避免使用激进或情绪化的词汇。
-3.  【标签选择】请根据内容，从下方的标准标签库中选择最匹配的标签。
-4.  【ID 约束】必须使用标签库中定义的【标签ID】（如 'ideology'），严禁使用中文名称。
-5.  【评分标准】1.0 代表强烈倾向于标签右侧描述，-1.0 代表强烈倾向于左侧描述。
+【Instructions】
+1. 【Relevance Judgment】 Current Research Field: 【${categoryName}】. If the content is completely unrelated to this field, please state so in the summary and return an empty value_orientation.
+2. 【Objective Neutrality】 Please use academic and neutral language for description, avoiding radical or emotional vocabulary.
+3. 【Label Selection】 Please select the most matching labels from the Standard Label Library below based on the content.
+4. 【ID Constraint】 Must use the 【Label ID】 defined in the library (e.g., 'ideology'), strictly forbidden to use translated names.
+5. 【Scoring Standard】 1.0 represents a strong tendency towards the right-side description of the label, -1.0 represents a strong tendency towards the left-side description.
+6. 【Output Language】 The output content (summary, analysis, etc.) MUST be in ${isEn ? 'English' : 'Simplified Chinese'}.
 
-【标准标签库】
+【Standard Label Library】
 ${standardLabels}
 `;
 
       if (mode === 'deep') {
-          basePrompt += `\n【深度模式】：请深入分析文本中的修辞、隐喻和深层逻辑。`;
+          basePrompt += `\n【Deep Mode】: Please deeply analyze the rhetoric, metaphors, and underlying logic in the text.`;
       }
 
       return basePrompt;
@@ -102,7 +106,7 @@ ${standardLabels}
     const config = await ConfigService.getConfig()
     
     if (config.enableDebug) {
-      console.log("【LANGCHAIN REQUEST】发送给LLM的内容：", text);
+      console.log("【LANGCHAIN REQUEST】Sending to LLM:", text);
     }
     
     const provider = this.getProviderInstance(config.selectedProvider, config)
@@ -273,7 +277,7 @@ class LangChainProvider implements LLMProvider {
       
       const debugConfig = await ConfigService.getConfig();
       if (debugConfig.enableDebug) {
-        console.log("【LANGCHAIN LABEL SCORES】LLM评判的标签分数：", parsedContent.value_orientation);
+        console.log("【LANGCHAIN LABEL SCORES】LLM Scores：", parsedContent.value_orientation);
       }
       
       return {
@@ -287,9 +291,9 @@ class LangChainProvider implements LLMProvider {
       if (error.message && (error.message.includes('inappropriate content') || error.message.includes('data_inspection_failed'))) {
         const defaultResponse = JSON.stringify({
           nickname: "",
-          topic_classification: "内容分析",
+          topic_classification: "Content Analysis",
           value_orientation: [],
-          summary: "内容安全审查失败：分析的内容可能涉及敏感话题，已被 AI 服务商拦截。建议更换为 DeepSeek 或 OpenAI 模型重试。",
+          summary: "Content Safety Review Failed: The content may involve sensitive topics and was blocked by the AI provider. Please try switching to DeepSeek or OpenAI models.",
           evidence: []
         }, null, 2);
         
@@ -306,9 +310,9 @@ class LangChainProvider implements LLMProvider {
       if (error.message && error.message.includes('400') && error.message.includes('Output data may contain inappropriate content')) {
           const defaultResponse = JSON.stringify({
             nickname: "",
-            topic_classification: "内容分析",
+            topic_classification: "Content Analysis",
             value_orientation: [],
-            summary: "内容安全审查失败：分析的内容可能涉及敏感话题，已被 AI 服务商拦截。建议更换为 DeepSeek 或 OpenAI 模型重试。",
+            summary: "Content Safety Review Failed: The content may involve sensitive topics and was blocked by the AI provider. Please try switching to DeepSeek or OpenAI models.",
             evidence: []
           }, null, 2);
           
@@ -359,7 +363,7 @@ class LangChainProvider implements LLMProvider {
             score = Math.max(-1, Math.min(1, score));
             return { label: String(item.label).trim(), score };
           }
-          return { label: "未知", score: 0.5 };
+          return { label: "Unknown", score: 0.5 };
         });
       }
       
@@ -368,9 +372,9 @@ class LangChainProvider implements LLMProvider {
       console.error("Response validation error:", e, "Raw response:", response);
       return JSON.stringify({
         nickname: "",
-        topic_classification: "未知分类",
+        topic_classification: "Unknown",
         value_orientation: [],
-        summary: "分析失败",
+        summary: "Analysis Failed",
         evidence: []
       }, null, 2);
     }
@@ -408,7 +412,7 @@ class OllamaProvider implements LLMProvider {
     
     const config = await ConfigService.getConfig();
     if (config.enableDebug) {
-      console.log("【LANGCHAIN REQUEST】发送给LLM的内容：", prompt);
+      console.log("【LANGCHAIN REQUEST】Sending to LLM:", prompt);
     }
     
     // 设置一个非常长的超时时间（10分钟），作为最后的兜底
@@ -446,9 +450,9 @@ class OllamaProvider implements LLMProvider {
         if (errorText.includes('inappropriate') || errorText.includes('data_inspection_failed')) {
           const defaultResponse = JSON.stringify({
             nickname: "",
-            topic_classification: "内容分析",
+            topic_classification: "Content Analysis",
             value_orientation: [],
-            summary: "内容安全审查失败：分析的内容可能涉及敏感话题，已被 AI 服务商拦截。建议更换为 DeepSeek 或 OpenAI 模型重试。",
+            summary: "Content Safety Review Failed: The content may involve sensitive topics and was blocked by the AI provider. Please try switching to DeepSeek or OpenAI models.",
             evidence: []
           }, null, 2);
           
@@ -473,7 +477,7 @@ class OllamaProvider implements LLMProvider {
       };
 
       if (config.enableDebug) {
-        console.log("【LANGCHAIN RESPONSE】LLM返回的JSON：", data.response);
+        console.log("【LANGCHAIN RESPONSE】LLM JSON:", data.response);
       }
 
       const content = data.response || "{}";
@@ -482,7 +486,7 @@ class OllamaProvider implements LLMProvider {
       
       const debugConfig = await ConfigService.getConfig();
       if (debugConfig.enableDebug) {
-        console.log("【LANGCHAIN LABEL SCORES】LLM评判的标签分数：", parsedContent.value_orientation);
+        console.log("【LANGCHAIN LABEL SCORES】LLM Scores:", parsedContent.value_orientation);
       }
       
       return {
@@ -530,7 +534,7 @@ class OllamaProvider implements LLMProvider {
             score = Math.max(-1, Math.min(1, score));
             return { label: String(item.label).trim(), score };
           }
-          return { label: "未知", score: 0.5 };
+          return { label: "Unknown", score: 0.5 };
         });
       }
       
@@ -539,9 +543,9 @@ class OllamaProvider implements LLMProvider {
       console.error("Response validation error:", e, "Raw response:", response);
       return JSON.stringify({
         nickname: "",
-        topic_classification: "未知分类",
+        topic_classification: "Unknown",
         value_orientation: [],
-        summary: "分析失败",
+        summary: "Analysis Failed",
         evidence: []
       }, null, 2);
     }

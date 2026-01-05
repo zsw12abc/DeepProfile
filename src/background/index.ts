@@ -5,11 +5,15 @@ import { ProfileService } from "~services/ProfileService"
 import { HistoryService } from "~services/HistoryService"
 import { TopicService } from "~services/TopicService"
 import { CommentAnalysisService } from "~services/CommentAnalysisService"
+import { I18nService } from "~services/I18nService"
 import type { SupportedPlatform } from "~types"
 
 export {}
 
 console.log("DeepProfile Background Service Started")
+
+// Initialize I18n
+I18nService.init();
 
 // Open options page when extension icon is clicked
 chrome.action.onClicked.addListener(() => {
@@ -114,15 +118,15 @@ async function testConnection(provider: string, apiKey: string, baseUrl: string,
             const errText = await response.text().catch(() => '');
             let friendlyMsg = `API Error (${response.status})`;
             
-            if (response.status === 401) friendlyMsg = "认证失败 (401) 🔑：请检查 API Key 是否正确哦。";
-            else if (response.status === 402) friendlyMsg = "钱包空空如也 (402) 💸：请给 AI 服务商充点值吧～";
-            else if (response.status === 404) friendlyMsg = "迷路了 (404) 🗺️：找不到这个模型，请检查模型名称。";
-            else if (response.status === 429) friendlyMsg = "太热情啦 (429) 🔥：AI 有点忙不过来，请稍后再试。";
+            if (response.status === 401) friendlyMsg = I18nService.t('error_401');
+            else if (response.status === 402) friendlyMsg = I18nService.t('error_402');
+            else if (response.status === 404) friendlyMsg = I18nService.t('error_404');
+            else if (response.status === 429) friendlyMsg = I18nService.t('error_429');
             
-            throw new Error(`${friendlyMsg} \n详情: ${errText.slice(0, 100)}`);
+            throw new Error(`${friendlyMsg} \nDetails: ${errText.slice(0, 100)}`);
         }
 
-        return "连接成功！AI 随时待命 🚀";
+        return I18nService.t('connection_success');
     } catch (e) {
         throw e;
     }
@@ -147,7 +151,7 @@ async function listModels(provider: string, apiKey: string, baseUrl: string): Pr
             
             if (!response.ok) {
                 const errText = await response.text().catch(() => '');
-                throw new Error(`获取模型列表失败: ${response.status} ${errText}`);
+                throw new Error(`Failed to fetch models: ${response.status} ${errText}`);
             }
             
             const data = await response.json();
@@ -156,14 +160,14 @@ async function listModels(provider: string, apiKey: string, baseUrl: string): Pr
         else if (provider === 'ollama') {
             const url = `${baseUrl || 'http://localhost:11434'}/api/tags`;
             const response = await fetch(url);
-            if (!response.ok) throw new Error(`获取模型列表失败: ${response.status}`);
+            if (!response.ok) throw new Error(`Failed to fetch models: ${response.status}`);
             const data = await response.json();
             return data.models.map((m: any) => m.name).sort();
         }
         else if (provider === 'gemini') {
             const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
             const response = await fetch(url);
-            if (!response.ok) throw new Error(`获取模型列表失败: ${response.status}`);
+            if (!response.ok) throw new Error(`Failed to fetch models: ${response.status}`);
             const data = await response.json();
             return (data.models || [])
                 .filter((m: any) => m.supportedGenerationMethods?.includes('generateContent'))
@@ -191,6 +195,9 @@ async function sendProgress(tabId: number | undefined, message: string) {
 }
 
 async function handleAnalysis(userId: string, context?: string, tabId?: number, platform: SupportedPlatform = 'zhihu', forceRefresh: boolean = false) {
+  // Ensure I18n is initialized with current config
+  await I18nService.init();
+  
   console.log(`Analyzing user: ${userId}, Platform: ${platform}, Context: ${context}, ForceRefresh: ${forceRefresh}`)
   const startTime = Date.now();
   
@@ -198,7 +205,7 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
   let macroCategory = TopicService.classify(context || "");
   if (macroCategory === 'general') {
     console.log("Keyword classification failed, falling back to LLM classification...");
-    await sendProgress(tabId, "关键词分类失败，尝试使用 AI 分类...");
+    await sendProgress(tabId, I18nService.t('analyzing') + "...");
     macroCategory = await TopicService.classifyWithLLM(context || "");
   }
   const categoryName = TopicService.getCategoryName(macroCategory);
@@ -212,7 +219,7 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
     
     if (cachedProfile) {
       console.log(`Cache hit for user ${userId} in category ${macroCategory}`);
-      await sendProgress(tabId, `已加载该用户的【${categoryName}】画像 (秒开!)`);
+      await sendProgress(tabId, `${I18nService.t('history_record')} (${categoryName})`);
       
       return {
         profile: cachedProfile.profileData,
@@ -228,14 +235,14 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
   const config = await ConfigService.getConfig()
   const limit = config.analyzeLimit || 15
 
-  await sendProgress(tabId, `正在获取${platform === 'zhihu' ? '知乎' : platform === 'reddit' ? 'Reddit' : platform}用户信息...`)
+  await sendProgress(tabId, `${I18nService.t('analyzing')}...`)
   
   const userProfile = await ProfileService.fetchUserProfile(platform, userId)
   
   if (userProfile) {
-      await sendProgress(tabId, `正在分析 ${userProfile.name} 的相关动态...`)
+      await sendProgress(tabId, `${I18nService.t('analyzing')} ${userProfile.name}...`)
   } else {
-      await sendProgress(tabId, `正在获取相关动态...`)
+      await sendProgress(tabId, `${I18nService.t('analyzing')}...`)
   }
 
   const fetchResult = await ProfileService.fetchUserContent(platform, userId, limit, context)
@@ -243,11 +250,11 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
   
   if (!items || items.length === 0) {
     if (!userProfile) {
-        throw new Error("哎呀，找不到这个用户的数据 🕵️‍♂️，可能是账号被封禁或设置了隐私保护。")
+        throw new Error(I18nService.t('error_user_not_found'))
     }
   }
 
-  await sendProgress(tabId, "AI 正在生成画像 (这可能需要几秒钟)...")
+  await sendProgress(tabId, I18nService.t('wait_moment'))
 
   // --- Structured Context for LLM ---
   let contextForLLM = '';
@@ -255,9 +262,9 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
       const parts = context.split('|').map(s => s.trim());
       const title = parts[0];
       const tags = parts.slice(1);
-      contextForLLM += `【当前问题】: ${title}\n`;
+      contextForLLM += `【Question】: ${title}\n`;
       if (tags.length > 0) {
-          contextForLLM += `【核心话题】: ${tags.join(', ')}\n\n`;
+          contextForLLM += `【Topics】: ${tags.join(', ')}\n\n`;
       }
   }
 
@@ -320,12 +327,12 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
       }
   } catch (error) {
       let msg = error.message;
-      if (msg.includes("402")) msg = "钱包空空如也 (402) 💸，请给 AI 服务商充点值吧～";
-      else if (msg.includes("401")) msg = "芝麻开门失败 (401) 🔑，请检查 API Key 是否正确哦。";
-      else if (msg.includes("429")) msg = "太热情啦 (429) 🔥，AI 有点忙不过来，请稍后再试。";
-      else if (msg.includes("404")) msg = "迷路了 (404) 🗺️，找不到这个模型，请检查配置。";
-      else if (msg.includes("500")) msg = "AI 服务商罢工了 (500) 💥，请稍后再试。";
-      else if (msg.includes("Failed to fetch")) msg = "网络开小差了 🌐，请检查网络连接或代理设置。";
+      if (msg.includes("402")) msg = I18nService.t('error_402');
+      else if (msg.includes("401")) msg = I18nService.t('error_401');
+      else if (msg.includes("429")) msg = I18nService.t('error_429');
+      else if (msg.includes("404")) msg = I18nService.t('error_404');
+      else if (msg.includes("500")) msg = I18nService.t('error_500');
+      else if (msg.includes("Failed to fetch")) msg = I18nService.t('error_network');
       
       throw new Error(msg);
   }

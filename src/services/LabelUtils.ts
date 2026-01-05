@@ -1,4 +1,5 @@
-import { LABEL_CATEGORIES } from "./LabelDefinitions";
+import { getLabelCategories } from "./LabelDefinitions";
+import { I18nService } from "./I18nService";
 
 // 后备映射：确保即使无法加载LabelDefinitions，也能将ID转换为中文名称
 // 格式必须为 "左侧选项 vs 右侧选项"，与LabelDefinitions保持一致
@@ -39,11 +40,51 @@ const FALLBACK_ID_NAMES: Record<string, string> = {
   "discipline_vs_hedonism": "养生/自律 vs 享乐"
 };
 
+const FALLBACK_ID_NAMES_EN: Record<string, string> = {
+  "ideology": "Left vs Right",
+  "authority": "Libertarian vs Authoritarian",
+  "change": "Progressive vs Traditional",
+  "geopolitics": "Globalism vs Nationalism",
+  "radicalism": "Radical vs Moderate",
+  "establishment": "Establishment vs Populist",
+  "market_vs_gov": "Market vs Government",
+  "competition_vs_equality": "Competition vs Equality",
+  "speculation_vs_value": "Speculation vs Value",
+  "micro_vs_macro": "Micro vs Macro",
+  "real_vs_virtual": "Real vs Virtual Economy",
+  "individualism_vs_collectivism": "Individualism vs Collectivism",
+  "elite_vs_grassroots": "Elite vs Grassroots",
+  "feminism_vs_patriarchy": "Feminism vs Patriarchy",
+  "urban_vs_rural": "Urban vs Rural",
+  "generational_conflict": "Generational Conflict",
+  "open_vs_closed": "Open vs Closed",
+  "innovation_vs_security": "Innovation vs Security",
+  "optimism_vs_conservatism": "Tech Optimism vs Conservatism",
+  "decentralization_vs_centralization": "Decentralization vs Centralization",
+  "local_vs_global": "Local vs Global",
+  "spiritual_vs_material": "Spiritual vs Material",
+  "serious_vs_popular": "Serious vs Popular",
+  "secular_vs_religious": "Secular vs Religious",
+  "protection_vs_development": "Protection vs Development",
+  "climate_believer_vs_skeptic": "Climate Believer vs Skeptic",
+  "2d_vs_3d": "2D vs 3D",
+  "hardcore_vs_casual": "Hardcore vs Casual",
+  "niche_vs_mainstream": "Niche vs Mainstream",
+  "frugal_vs_luxury": "Frugal vs Luxury",
+  "stable_vs_risk": "Stable vs Risk",
+  "cat_vs_dog": "Cat Person vs Dog Person",
+  "family_vs_single": "Family vs Single",
+  "discipline_vs_hedonism": "Discipline vs Hedonism"
+};
+
 // 将标签名称解析为左右选项
 export function parseLabelName(labelName: string): { left: string, right: string } {
+  const isEn = I18nService.getLanguage() === 'en-US';
+  const fallbackMap = isEn ? FALLBACK_ID_NAMES_EN : FALLBACK_ID_NAMES;
+
   // 首先检查是否是标签ID，如果是，转换为标准名称
-  if (FALLBACK_ID_NAMES[labelName]) {
-    labelName = FALLBACK_ID_NAMES[labelName];
+  if (fallbackMap[labelName]) {
+    labelName = fallbackMap[labelName];
   } else {
     // 尝试从标签定义中获取标准名称
     const labelInfo = getLabelInfo(labelName);
@@ -66,15 +107,18 @@ export function parseLabelName(labelName: string): { left: string, right: string
 
 // 根据分数和标签名称计算最终显示的标签和百分比
 export function calculateFinalLabel(labelName: string, score: number): { label: string, percentage: number } {
+  const isEn = I18nService.getLanguage() === 'en-US';
+  const fallbackMap = isEn ? FALLBACK_ID_NAMES_EN : FALLBACK_ID_NAMES;
+
   // 1. 尝试查找标签定义，如果输入的是ID，则获取其显示名称
   let nameToParse = labelName;
   const labelInfo = getLabelInfo(labelName);
   
   if (labelInfo) {
     nameToParse = labelInfo.name;
-  } else if (FALLBACK_ID_NAMES[labelName]) {
+  } else if (fallbackMap[labelName]) {
     // 2. 如果找不到定义但有后备映射，使用后备映射
-    nameToParse = FALLBACK_ID_NAMES[labelName];
+    nameToParse = fallbackMap[labelName];
   }
 
   const parsed = parseLabelName(nameToParse);
@@ -98,7 +142,8 @@ export function calculateFinalLabel(labelName: string, score: number): { label: 
 
 // 获取标签的详细信息
 export function getLabelInfo(labelId: string) {
-  for (const category of LABEL_CATEGORIES) {
+  const categories = getLabelCategories();
+  for (const category of categories) {
     const label = category.labels.find(l => l.id === labelId);
     if (label) {
       return {
@@ -149,9 +194,10 @@ export function getRelevantLabelsByTopic(topic: string) {
   
   // 获取相关分类的所有标签
   const relevantLabels: { id: string, name: string, description: string, category: string }[] = [];
+  const categories = getLabelCategories();
   
   for (const categoryId of relevantCategories) {
-    const category = LABEL_CATEGORIES.find(cat => cat.id === categoryId);
+    const category = categories.find(cat => cat.id === categoryId);
     if (category) {
       for (const label of category.labels) {
         relevantLabels.push({
@@ -230,7 +276,7 @@ export function filterLabelsByTopic(labels: Array<{ label: string; score: number
 // 使用模糊匹配处理未明确分类的话题
 export function getMostRelevantLabelsByTopic(topic: string): string[] {
   const topicLower = topic.toLowerCase();
-  const allCategories = LABEL_CATEGORIES;
+  const allCategories = getLabelCategories();
   const matchedCategories: string[] = [];
 
   // 关键词匹配，使用更广泛的匹配策略

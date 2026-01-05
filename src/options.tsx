@@ -4,10 +4,11 @@ import { HistoryService } from "~services/HistoryService"
 import { TopicService, type MacroCategory } from "~services/TopicService"
 import { calculateFinalLabel } from "~services/LabelUtils"
 import { ExportService } from "~services/ExportService"
-import { DEFAULT_CONFIG, type AIProvider, type AppConfig, type AnalysisMode, type SupportedPlatform, type UserHistoryRecord, type ProfileData } from "~types"
+import { DEFAULT_CONFIG, type AIProvider, type AppConfig, type AnalysisMode, type SupportedPlatform, type UserHistoryRecord, type ProfileData, type Language } from "~types"
 import icon from "data-base64:../assets/icon.png"
 import html2canvas from "html2canvas"
 import { ZhihuClient } from "~services/ZhihuClient"
+import { I18nService } from "~services/I18nService"
 
 const PROVIDERS: { value: AIProvider; label: string }[] = [
   { value: "openai", label: "OpenAI" },
@@ -18,16 +19,13 @@ const PROVIDERS: { value: AIProvider; label: string }[] = [
   { value: "custom", label: "Custom (OpenAI Compatible)" }
 ]
 
+const LANGUAGES: { value: Language; label: string }[] = [
+  { value: "zh-CN", label: "简体中文" },
+  { value: "en-US", label: "English" }
+]
+
 const ZhihuIcon = <img src="https://static.zhihu.com/heifetz/assets/apple-touch-icon-152.a53ae37b.png" alt="Zhihu" style={{ width: "24px", height: "24px", borderRadius: "4px", objectFit: "contain" }} />;
 const RedditIcon = <img src="https://www.redditstatic.com/desktop2x/img/favicon/apple-icon-120x120.png" alt="Reddit" style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "contain" }} />;
-
-const PLATFORMS = [
-  { id: 'general', name: '通用设置', icon: <span style={{ fontSize: "24px" }}>⚙️</span> },
-  { id: 'zhihu', name: '知乎设置', icon: ZhihuIcon },
-  { id: 'reddit', name: 'Reddit 设置', icon: RedditIcon },
-  { id: 'history', name: '历史记录', icon: <span style={{ fontSize: "24px" }}>📅</span> },
-  { id: 'debug', name: '开发者选项', icon: <span style={{ fontSize: "24px" }}>🛠️</span> },
-]
 
 type PlatformId = 'general' | 'zhihu' | 'reddit' | 'debug' | 'history';
 
@@ -90,9 +88,15 @@ export default function Options() {
   const [loadingHistory, setLoadingHistory] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
 
+  // Force re-render when language changes
+  const [, setTick] = useState(0);
+  const forceUpdate = () => setTick(t => t + 1);
+
   useEffect(() => {
     ConfigService.getConfig().then((c) => {
         setConfig({ ...DEFAULT_CONFIG, ...c })
+        I18nService.setLanguage(c.language || 'zh-CN');
+        forceUpdate();
     })
   }, [])
 
@@ -115,21 +119,21 @@ export default function Options() {
   };
 
   const handleDeleteProfile = async (userId: string, platform: SupportedPlatform, category: string) => {
-    if (confirm(`确定要删除用户 ${userId} 的【${TopicService.getCategoryName(category as MacroCategory)}】画像吗？`)) {
+    if (confirm(I18nService.t('confirm_delete'))) {
       await HistoryService.deleteProfile(userId, platform, category);
       await loadHistory(); // Reload list
     }
   };
 
   const handleDeleteUser = async (userId: string, platform: SupportedPlatform) => {
-    if (confirm(`确定要删除用户 ${userId} 的所有历史记录吗？`)) {
+    if (confirm(I18nService.t('confirm_delete'))) {
       await HistoryService.deleteUserRecord(userId, platform);
       await loadHistory(); // Reload list
     }
   };
 
   const handleClearAllHistory = async () => {
-    if (confirm("确定要清空所有历史记录吗？此操作不可恢复。")) {
+    if (confirm(I18nService.t('confirm_clear_all'))) {
       await HistoryService.clearAll();
       await loadHistory(); // Reload list
     }
@@ -157,10 +161,10 @@ export default function Options() {
     
     try {
       const nickname = userInfo?.name || profileData.nickname || `用户${userId}`;
-      const topicClassification = profileData.topic_classification || "未知话题";
+      const topicClassification = profileData.topic_classification || I18nService.t('topic_classification');
       const summary = profileData.summary || "";
       const valueOrientation = profileData.value_orientation || [];
-      const dateStr = new Date(timestamp).toLocaleDateString('zh-CN');
+      const dateStr = new Date(timestamp).toLocaleDateString(config?.language === 'en-US' ? 'en-US' : 'zh-CN');
       
       // 创建一个临时的、样式化的容器用于截图
       const exportContainer = document.createElement('div');
@@ -215,23 +219,23 @@ export default function Options() {
                     </div>
                     <div>
                         <h2 style="margin: 0; font-size: 20px; font-weight: 700;">${nickname}</h2>
-                        <div style="font-size: 12px; opacity: 0.9; margin-top: 4px;">DeepProfile 用户画像分析</div>
+                        <div style="font-size: 12px; opacity: 0.9; margin-top: 4px;">DeepProfile ${I18nService.t('app_description')}</div>
                     </div>
                 </div>
                 <div style="position: absolute; top: 20px; right: 20px; text-align: right;">
-                    <div style="font-size: 10px; opacity: 0.8;">生成日期</div>
+                    <div style="font-size: 10px; opacity: 0.8;">Date</div>
                     <div style="font-size: 14px; font-weight: 600;">${dateStr}</div>
                 </div>
             </div>
             
             <div style="padding: 24px;">
                 <div style="margin-bottom: 20px;">
-                    <div style="font-size: 12px; color: #8590a6; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">核心话题</div>
+                    <div style="font-size: 12px; color: #8590a6; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">${I18nService.t('topic_classification')}</div>
                     <div style="font-size: 16px; font-weight: 600; color: #1a1a1a; background-color: #f0f2f5; display: inline-block; padding: 4px 12px; border-radius: 20px;">${topicClassification}</div>
                 </div>
 
                 <div style="margin-bottom: 24px;">
-                    <div style="font-size: 12px; color: #8590a6; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">AI 总结</div>
+                    <div style="font-size: 12px; color: #8590a6; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">${I18nService.t('ai_summary')}</div>
                     <div style="font-size: 14px; line-height: 1.6; color: #444; background-color: #f9f9f9; padding: 12px; border-radius: 8px; border-left: 3px solid #0084ff;">
                         ${summary}
                     </div>
@@ -239,7 +243,7 @@ export default function Options() {
 
                 ${valueOrientationHtml ? `
                 <div style="margin-bottom: 20px;">
-                    <div style="font-size: 12px; color: #8590a6; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">价值取向图谱</div>
+                    <div style="font-size: 12px; color: #8590a6; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">${I18nService.t('value_orientation')}</div>
                     ${valueOrientationHtml}
                 </div>
                 ` : ''}
@@ -249,11 +253,11 @@ export default function Options() {
                         <img src="${qrCodeUrl}" style="width: 48px; height: 48px; border-radius: 4px;" crossOrigin="anonymous" />
                         <div>
                             <div style="font-size: 12px; font-weight: 600; color: #1a1a1a;">DeepProfile</div>
-                            <div style="font-size: 10px; color: #8590a6;">AI 驱动的用户画像分析</div>
+                            <div style="font-size: 10px; color: #8590a6;">AI-powered User Profile Analysis</div>
                         </div>
                     </div>
                     <div style="font-size: 10px; color: #999; text-align: right;">
-                        扫码安装插件<br/>开启你的 AI 分析之旅
+                        Scan to install<br/>Start your AI journey
                     </div>
                 </div>
             </div>
@@ -331,7 +335,9 @@ export default function Options() {
   const handleSave = async () => {
     if (!config) return
     await ConfigService.saveConfig(config)
-    setStatus("配置已保存!")
+    I18nService.setLanguage(config.language);
+    forceUpdate();
+    setStatus(I18nService.t('saved'))
     setTimeout(() => setStatus(""), 3000)
   }
 
@@ -391,7 +397,7 @@ export default function Options() {
         animation: "spin 1s linear infinite",
         marginBottom: "20px"
       }}></div>
-      <p>正在加载配置...</p>
+      <p>{I18nService.t('loading')}</p>
     </div>
     
     <style>{`
@@ -413,7 +419,7 @@ export default function Options() {
         display: "flex", 
         alignItems: "center", 
         gap: "8px"
-      }}>⏳ 正在加载模型列表...</div>
+      }}>⏳ {I18nService.t('loading')}</div>
     }
     
     const hasModels = models.length > 0;
@@ -447,7 +453,7 @@ export default function Options() {
                     backgroundSize: "12px auto"
                 }}
                 >
-                <option value="">-- 选择模型 --</option>
+                <option value="">-- {I18nService.t('model_select')} --</option>
                 {models.map(m => <option key={m} value={m}>{m}</option>)}
                 </select>
             </div>
@@ -488,7 +494,7 @@ export default function Options() {
               padding: "10px",
               borderRadius: "8px"
             }}>
-                ⚠️ 无法自动获取模型列表 ({modelError})。请手动输入。
+                ⚠️ {modelError}
             </div>
         )}
       </>
@@ -511,11 +517,19 @@ export default function Options() {
                            config.selectedProvider === "deepseek" ||
                            config.selectedProvider === "openai";
 
+  const PLATFORMS = [
+    { id: 'general', name: I18nService.t('settings_general'), icon: <span style={{ fontSize: "24px" }}>⚙️</span> },
+    { id: 'zhihu', name: I18nService.t('settings_zhihu'), icon: ZhihuIcon },
+    { id: 'reddit', name: I18nService.t('settings_reddit'), icon: RedditIcon },
+    { id: 'history', name: I18nService.t('settings_history'), icon: <span style={{ fontSize: "24px" }}>📅</span> },
+    { id: 'debug', name: I18nService.t('settings_debug'), icon: <span style={{ fontSize: "24px" }}>🛠️</span> },
+  ];
+
   const renderPlatformSettings = (platformId: PlatformId) => {
     switch (platformId) {
       case 'general':
         return (
-          <Card title="AI 模型配置 (通用)" icon={<span style={{ fontSize: "24px" }}>🤖</span>}>
+          <Card title={I18nService.t('settings_general')} icon={<span style={{ fontSize: "24px" }}>🤖</span>}>
             <div style={{ 
               display: "flex", 
               alignItems: "center", 
@@ -533,10 +547,10 @@ export default function Options() {
                   color: config.globalEnabled ? "#22543d" : "#742a2a",
                   display: "block"
                 }}>
-                    {config.globalEnabled ? "✅ 插件已启用" : "⛔ 插件已禁用"}
+                    {config.globalEnabled ? I18nService.t('plugin_enabled') : I18nService.t('plugin_disabled')}
                 </label>
                 <div style={{ fontSize: "13px", color: config.globalEnabled ? "#2f855a" : "#9b2c2c", marginTop: "4px" }}>
-                  {config.globalEnabled ? "DeepProfile 正在正常工作，将在目标网站显示分析按钮。" : "DeepProfile 已完全关闭，不会在任何网站注入代码。"}
+                  {config.globalEnabled ? I18nService.t('plugin_enabled_desc') : I18nService.t('plugin_disabled_desc')}
                 </div>
               </div>
               <div style={{ position: "relative", width: "52px", height: "32px" }}>
@@ -577,7 +591,39 @@ export default function Options() {
               </div>
             </div>
 
-            <InputGroup label="AI 服务商">
+            <InputGroup label="Language / 语言">
+              <div style={{ position: "relative" }}>
+                  <select
+                      value={config.language}
+                      onChange={(e) => {
+                        const newLang = e.target.value as Language;
+                        setConfig({ ...config, language: newLang });
+                        I18nService.setLanguage(newLang);
+                        forceUpdate();
+                      }}
+                      style={{ 
+                          padding: "14px", 
+                          width: "100%", 
+                          borderRadius: "10px", 
+                          border: "2px solid #e2e8f0",
+                          backgroundColor: "#fff",
+                          fontSize: "15px",
+                          appearance: "none",
+                          backgroundImage: "url(\"data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%234a5568%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E\")",
+                          backgroundRepeat: "no-repeat",
+                          backgroundPosition: "right 14px top 50%",
+                          backgroundSize: "12px auto"
+                      }}>
+                      {LANGUAGES.map((l) => (
+                      <option key={l.value} value={l.value}>
+                          {l.label}
+                      </option>
+                      ))}
+                  </select>
+              </div>
+            </InputGroup>
+
+            <InputGroup label={I18nService.t('ai_provider')}>
               <div style={{ position: "relative" }}>
                   <select
                       value={config.selectedProvider}
@@ -606,7 +652,7 @@ export default function Options() {
               </div>
             </InputGroup>
 
-            <InputGroup label="API Key">
+            <InputGroup label={I18nService.t('api_key')}>
               <input
                   type="password"
                   value={config.apiKeys[config.selectedProvider] || ""}
@@ -632,7 +678,7 @@ export default function Options() {
             </InputGroup>
 
             {showBaseUrlInput && (
-              <InputGroup label={`API Base URL ${config.selectedProvider === 'custom' ? '(必填)' : '(可选)'}`}>
+              <InputGroup label={`${I18nService.t('api_base_url')} ${config.selectedProvider === 'custom' ? '(Required)' : '(Optional)'}`}>
                   <input
                   type="text"
                   value={config.customBaseUrls[config.selectedProvider] || ""}
@@ -658,7 +704,7 @@ export default function Options() {
               </InputGroup>
             )}
 
-            <InputGroup label="模型选择">
+            <InputGroup label={I18nService.t('model_select')}>
               {renderModelSelector()}
             </InputGroup>
 
@@ -690,7 +736,7 @@ export default function Options() {
                       boxShadow: isTesting ? "none" : "0 4px 6px rgba(52, 152, 219, 0.3)"
                   }}
                 >
-                  {isTesting ? "⏳ 测试中..." : "🔌 测试连接"}
+                  {isTesting ? "⏳ Testing..." : `🔌 ${I18nService.t('test_connection')}`}
                 </button>
                 
                 {testResult && (
@@ -705,7 +751,7 @@ export default function Options() {
                         border: `2px solid ${testResult.success ? "#c6f6d5" : "#feb2b2"}`
                     }}>
                         <strong style={{ display: "block", marginBottom: "6px", fontSize: "15px" }}>
-                          {testResult.success ? "✅ 连接成功" : "❌ 连接失败"}
+                          {testResult.success ? I18nService.t('connection_success') : I18nService.t('connection_failed')}
                         </strong>
                         {testResult.message}
                     </div>
@@ -715,13 +761,13 @@ export default function Options() {
         );
       case 'zhihu':
         return (
-          <Card title="知乎设置" icon={ZhihuIcon}>
+          <Card title={I18nService.t('settings_zhihu')} icon={ZhihuIcon}>
             <InputGroup 
-              label="分析模式" 
+              label={I18nService.t('analysis_mode')} 
               subLabel={
-                  config.analysisMode === 'fast' ? "⚡ 极速模式：仅做快速总结，适合概览。" :
-                  config.analysisMode === 'balanced' ? "⚖️ 平衡模式：标准分析，兼顾速度与质量。" :
-                  "🧠 深度模式：启用思维链 (CoT)，深入识别反讽、隐喻，耗时较长。"
+                  config.analysisMode === 'fast' ? I18nService.t('mode_fast_desc') :
+                  config.analysisMode === 'balanced' ? I18nService.t('mode_balanced_desc') :
+                  I18nService.t('mode_deep_desc')
               }
             >
               <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
@@ -743,15 +789,15 @@ export default function Options() {
                       transition: "all 0.2s",
                       boxShadow: config.analysisMode === mode ? "0 4px 8px rgba(52, 152, 219, 0.15)" : "0 2px 4px rgba(0,0,0,0.05)"
                       }}>
-                      {mode === 'fast' && '⚡ 极速'}
-                      {mode === 'balanced' && '⚖️ 平衡'}
-                      {mode === 'deep' && '🧠 深度'}
+                      {mode === 'fast' && I18nService.t('mode_fast')}
+                      {mode === 'balanced' && I18nService.t('mode_balanced')}
+                      {mode === 'deep' && I18nService.t('mode_deep')}
                   </button>
                   ))}
               </div>
             </InputGroup>
 
-            <InputGroup label={`分析最近回答数量: ${config.analyzeLimit || 15}`}>
+            <InputGroup label={`${I18nService.t('analyze_limit')}: ${config.analyzeLimit || 15}`}>
               <input
                   type="range"
                   min="5"
@@ -780,7 +826,7 @@ export default function Options() {
         );
       case 'reddit':
         return (
-          <Card title="Reddit 设置" icon={RedditIcon}>
+          <Card title={I18nService.t('settings_reddit')} icon={RedditIcon}>
               <div style={{ 
                   padding: "24px", 
                   backgroundColor: "#f8fafc", 
@@ -790,16 +836,16 @@ export default function Options() {
                   textAlign: "center",
                   border: "1px dashed #e2e8f0"
               }}>
-                  🚧 Reddit 平台支持正在开发中...
+                  🚧 Reddit platform support is under development...
               </div>
           </Card>
         );
       case 'history':
         return (
-          <Card title="历史记录管理" icon={<span style={{ fontSize: "24px" }}>📅</span>}>
+          <Card title={I18nService.t('settings_history')} icon={<span style={{ fontSize: "24px" }}>📅</span>}>
             <div style={{ marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ fontSize: "14px", color: "#666" }}>
-                共 {historyRecords.length} 位用户记录 (最多 {200} 位)
+                Total {historyRecords.length} users (Max {200})
               </div>
               {historyRecords.length > 0 && (
                 <button
@@ -815,14 +861,14 @@ export default function Options() {
                     fontWeight: "600"
                   }}
                 >
-                  🗑️ 清空所有
+                  {I18nService.t('clear_all')}
                 </button>
               )}
             </div>
 
             {loadingHistory ? (
               <div style={{ textAlign: "center", padding: "40px", color: "#a0aec0" }}>
-                加载中...
+                {I18nService.t('loading')}
               </div>
             ) : historyRecords.length === 0 ? (
               <div style={{ 
@@ -833,7 +879,7 @@ export default function Options() {
                 color: "#a0aec0",
                 border: "1px dashed #e2e8f0"
               }}>
-                暂无历史记录
+                {I18nService.t('history_empty')}
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -881,7 +927,7 @@ export default function Options() {
                         }}
                         onMouseOver={e => e.currentTarget.style.color = "#e53e3e"}
                         onMouseOut={e => e.currentTarget.style.color = "#cbd5e0"}
-                        title="删除此用户所有记录"
+                        title={I18nService.t('delete')}
                       >
                         ×
                       </button>
@@ -889,7 +935,7 @@ export default function Options() {
                     <div style={{ marginTop: "16px", borderTop: "1px solid #f0f0f0", paddingTop: "12px", display: "flex", flexDirection: "column", gap: "8px" }}>
                       {Object.values(userRecord.profiles).map(profile => {
                         const date = new Date(profile.timestamp);
-                        const timeStr = date.toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                        const timeStr = date.toLocaleString(config?.language === 'en-US' ? 'en-US' : 'zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
                         const categoryName = TopicService.getCategoryName(profile.category as MacroCategory);
                         const summary = profile.profileData.summary;
                         const labels = profile.profileData.value_orientation || profile.profileData.political_leaning || [];
@@ -918,7 +964,7 @@ export default function Options() {
                                   }}
                                   onMouseOver={e => e.currentTarget.style.color = "#3498db"}
                                   onMouseOut={e => e.currentTarget.style.color = "#cbd5e0"}
-                                  title="导出为 Markdown"
+                                  title={I18nService.t('export_markdown')}
                                 >
                                   📝
                                 </button>
@@ -939,7 +985,7 @@ export default function Options() {
                                   }}
                                   onMouseOver={e => e.currentTarget.style.color = "#3498db"}
                                   onMouseOut={e => e.currentTarget.style.color = "#cbd5e0"}
-                                  title="导出为图片"
+                                  title={I18nService.t('export_image')}
                                   disabled={isExporting}
                                 >
                                   📸
@@ -957,7 +1003,7 @@ export default function Options() {
                                   }}
                                   onMouseOver={e => e.currentTarget.style.color = "#e53e3e"}
                                   onMouseOut={e => e.currentTarget.style.color = "#cbd5e0"}
-                                  title={`删除【${categoryName}】画像`}
+                                  title={I18nService.t('delete')}
                                 >
                                   🗑️
                                 </button>
@@ -992,7 +1038,7 @@ export default function Options() {
         );
       case 'debug':
         return (
-          <Card title="开发者选项" icon={<span style={{ fontSize: "24px" }}>🛠️</span>}>
+          <Card title={I18nService.t('settings_debug')} icon={<span style={{ fontSize: "24px" }}>🛠️</span>}>
             <div style={{ 
               display: "flex", 
               alignItems: "flex-start", 
@@ -1023,10 +1069,10 @@ export default function Options() {
                   color: "#2d3748",
                   display: "block"
                 }}>
-                    开启调试模式 (Debug Mode)
+                    {I18nService.t('debug_mode')}
                 </label>
                 <div style={{ fontSize: "13px", color: "#718096", marginTop: "6px" }}>
-                  开启后，分析结果将包含详细的 Token 消耗、耗时统计和原始数据来源。
+                  {I18nService.t('debug_mode_desc')}
                 </div>
               </div>
             </div>
@@ -1079,7 +1125,7 @@ export default function Options() {
               maxWidth: "500px",
               margin: "0 auto",
               lineHeight: "1.6"
-            }}>AI 驱动的用户画像分析工具</p>
+            }}>{I18nService.t('app_description')}</p>
         </header>
         
         <div style={{
@@ -1106,7 +1152,7 @@ export default function Options() {
               fontWeight: "600",
               color: "#4a5568"
             }}>
-              设置菜单
+              {I18nService.t('settings')}
             </h3>
             <nav>
               <ul style={{
@@ -1187,7 +1233,7 @@ export default function Options() {
                     onMouseUp={(e) => e.currentTarget.style.transform = "scale(1)"}
                     onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
                 >
-                    保存配置
+                    {I18nService.t('save')}
                 </button>
             </div>
           </div>
