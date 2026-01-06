@@ -8,6 +8,11 @@ interface MarkdownRendererProps {
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
   // 简单的 Markdown 转换为 HTML
   const renderMarkdown = (text: string): { __html: string } => {
+    // 检查输入是否有效
+    if (!text || typeof text !== 'string') {
+      return { __html: '' };
+    }
+    
     let processedContent = text
       // 标题
       .replace(/^### (.*$)/gm, '<h3 style="margin: 12px 0 8px 0; font-size: 16px; font-weight: 600; color: #2d3748;">$1</h3>')
