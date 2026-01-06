@@ -736,7 +736,7 @@ export default function Options() {
                       boxShadow: isTesting ? "none" : "0 4px 6px rgba(52, 152, 219, 0.3)"
                   }}
                 >
-                  {isTesting ? "⏳ Testing..." : `🔌 ${I18nService.t('test_connection')}`}
+                  {isTesting ? "⏳ Testing..." : I18nService.t('test_connection')}
                 </button>
                 
                 {testResult && (

@@ -29,7 +29,7 @@ export const enUS: LocaleDict = {
   api_key: "API Key",
   api_base_url: "API Base URL",
   model_select: "Model Selection",
-  test_connection: "Test Connection",
+  test_connection: "🔌 Test Connection",
   connection_success: "✅ Connection Successful",
   connection_failed: "❌ Connection Failed",
   analysis_mode: "Analysis Mode",

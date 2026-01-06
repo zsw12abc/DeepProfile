@@ -181,7 +181,7 @@ const CommentAnalysisPanel = ({ contextTitle, containerElement, answerId }: { co
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
           <div style={{ flex: 1 }}>
               <h3 style={{ margin: '0 0 8px 0', fontSize: 15, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
-                  📊 {I18nService.t('comment_analysis_summary')}
+                  {I18nService.t('comment_analysis_summary')}
                   <span style={{ fontSize: 12, fontWeight: 400, color: '#8590a6', marginLeft: 8, background: '#fff', padding: '2px 6px', borderRadius: 4 }}>{I18nService.t('comment_analysis_ai_generated')}</span>
               </h3>
               <div style={{ fontSize: 14, lineHeight: '1.6', color: '#121212' }}>

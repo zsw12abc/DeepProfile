@@ -29,7 +29,7 @@ export const zhCN: LocaleDict = {
   api_key: "API Key",
   api_base_url: "API Base URL",
   model_select: "模型选择",
-  test_connection: "测试连接",
+  test_connection: "🔌 测试连接",
   connection_success: "✅ 连接成功",
   connection_failed: "❌ 连接失败",
   analysis_mode: "分析模式",
