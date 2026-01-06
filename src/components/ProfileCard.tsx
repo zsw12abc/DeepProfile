@@ -6,6 +6,7 @@ import { TopicService, type MacroCategory } from "~services/TopicService"
 import { ExportService } from "~services/ExportService"
 import html2canvas from "html2canvas"
 import icon from "data-base64:../../assets/icon.png"
+import { I18nService } from "~services/I18nService"
 
 interface ProfileData {
   nickname?: string
@@ -79,8 +80,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   const [isExporting, setIsExporting] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
   
-  let nickname = initialNickname || "未知用户"
-  let topicClassification = "未知话题"
+  let nickname = initialNickname || I18nService.t('unknown_user')
+  let topicClassification = I18nService.t('unknown_topic')
   let valueOrientation: Array<{ label: string; score: number }> = []
   let summary = ""
   let evidence: Array<{ quote: string; analysis: string; source_title: string; source_id?: string }> = []
@@ -114,7 +115,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     }
   }
 
-  const displayName = nickname || `用户${userId.substring(0, 8)}`
+  const displayName = nickname || `${I18nService.t('unknown_user')}${userId.substring(0, 8)}`
   const userHomeUrl = `https://www.zhihu.com/people/${userId}`
 
   const toggleDebug = () => setShowDebug(!showDebug)
@@ -162,7 +163,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       document.body.appendChild(exportContainer);
 
       // 构建 ID 卡片样式的内容
-      const dateStr = new Date().toLocaleDateString('zh-CN');
+      const dateStr = new Date().toLocaleDateString(I18nService.getLanguage() === 'en-US' ? 'en-US' : 'zh-CN');
       
       // 渲染价值取向条
       let valueOrientationHtml = '';
@@ -208,23 +209,23 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     </div>
                     <div>
                         <h2 style="margin: 0; font-size: 20px; font-weight: 700;">${displayName}</h2>
-                        <div style="font-size: 12px; opacity: 0.9; margin-top: 4px;">DeepProfile 用户画像分析</div>
+                        <div style="font-size: 12px; opacity: 0.9; margin-top: 4px;">DeepProfile ${I18nService.t('app_description')}</div>
                     </div>
                 </div>
                 <div style="position: absolute; top: 20px; right: 20px; text-align: right;">
-                    <div style="font-size: 10px; opacity: 0.8;">生成日期</div>
+                    <div style="font-size: 10px; opacity: 0.8;">Date</div>
                     <div style="font-size: 14px; font-weight: 600;">${dateStr}</div>
                 </div>
             </div>
             
             <div style="padding: 24px;">
                 <div style="margin-bottom: 20px;">
-                    <div style="font-size: 12px; color: #8590a6; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">核心话题</div>
+                    <div style="font-size: 12px; color: #8590a6; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">${I18nService.t('topic_classification')}</div>
                     <div style="font-size: 16px; font-weight: 600; color: #1a1a1a; background-color: #f0f2f5; display: inline-block; padding: 4px 12px; border-radius: 20px;">${topicClassification}</div>
                 </div>
 
                 <div style="margin-bottom: 24px;">
-                    <div style="font-size: 12px; color: #8590a6; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">AI 总结</div>
+                    <div style="font-size: 12px; color: #8590a6; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">${I18nService.t('ai_summary')}</div>
                     <div style="font-size: 14px; line-height: 1.6; color: #444; background-color: #f9f9f9; padding: 12px; border-radius: 8px; border-left: 3px solid #0084ff;">
                         ${summary}
                     </div>
@@ -232,7 +233,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
                 ${valueOrientationHtml ? `
                 <div style="margin-bottom: 20px;">
-                    <div style="font-size: 12px; color: #8590a6; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">价值取向图谱</div>
+                    <div style="font-size: 12px; color: #8590a6; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">${I18nService.t('value_orientation')}</div>
                     ${valueOrientationHtml}
                 </div>
                 ` : ''}
@@ -242,11 +243,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         <img src="${qrCodeUrl}" style="width: 48px; height: 48px; border-radius: 4px;" crossOrigin="anonymous" />
                         <div>
                             <div style="font-size: 12px; font-weight: 600; color: #1a1a1a;">DeepProfile</div>
-                            <div style="font-size: 10px; color: #8590a6;">AI 驱动的用户画像分析</div>
+                            <div style="font-size: 10px; color: #8590a6;">AI-powered User Profile Analysis</div>
                         </div>
                     </div>
                     <div style="font-size: 10px; color: #999; text-align: right;">
-                        扫码安装插件<br/>开启你的 AI 分析之旅
+                        Scan to install<br/>Start your AI journey
                     </div>
                 </div>
             </div>
@@ -277,7 +278,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       setShowDebug(wasDebugShown);
     } catch (e) {
       console.error("Export image failed:", e);
-      alert("图片导出失败，请重试");
+      alert(I18nService.t('export_image_failed'));
     } finally {
       setIsExporting(false);
     }
@@ -303,7 +304,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     if (!fromCache) return null;
     
     const date = new Date(cachedAt);
-    const timeStr = date.toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const timeStr = date.toLocaleString(I18nService.getLanguage() === 'en-US' ? 'en-US' : 'zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     
     const category = TopicService.classify(cachedContext);
     const categoryName = TopicService.getCategoryName(category);
@@ -322,9 +323,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         alignItems: "center"
       }}>
         <div>
-          <span style={{ fontWeight: "600" }}>📅 历史记录 ({timeStr})</span>
+          <span style={{ fontWeight: "600" }}>{I18nService.t('history_record')} ({timeStr})</span>
           <div style={{ fontSize: "11px", marginTop: "2px", opacity: 0.8 }}>
-            分类: {categoryName}
+            {I18nService.t('topic_classification')}: {categoryName}
           </div>
         </div>
         {onRefresh && (
@@ -349,7 +350,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 e.currentTarget.style.color = "#0ea5e9";
             }}
           >
-            🔄 重新分析
+            {I18nService.t('reanalyze')}
           </button>
         )}
       </div>
@@ -395,7 +396,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           <div>
             <h3 style={{ margin: 0, fontSize: "16px", fontWeight: "bold", color: "#1a1a1a" }}>
               {loading ? (
-                  <span>分析中: {displayName}</span>
+                  <span>{I18nService.t('analyzing')}: {displayName}</span>
               ) : (
                   <a 
                     href={userHomeUrl} 
@@ -410,7 +411,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               )}
             </h3>
             <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
-              话题分类: <span style={{ fontWeight: "500", color: "#0084ff" }}>{topicClassification}</span>
+              {I18nService.t('topic_classification')}: <span style={{ fontWeight: "500", color: "#0084ff" }}>{topicClassification}</span>
             </div>
           </div>
         </div>
@@ -419,7 +420,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             <>
               <button
                 onClick={handleExportMarkdown}
-                title="导出为 Markdown"
+                title={I18nService.t('export_markdown')}
                 style={{
                   background: "none",
                   border: "none",
@@ -436,7 +437,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               </button>
               <button
                 onClick={handleExportImage}
-                title="导出为图片"
+                title={I18nService.t('export_image')}
                 disabled={isExporting}
                 style={{
                   background: "none",
@@ -483,20 +484,20 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
       {error && (
         <div style={{ marginBottom: "16px", padding: "12px", backgroundColor: "#ffebee", borderRadius: "6px", color: "#c62828" }}>
-          错误: {error}
+          Error: {error}
         </div>
       )}
 
       {loading ? (
         <div style={{ textAlign: "center", padding: "20px 0" }}>
-          <div style={{ fontSize: "16px", marginBottom: "12px", color: "#0084ff" }}>正在分析用户画像...</div>
-          <div style={{ fontSize: "12px", color: "#666" }}>请稍候，这可能需要几秒钟</div>
+          <div style={{ fontSize: "16px", marginBottom: "12px", color: "#0084ff" }}>{I18nService.t('analyzing')}...</div>
+          <div style={{ fontSize: "12px", color: "#666" }}>{I18nService.t('wait_moment')}</div>
         </div>
       ) : profileData ? (
         <div>
           {valueOrientation && valueOrientation.length > 0 && (
             <div style={{ marginBottom: "16px" }}>
-              <h4 style={{ margin: "0 0 8px 0", fontSize: "14px", fontWeight: "600", color: "#333" }}>价值取向</h4>
+              <h4 style={{ margin: "0 0 8px 0", fontSize: "14px", fontWeight: "600", color: "#333" }}>{I18nService.t('value_orientation')}</h4>
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                 {valueOrientation.map((item, index) => {
                   const { label: labelName, score } = item;
@@ -560,7 +561,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
           {summary && (
             <div style={{ marginBottom: "16px", lineHeight: "1.5" }}>
-              <h4 style={{ margin: "0 0 8px 0", fontSize: "14px", fontWeight: "600", color: "#333" }}>用户总结</h4>
+              <h4 style={{ margin: "0 0 8px 0", fontSize: "14px", fontWeight: "600", color: "#333" }}>{I18nService.t('ai_summary')}</h4>
               <div style={{ fontSize: "13px", color: "#555", lineHeight: "1.5" }}>
                 {summary}
               </div>
@@ -570,7 +571,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           {evidence && evidence.length > 0 && (
             <div style={{ marginBottom: "16px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-                <h4 style={{ margin: "0", fontSize: "14px", fontWeight: "600", color: "#333" }}>分析依据</h4>
+                <h4 style={{ margin: "0", fontSize: "14px", fontWeight: "600", color: "#333" }}>{I18nService.t('evidence')}</h4>
                 <button
                   onClick={toggleEvidence}
                   style={{
@@ -582,7 +583,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     fontWeight: "500"
                   }}
                 >
-                  {expandedEvidence ? "收起" : "展开"}
+                  {expandedEvidence ? I18nService.t('collapse') : I18nService.t('expand')}
                 </button>
               </div>
               
@@ -607,7 +608,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           {item.analysis}
                         </div>
                         <div style={{ fontSize: "11px", color: "#888" }}>
-                          来源: 
+                          {I18nService.t('source')}: 
                           {sourceUrl ? (
                             <a 
                               href={sourceUrl} 
@@ -640,7 +641,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           {debugInfo && (
             <div style={{ borderTop: "1px solid #eee", paddingTop: "16px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-                <h4 style={{ margin: "0", fontSize: "14px", fontWeight: "600", color: "#333" }}>调试信息</h4>
+                <h4 style={{ margin: "0", fontSize: "14px", fontWeight: "600", color: "#333" }}>{I18nService.t('debug_info')}</h4>
                 <button
                   onClick={toggleDebug}
                   style={{
@@ -652,21 +653,21 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     fontWeight: "500"
                   }}
                 >
-                  {showDebug ? "隐藏" : "显示"}
+                  {showDebug ? I18nService.t('collapse') : I18nService.t('expand')}
                 </button>
               </div>
               
               {showDebug && (
                 <div style={{ fontSize: "11px", color: "#666", lineHeight: "1.4" }}>
-                  <div>模型: {debugInfo.model}</div>
-                  <div>总耗时: {(debugInfo.totalDurationMs / 1000).toFixed(1)}s</div>
-                  <div>LLM耗时: {(debugInfo.llmDurationMs / 1000).toFixed(1)}s</div>
-                  <div>数据项数: {debugInfo.itemsCount}</div>
-                  <div>数据构成: {debugInfo.itemsBreakdown}</div>
-                  <div>来源信息: {debugInfo.sourceInfo}</div>
+                  <div>{I18nService.t('token_usage')}: {debugInfo.model}</div>
+                  <div>{I18nService.t('total_duration')}: {(debugInfo.totalDurationMs / 1000).toFixed(1)}s</div>
+                  <div>{I18nService.t('llm_duration')}: {(debugInfo.llmDurationMs / 1000).toFixed(1)}s</div>
+                  <div>{I18nService.t('data_items')}: {debugInfo.itemsCount}</div>
+                  <div>{I18nService.t('data_breakdown')}: {debugInfo.itemsBreakdown}</div>
+                  <div>{I18nService.t('source')}: {debugInfo.sourceInfo}</div>
                   {debugInfo.tokens && (
                     <div>
-                      Token使用: {debugInfo.tokens.prompt_tokens}+{debugInfo.tokens.completion_tokens}={debugInfo.tokens.total_tokens}
+                      {I18nService.t('token_usage')}: {debugInfo.tokens.prompt_tokens}+{debugInfo.tokens.completion_tokens}={debugInfo.tokens.total_tokens}
                     </div>
                   )}
                 </div>

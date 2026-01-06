@@ -4,6 +4,8 @@ export type AnalysisMode = 'fast' | 'balanced' | 'deep';
 
 export type SupportedPlatform = 'zhihu' | 'reddit' | 'twitter' | 'weibo';
 
+export type Language = 'zh-CN' | 'en-US';
+
 export type MacroCategory = 
   | 'politics'       // 政治 (Politics)
   | 'economy'        // 经济 (Economy)
@@ -24,6 +26,7 @@ export interface PlatformConfig {
 
 export interface AppConfig {
   globalEnabled: boolean; // Master switch
+  language: Language; // Default 'zh-CN'
   selectedProvider: AIProvider;
   apiKeys: Record<string, string>;
   customBaseUrls: Record<string, string>;
@@ -37,6 +40,7 @@ export interface AppConfig {
 
 export const DEFAULT_CONFIG: AppConfig = {
   globalEnabled: true,
+  language: 'zh-CN',
   selectedProvider: 'openai',
   apiKeys: {},
   customBaseUrls: {},

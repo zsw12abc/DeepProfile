@@ -1,6 +1,7 @@
-﻿import { LLMService } from "./LLMService";
+import { LLMService } from "./LLMService";
 import type { CommentItem, CommentAnalysisResult, AnalysisMode } from "~types";
 import { ConfigService } from "./ConfigService";
+import { I18nService } from "./I18nService";
 
 export class CommentAnalysisService {
   
@@ -11,23 +12,30 @@ export class CommentAnalysisService {
 
     const config = await ConfigService.getConfig();
     const mode = config.analysisMode || 'balanced';
+    const isEn = I18nService.getLanguage() === 'en-US';
 
     // 1. 预处理评论数据，减少Token消耗
     const processedComments = comments.map(c => {
       let text = `${c.author}: ${c.content}`;
-      if (c.likes && c.likes > 0) text += ` [${c.likes}赞]`;
+      if (c.likes && c.likes > 0) text += ` [${c.likes}${isEn ? ' likes' : '赞'}]`;
       return text;
     }).join('\n');
 
     // 2. 构建 Prompt
-    let promptContext = `话题【${contextTitle}】`;
+    let promptContext = isEn ? `Topic【${contextTitle}】` : `话题【${contextTitle}】`;
     if (contextContent) {
         // 限制上下文长度，防止超出 Token 限制
         const truncatedContent = contextContent.length > 2000 ? contextContent.slice(0, 2000) + "..." : contextContent;
-        promptContext += `\n\n【话题/回答原文摘要】\n${truncatedContent}`;
+        promptContext += isEn ? `
+
+[Topic/Answer Original Text Summary]
+${truncatedContent}` : `
+
+【话题/回答原文摘要】
+${truncatedContent}`;
     }
 
-    const prompt = this.getPromptForMode(mode, promptContext, processedComments);
+    const prompt = this.getPromptForMode(mode, promptContext, processedComments, isEn);
 
     // 3. 调用 LLM
     try {
@@ -40,7 +48,7 @@ export class CommentAnalysisService {
     }
   }
 
-  private static getPromptForMode(mode: AnalysisMode, context: string, comments: string): string {
+  private static getPromptForMode(mode: AnalysisMode, context: string, comments: string, isEn: boolean): string {
     let keyPointsCount = 3;
     let extraAnalysis = "";
 
@@ -50,19 +58,49 @@ export class CommentAnalysisService {
       keyPointsCount = 5;
     } else if (mode === 'deep') {
       keyPointsCount = 7;
-      extraAnalysis = `
+      extraAnalysis = isEn ? 
+      `
+5.  **Deep Insights (Optional)**: Identify if there are obvious logical fallacies (e.g., straw man, ad hominem), echo chamber effects, or group polarization phenomena in the comment section. If present, briefly explain in the 'deep_analysis' field.` :
+      `
 5.  **深度洞察 (可选)**: 识别评论区是否存在明显的逻辑谬误（如稻草人谬误、人身攻击）、回音室效应或群体极化现象。如果存在，请在 'deep_analysis' 字段中简要说明。`;
     }
 
     const jsonSchema = {
-      summary: "一句话总结评论区现状",
+      summary: isEn ? "One-sentence summary of the comment section status" : "一句话总结评论区现状",
       stance_ratio: { support: 0.4, oppose: 0.3, neutral: 0.3 },
-      key_points: [{ point: "观点概括", count: 10, type: "support", example_quotes: ["原文摘录1"] }],
+      key_points: [{ point: isEn ? "Point Summary" : "观点概括", count: 10, type: "support", example_quotes: [isEn ? "Original Quote" : "原文摘录1"] }],
       sentiment: "controversial",
-      ...(mode === 'deep' && { deep_analysis: { has_fallacy: false, fallacy_type: "none", example: "无" } })
+      ...(mode === 'deep' && { deep_analysis: { has_fallacy: false, fallacy_type: "none", example: "none" } })
     };
 
-    return `
+    const languageInstruction = isEn ? 
+    `IMPORTANT: All analysis results (summary, point summaries, analysis explanations) must be in English, but the example_quotes should remain in the original language.` :
+    `重要：所有分析结果（总结、观点概括、分析说明）必须使用中文，但 example_quotes 应保持原始语言。`;
+
+    const instructions = isEn ? 
+    `
+You are a public opinion analysis expert. Please analyze the following comment section content.
+Comment section is about: ${context}
+
+[Comment Data]
+${comments}
+
+[Analysis Requirements]
+1.  **Stance Distribution**: Calculate the proportion of Support, Oppose, and Neutral.
+    *   **Important**: When judging support/opposition, you must base it on the viewpoint of the [topic/answer original text].
+    *   Support: Supporting the author's viewpoint or expressing approval of the content.
+    *   Oppose: Refuting the author's viewpoint or raising criticism.
+    *   Neutral: Observing, making memes, irrelevant discussions, or moderate observers.
+2.  **Core Points**: Extract ${keyPointsCount} core arguments that repeatedly appear in the comment section.
+3.  **Typical Excerpts**: Extract 1-2 original quotes for each core point. (These should remain in original language)
+4.  **Overall Sentiment**: Judge the comment section atmosphere (positive/negative/peaceful/highly controversial).
+${extraAnalysis}
+${languageInstruction}
+
+Please strictly return the result in the following JSON format (do not include Markdown code block markers):
+${JSON.stringify(jsonSchema, null, 2)}
+` :
+    `
 你是一个舆情分析专家。请分析以下评论区内容。
 评论区是关于：${context}
 
@@ -76,13 +114,16 @@ ${comments}
     *   反对：反驳答主/作者的观点，或提出批评。
     *   中立：吃瓜、玩梗、无关讨论或理中客。
 2.  **核心观点**: 提取评论区中反复出现的 ${keyPointsCount} 个核心论点。
-3.  **典型摘录**: 为每个核心观点摘录 1-2 条原话。
+3.  **典型摘录**: 为每个核心观点摘录 1-2 条原话。（这些应保持原始语言）
 4.  **总体情绪**: 判断评论区氛围（积极/消极/平和/争议巨大）。
 ${extraAnalysis}
+${languageInstruction}
 
 请严格按照以下 JSON 格式返回结果（不要包含 Markdown 代码块标记）：
 ${JSON.stringify(jsonSchema, null, 2)}
 `;
+
+    return instructions;
   }
 
   private static parseResult(responseStr: string): CommentAnalysisResult {

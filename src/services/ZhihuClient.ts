@@ -1,3 +1,5 @@
+import { I18nService } from "./I18nService";
+
 export interface ZhihuContent {
   id: string;
   type: 'answer' | 'article' | 'question'; // Added question type
@@ -78,7 +80,7 @@ export class ZhihuClient {
       
       if (response.status === 403) {
           console.error("Zhihu API 403 Forbidden. Please check if you are logged in to Zhihu.");
-          throw new Error("哎呀，被知乎拦截了 (403) 🚧。请试着刷新一下知乎页面，或者确认是否登录了哦～");
+          throw new Error(I18nService.t('error_zhihu_403'));
       }
 
       if (response.ok) {
@@ -316,10 +318,10 @@ export class ZhihuClient {
   static cleanContentData(items: ZhihuContent[], userProfile?: UserProfile | null): string {
     let text = '';
     if (userProfile) {
-      text += `用户昵称：${userProfile.name}\n用户签名：${userProfile.headline}\n\n`;
+      text += `User Nickname: ${userProfile.name}\nUser Headline: ${userProfile.headline}\n\n`;
     }
 
-    if (!items || items.length === 0) return text + '该用户暂无公开回答或文章。';
+    if (!items || items.length === 0) return text + 'This user has no public answers or articles.';
 
     const relevantItems = items.filter(item => item.is_relevant);
     let otherItems = items.filter(item => !item.is_relevant);
@@ -337,24 +339,24 @@ export class ZhihuClient {
             // 增加内容长度以捕获更多有意义的内容
             content = content.slice(0, 1000); 
         } else {
-            content = '[无正文内容]'; // 如果真的没有内容，则标记
+            content = '[No Content]'; // 如果真的没有内容，则标记
         }
         
-        const actionTag = item.action_type === 'voted' ? '【赞同】' : '【原创】';
-        const typeTag = item.type === 'answer' ? '【回答】' : (item.type === 'article' ? '【文章】' : '【动态】');
+        const actionTag = item.action_type === 'voted' ? '【Upvoted】' : '【Original】';
+        const typeTag = item.type === 'answer' ? '【Answer】' : (item.type === 'article' ? '【Article】' : '【Activity】');
         
-        return `[ID:${item.id}] ${actionTag}${typeTag} 标题：【${item.title}】\n正文：${content}`;
+        return `[ID:${item.id}] ${actionTag}${typeTag} Title: 【${item.title}】\nContent: ${content}`;
     };
 
     let contentText = '';
     if (relevantItems.length > 0) {
-        contentText += '--- RELEVANT CONTENT (★ 重点分析) ---\n';
+        contentText += '--- RELEVANT CONTENT (★ Key Analysis) ---\n';
         contentText += relevantItems.map(formatItem).join('\n\n');
         contentText += '\n\n';
     }
 
     if (otherItems.length > 0) {
-        contentText += '--- OTHER RECENT CONTENT (仅作性格参考，忽略其话题) ---\n';
+        contentText += '--- OTHER RECENT CONTENT (For Personality Reference Only) ---\n';
         contentText += otherItems.map(formatItem).join('\n\n');
     }
     
@@ -394,7 +396,7 @@ export class ZhihuClient {
         return data.data.map((item: any) => {
           const title = item.target?.title || item.target?.question?.title || '';
           const excerpt = item.target?.excerpt || '';
-          return `标题: ${title}\n摘要: ${excerpt.substring(0, 100)}`;
+          return `Title: ${title}\nExcerpt: ${excerpt.substring(0, 100)}`;
         });
       }
       return [];

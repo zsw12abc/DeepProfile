@@ -2,6 +2,7 @@ import type { PlasmoCSConfig } from "plasmo"
 import React, { useEffect, useState, useRef } from "react"
 import { ProfileCard } from "~components/ProfileCard"
 import { ConfigService } from "~services/ConfigService"
+import { I18nService } from "~services/I18nService"
 import type { ZhihuContent, UserProfile } from "~services/ZhihuClient"
 
 export const config: PlasmoCSConfig = {
@@ -22,10 +23,13 @@ const ZhihuOverlay = () => {
     cachedContext?: string
   } | null>(null)
   const [loading, setLoading] = useState(false)
-  const [statusMessage, setStatusMessage] = useState("正在初始化...")
+  const [statusMessage, setStatusMessage] = useState(I18nService.t('loading'))
   const [error, setError] = useState<string | undefined>()
 
   useEffect(() => {
+    // Initialize I18n
+    I18nService.init();
+
     // Listen for progress messages from background
     const messageListener = (request: any) => {
       if (request.type === "ANALYSIS_PROGRESS") {
@@ -104,7 +108,7 @@ const ZhihuOverlay = () => {
         btn.style.color = "#8590a6"
         btn.style.verticalAlign = "middle"
         btn.style.display = "inline-block"
-        btn.title = "DeepProfile 分析"
+        btn.title = "DeepProfile Analysis"
         btn.className = "deep-profile-btn"
         
         btn.onmouseover = () => { btn.style.color = "#0084ff" }
@@ -199,7 +203,7 @@ const ZhihuOverlay = () => {
     setInitialNickname(nickname)
     setCurrentContext(context)
     setLoading(true)
-    setStatusMessage(forceRefresh ? "正在强制刷新..." : "正在连接后台服务...")
+    setStatusMessage(forceRefresh ? I18nService.t('reanalyze') + "..." : I18nService.t('analyzing') + "...")
     setError(undefined)
     if (forceRefresh) {
         setProfileData(null)
@@ -220,7 +224,7 @@ const ZhihuOverlay = () => {
         setError(response.error)
       }
     } catch (err) {
-      setError("Failed to communicate with background service.")
+      setError(I18nService.t('error_network'))
     } finally {
       setLoading(false)
     }

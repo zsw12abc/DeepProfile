@@ -1,7 +1,8 @@
-﻿import type { PlasmoCSConfig } from "plasmo"
+import type { PlasmoCSConfig } from "plasmo"
 import React, { useEffect, useState } from "react"
 import { createRoot } from "react-dom/client"
 import type { CommentItem, CommentAnalysisResult } from "~types"
+import { I18nService } from "~services/I18nService"
 
 export const config: PlasmoCSConfig = {
   matches: ["https://www.zhihu.com/*"]
@@ -10,12 +11,15 @@ export const config: PlasmoCSConfig = {
 // 嵌入式 UI 组件
 const CommentAnalysisPanel = ({ contextTitle, containerElement, answerId }: { contextTitle: string, containerElement: Element, answerId?: string }) => {
   const [loading, setLoading] = useState(true);
-  const [status, setStatus] = useState("正在分析当前页面的评论...");
+  const [status, setStatus] = useState(I18nService.t('analyzing_comments'));
   const [result, setResult] = useState<CommentAnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(false); // 默认折叠核心观点
 
   useEffect(() => {
+    // 初始化语言
+    I18nService.init();
+
     const analyze = async () => {
       try {
         // 0. 检查是否需要展开评论
@@ -25,7 +29,7 @@ const CommentAnalysisPanel = ({ contextTitle, containerElement, answerId }: { co
         ) as HTMLElement;
 
         if (expandBtn) {
-            setStatus("正在展开评论区...");
+            setStatus(I18nService.t('expanding_comments'));
             expandBtn.click();
             
             await new Promise<void>((resolve) => {
@@ -44,7 +48,7 @@ const CommentAnalysisPanel = ({ contextTitle, containerElement, answerId }: { co
             });
         }
 
-        setStatus("正在提取评论数据...");
+        setStatus(I18nService.t('extracting_comments'));
 
         // 1. 提取 DOM
         const comments: CommentItem[] = [];
@@ -56,7 +60,7 @@ const CommentAnalysisPanel = ({ contextTitle, containerElement, answerId }: { co
 
             const itemContainer = contentEl.closest('[data-id]') || contentEl.closest('li') || contentEl.parentElement?.parentElement;
             
-            let author = "匿名用户";
+            let author = I18nService.t('anonymous_user');
             let likes = 0;
 
             if (itemContainer) {
@@ -65,7 +69,7 @@ const CommentAnalysisPanel = ({ contextTitle, containerElement, answerId }: { co
                                  itemContainer.querySelector('.css-10u695f'); 
                 
                 if (authorEl) {
-                    author = authorEl.textContent || "匿名用户";
+                    author = authorEl.textContent || I18nService.t('anonymous_user');
                 }
 
                 const likeBtn = Array.from(itemContainer.querySelectorAll('button')).find(btn => 
@@ -91,7 +95,7 @@ const CommentAnalysisPanel = ({ contextTitle, containerElement, answerId }: { co
         console.log(`[DeepProfile] Extracted ${comments.length} comments from container.`);
 
         if (comments.length < 3) {
-            throw new Error(`评论太少 (${comments.length}条)，无法进行有效分析。请确保评论区已加载。`);
+            throw new Error(`${I18nService.t('not_enough_comments')} (${comments.length}${I18nService.t('comment_analysis_instruction')}`);
         }
 
         // 1.5 提取上下文内容 (回答/文章正文)
@@ -122,7 +126,7 @@ const CommentAnalysisPanel = ({ contextTitle, containerElement, answerId }: { co
             console.warn("[DeepProfile] Failed to extract context content:", e);
         }
 
-        setStatus("AI 正在阅读大家的观点...");
+        setStatus(I18nService.t('ai_reading'));
 
         // 2. 调用 Service
         const response = await chrome.runtime.sendMessage({
@@ -130,7 +134,8 @@ const CommentAnalysisPanel = ({ contextTitle, containerElement, answerId }: { co
             comments,
             contextTitle,
             contextContent, // 传递提取的内容
-            answerId // 传递 answerId 作为 fallback
+            answerId, // 传递 answerId 作为 fallback
+            language: I18nService.getLanguage() // 传递当前语言设置
         });
 
         if (response.success) {
@@ -154,7 +159,7 @@ const CommentAnalysisPanel = ({ contextTitle, containerElement, answerId }: { co
   if (error) {
       return (
           <div style={{ padding: '12px 16px', background: '#fff1f0', border: '1px solid #ffa39e', borderRadius: 4, marginBottom: 12, fontSize: 13, color: '#cf1322' }}>
-              <strong>分析失败：</strong> {error}
+              <strong>{I18nService.t('comment_analysis_failed')}：</strong> {error}
           </div>
       )
   }
@@ -176,8 +181,8 @@ const CommentAnalysisPanel = ({ contextTitle, containerElement, answerId }: { co
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
           <div style={{ flex: 1 }}>
               <h3 style={{ margin: '0 0 8px 0', fontSize: 15, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
-                  📊 评论区舆情概览
-                  <span style={{ fontSize: 12, fontWeight: 400, color: '#8590a6', marginLeft: 8, background: '#fff', padding: '2px 6px', borderRadius: 4 }}>AI 生成</span>
+                  {I18nService.t('comment_analysis_summary')}
+                  <span style={{ fontSize: 12, fontWeight: 400, color: '#8590a6', marginLeft: 8, background: '#fff', padding: '2px 6px', borderRadius: 4 }}>{I18nService.t('comment_analysis_ai_generated')}</span>
               </h3>
               <div style={{ fontSize: 14, lineHeight: '1.6', color: '#121212' }}>
                   {result.summary}
@@ -187,14 +192,14 @@ const CommentAnalysisPanel = ({ contextTitle, containerElement, answerId }: { co
 
       <div style={{ marginBottom: 16 }}>
           <div style={{ display: 'flex', height: 8, borderRadius: 4, overflow: 'hidden', marginBottom: 6 }}>
-              <div style={{ width: `${(result.stance_ratio?.support || 0) * 100}%`, background: '#52c41a' }} title={`支持 ${Math.round((result.stance_ratio?.support || 0) * 100)}%`} />
-              <div style={{ width: `${(result.stance_ratio?.neutral || 0) * 100}%`, background: '#faad14' }} title={`中立 ${Math.round((result.stance_ratio?.neutral || 0) * 100)}%`} />
-              <div style={{ width: `${(result.stance_ratio?.oppose || 0) * 100}%`, background: '#ff4d4f' }} title={`反对 ${Math.round((result.stance_ratio?.oppose || 0) * 100)}%`} />
+              <div style={{ width: `${(result.stance_ratio?.support || 0) * 100}%`, background: '#52c41a' }} title={`${I18nService.t('sentiment_support')} ${Math.round((result.stance_ratio?.support || 0) * 100)}%`} />
+              <div style={{ width: `${(result.stance_ratio?.neutral || 0) * 100}%`, background: '#faad14' }} title={`${I18nService.t('sentiment_neutral')} ${Math.round((result.stance_ratio?.neutral || 0) * 100)}%`} />
+              <div style={{ width: `${(result.stance_ratio?.oppose || 0) * 100}%`, background: '#ff4d4f' }} title={`${I18nService.t('sentiment_oppose')} ${Math.round((result.stance_ratio?.oppose || 0) * 100)}%`} />
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#8590a6' }}>
-              <span style={{ display: 'flex', alignItems: 'center' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#52c41a', marginRight: 4 }}></span>支持 {Math.round((result.stance_ratio?.support || 0) * 100)}%</span>
-              <span style={{ display: 'flex', alignItems: 'center' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#faad14', marginRight: 4 }}></span>中立 {Math.round((result.stance_ratio?.neutral || 0) * 100)}%</span>
-              <span style={{ display: 'flex', alignItems: 'center' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#ff4d4f', marginRight: 4 }}></span>反对 {Math.round((result.stance_ratio?.oppose || 0) * 100)}%</span>
+              <span style={{ display: 'flex', alignItems: 'center' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#52c41a', marginRight: 4 }}></span>{I18nService.t('sentiment_support')} {Math.round((result.stance_ratio?.support || 0) * 100)}%</span>
+              <span style={{ display: 'flex', alignItems: 'center' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#faad14', marginRight: 4 }}></span>{I18nService.t('sentiment_neutral')} {Math.round((result.stance_ratio?.neutral || 0) * 100)}%</span>
+              <span style={{ display: 'flex', alignItems: 'center' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#ff4d4f', marginRight: 4 }}></span>{I18nService.t('sentiment_oppose')} {Math.round((result.stance_ratio?.oppose || 0) * 100)}%</span>
           </div>
       </div>
 
@@ -210,7 +215,7 @@ const CommentAnalysisPanel = ({ contextTitle, containerElement, answerId }: { co
                 userSelect: 'none'
             }}
           >
-              {isExpanded ? '收起核心观点' : '展开核心观点'}
+              {isExpanded ? I18nService.t('collapse_key_points') : I18nService.t('expand_key_points')}
               <svg 
                 width="12" 
                 height="12" 
@@ -239,11 +244,11 @@ const CommentAnalysisPanel = ({ contextTitle, containerElement, answerId }: { co
                   {result.deep_analysis && result.deep_analysis.has_fallacy && (
                     <div style={{ marginTop: 12, borderTop: '1px solid #ebebeb', paddingTop: 12, fontSize: 13 }}>
                         <div style={{ fontWeight: 500, marginBottom: 4, color: '#444' }}>
-                            🧠 深度洞察
+                            {I18nService.t('deep_insight')}
                         </div>
                         <div style={{ fontSize: 12, color: '#8590a6' }}>
-                            {`检测到可能存在的逻辑谬误: ${result.deep_analysis.fallacy_type || '未知类型'}`}
-                            {result.deep_analysis.example && ` (例如: "${result.deep_analysis.example}")`}
+                            {`${I18nService.t('logic_fallacy')}: ${result.deep_analysis.fallacy_type || I18nService.t('unknown_type')}`}
+                            {result.deep_analysis.example && ` (${I18nService.t('example_quote')}: "${result.deep_analysis.example}")`}
                         </div>
                     </div>
                   )}
@@ -295,7 +300,7 @@ const ZhihuComments = () => {
 
                 const btn = document.createElement('button');
                 btn.className = 'Button deep-profile-summary-btn';
-                btn.innerText = '📊 总结评论区观点';
+                btn.innerText = I18nService.t('comment_summary_btn');
                 btn.style.marginLeft = '12px';
                 btn.style.marginRight = '12px';
                 btn.style.border = '1px solid #0084ff';
