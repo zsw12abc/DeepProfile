@@ -49,6 +49,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
               }
           }
           
+          // 如果请求中包含语言设置，则更新 I18nService
+          if (request.language) {
+              I18nService.setLanguage(request.language);
+          }
+          
           return CommentAnalysisService.analyzeComments(request.comments, contextTitle, contextContent);
       };
 

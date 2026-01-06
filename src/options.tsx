@@ -141,7 +141,7 @@ export default function Options() {
 
   const handleExportMarkdown = (profileData: ProfileData, category: MacroCategory, userId: string, timestamp: number) => {
     const userHomeUrl = `https://www.zhihu.com/people/${userId}`;
-    const nickname = profileData.nickname || `用户${userId}`;
+    const nickname = profileData.nickname || `${I18nService.t('unknown_user')}${userId}`;
     const md = ExportService.toMarkdown(profileData, category, userHomeUrl, timestamp);
     
     const blob = new Blob([md], { type: 'text/markdown' });
@@ -160,7 +160,7 @@ export default function Options() {
     setIsExporting(true);
     
     try {
-      const nickname = userInfo?.name || profileData.nickname || `用户${userId}`;
+      const nickname = userInfo?.name || profileData.nickname || `${I18nService.t('unknown_user')}${userId}`;
       const topicClassification = profileData.topic_classification || I18nService.t('topic_classification');
       const summary = profileData.summary || "";
       const valueOrientation = profileData.value_orientation || [];
@@ -285,7 +285,7 @@ export default function Options() {
       document.body.removeChild(exportContainer);
     } catch (e) {
       console.error("Export image failed:", e);
-      alert("图片导出失败，请重试");
+      alert(I18nService.t('export_image_failed'));
     } finally {
       setIsExporting(false);
     }

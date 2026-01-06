@@ -80,8 +80,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   const [isExporting, setIsExporting] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
   
-  let nickname = initialNickname || "未知用户"
-  let topicClassification = "未知话题"
+  let nickname = initialNickname || I18nService.t('unknown_user')
+  let topicClassification = I18nService.t('unknown_topic')
   let valueOrientation: Array<{ label: string; score: number }> = []
   let summary = ""
   let evidence: Array<{ quote: string; analysis: string; source_title: string; source_id?: string }> = []
@@ -115,7 +115,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     }
   }
 
-  const displayName = nickname || `用户${userId.substring(0, 8)}`
+  const displayName = nickname || `${I18nService.t('unknown_user')}${userId.substring(0, 8)}`
   const userHomeUrl = `https://www.zhihu.com/people/${userId}`
 
   const toggleDebug = () => setShowDebug(!showDebug)
@@ -278,7 +278,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       setShowDebug(wasDebugShown);
     } catch (e) {
       console.error("Export image failed:", e);
-      alert("图片导出失败，请重试");
+      alert(I18nService.t('export_image_failed'));
     } finally {
       setIsExporting(false);
     }
@@ -659,15 +659,15 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               
               {showDebug && (
                 <div style={{ fontSize: "11px", color: "#666", lineHeight: "1.4" }}>
-                  <div>模型: {debugInfo.model}</div>
-                  <div>总耗时: {(debugInfo.totalDurationMs / 1000).toFixed(1)}s</div>
-                  <div>LLM耗时: {(debugInfo.llmDurationMs / 1000).toFixed(1)}s</div>
-                  <div>数据项数: {debugInfo.itemsCount}</div>
-                  <div>数据构成: {debugInfo.itemsBreakdown}</div>
-                  <div>来源信息: {debugInfo.sourceInfo}</div>
+                  <div>{I18nService.t('token_usage')}: {debugInfo.model}</div>
+                  <div>{I18nService.t('total_duration')}: {(debugInfo.totalDurationMs / 1000).toFixed(1)}s</div>
+                  <div>{I18nService.t('llm_duration')}: {(debugInfo.llmDurationMs / 1000).toFixed(1)}s</div>
+                  <div>{I18nService.t('data_items')}: {debugInfo.itemsCount}</div>
+                  <div>{I18nService.t('data_breakdown')}: {debugInfo.itemsBreakdown}</div>
+                  <div>{I18nService.t('source')}: {debugInfo.sourceInfo}</div>
                   {debugInfo.tokens && (
                     <div>
-                      Token使用: {debugInfo.tokens.prompt_tokens}+{debugInfo.tokens.completion_tokens}={debugInfo.tokens.total_tokens}
+                      {I18nService.t('token_usage')}: {debugInfo.tokens.prompt_tokens}+{debugInfo.tokens.completion_tokens}={debugInfo.tokens.total_tokens}
                     </div>
                   )}
                 </div>

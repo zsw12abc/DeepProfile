@@ -1,4 +1,4 @@
-﻿import type { LocaleDict } from "./index";
+import type { LocaleDict } from "./index";
 
 export const zhCN: LocaleDict = {
   // General
@@ -78,5 +78,46 @@ export const zhCN: LocaleDict = {
   category_environment: "🌍 环境 (Environment)",
   category_entertainment: "🎮 娱乐 (Entertainment)",
   category_lifestyle_career: "💼 生活与职场 (Lifestyle & Career)",
-  category_general: "🌐 通用综合"
+  category_general: "🌐 通用综合",
+  
+  // Export
+  click_jump: "点击跳转",
+  no_data: "暂无数据",
+  generated_by: "由",
+  
+  // Comment Analysis
+  analyzing_comments: "正在分析当前页面的评论...",
+  expanding_comments: "正在展开评论区...",
+  extracting_comments: "正在提取评论数据...",
+  ai_reading: "AI 正在阅读大家的观点...",
+  comment_analysis_failed: "分析失败",
+  comment_analysis_summary: "📊 评论区舆情概览",
+  comment_analysis_ai_generated: "AI 生成",
+  sentiment_support: "支持",
+  sentiment_neutral: "中立",
+  sentiment_oppose: "反对",
+  expand_key_points: "展开核心观点",
+  collapse_key_points: "收起核心观点",
+  deep_insight: "🧠 深度洞察",
+  logic_fallacy: "检测到可能存在的逻辑谬误",
+  comment_summary_btn: "📊 总结评论区观点",
+  not_enough_comments: "评论太少",
+  comment_analysis_instruction: "请确保评论区已加载。",
+  sentiment_analysis: "立场分布",
+  key_points: "核心观点",
+  example_quote: "例如",
+  
+  // Profile Card
+  unknown_user: "未知用户",
+  unknown_topic: "未知话题",
+  export_image_failed: "图片导出失败，请重试",
+  total_duration: "总耗时",
+  llm_duration: "LLM耗时",
+  data_items: "数据项数",
+  data_breakdown: "数据构成",
+  token_usage: "Token使用",
+  anonymous_user: "匿名用户",
+  
+  // General
+  unknown_type: "未知类型"
 };
