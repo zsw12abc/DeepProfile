@@ -9,6 +9,182 @@ import icon from "data-base64:../assets/icon.png"
 import html2canvas from "html2canvas"
 import { ZhihuClient } from "~services/ZhihuClient"
 import { I18nService } from "~services/I18nService"
+import MarkdownRenderer from "~components/MarkdownRenderer"
+
+// 获取版本信息
+const getVersion = (): string => {
+  return "0.5.1"; // 从 package.json 获取或硬编码
+};
+
+// 完整的更新日志内容
+const changelogContent = `# DeepProfile 开发进展与更新日志
+
+## 当前版本: v0.5.1 (Beta)
+
+### ✅ 已达成功能
+
+#### 核心功能 (v0.5.1) - 多语言支持 (i18n)
+- [x] **国际化架构**: 引入轻量级 I18nService，支持动态切换语言。
+- [x] **双语界面**: 全面支持 **简体中文 (zh-CN)** 和 **English (en-US)**。
+    - 设置页面 (Options Page)
+    - 悬浮分析卡片 (Profile Card)
+    - 错误提示与状态反馈
+- [x] **双语 AI 分析**: 
+    - 优化 Prompt 工程，根据用户选择的语言，强制 AI 输出对应语言的分析结果。
+    - 标签系统 (Label System) 支持双语显示（如 "左派 vs 右派" / "Left vs Right"）。
+- [x] **动态切换**: 在设置页面切换语言后，界面即时更新，无需重启插件。
+
+#### 核心功能 (v0.5.0) - 评论区舆情总结
+- [x] **舆情概览**: 在知乎评论区顶部新增"📊 总结本页观点"按钮，一键生成当前页面的舆论画像。
+- [x] **零风险分析**: 仅分析当前页面已加载的评论文本，**不调用知乎 API**，彻底规避风控封号风险。
+- [x] **立场分布**: 自动统计支持方、反对方和中立吃瓜群众的比例，并以可视化进度条展示。
+- [x] **核心观点提取**: 智能归纳评论区反复出现的 3-5 个核心论点，并附带典型评论摘录。
+- [x] **情绪检测**: 自动判断评论区氛围（积极/消极/争议巨大）。
+
+#### 核心功能 (v0.4.2) - 导出功能增强与体验优化
+- [x] **图片导出升级**:
+    - **个性化头像**: 导出的画像卡片现在会显示用户的**知乎头像**，而非插件默认 LOGO。
+    - **二维码分享**: 卡片底部新增指向 Chrome 商店的二维码，方便分享传播。
+    - **技术突破**: 解决了 html2canvas 跨域图片渲染问题，确保头像稳定显示。
+- [x] **历史记录增强**:
+    - **全功能导出**: 在后台历史记录管理中，为每条记录增加了"📸 导出为图片"按钮。
+    - **显示修复**: 修复了历史记录列表中用户昵称显示为 ID 的问题，现在优先显示用户昵称。
+- [x] **错误提示优化**:
+    - **人话翻译**: 将枯燥的 HTTP 错误码（401, 402, 429 等）替换为俏皮、易懂的中文提示（如"钱包空空如也"、"芝麻开门失败"）。
+    - **403 引导**: 针对知乎 API 的 403 错误，增加了引导用户刷新页面或登录的友好提示。
+- [x] **UI 细节**:
+    - 在分析结果悬浮卡片（Overlay）的头部增加了用户头像显示。
+
+#### 核心功能 (v0.4.1) - 性能优化与 Prompt 精简
+- [x] **Prompt 动态剪裁**: 
+    - **按需加载**: 根据当前话题分类（如"科技"），仅向 LLM 发送该分类下的相关标签定义，而非全量发送所有标签。
+    - **Token 节省**: 系统 Prompt 长度减少约 60%，显著降低 Token 消耗并提升响应速度。
+    - **专注度提升**: 减少无关标签干扰，使 LLM 更专注于当前领域的分析。
+- [x] **标签系统优化**:
+    - 重构 LabelService，支持按分类获取标签定义。
+    - 优化 TopicService，提升关键词匹配的准确性。
+
+#### 核心功能 (v0.4.0) - 历史记录与缓存系统
+- [x] **本地缓存机制**: 
+    - 自动将分析生成的用户画像存储在本地 (chrome.storage.local)。
+    - 采用 **"用户聚合 + 领域分层"** 的存储结构，同一用户在不同领域（如政治、娱乐）的画像互不干扰。
+    - 默认缓存有效期为 24 小时，过期自动失效。
+- [x] **智能缓存命中**: 
+    - **秒级响应**: 再次访问已分析用户时，直接从缓存加载结果，无需等待 API 请求。
+    - **零 Token 消耗**: 命中缓存时不调用 LLM 接口，节省成本。
+    - **领域自适应**: 自动识别当前话题领域，优先加载该领域的历史画像。
+- [x] **历史记录管理**:
+    - 在设置页面新增"历史记录"面板。
+    - 支持查看所有已分析的用户列表（按时间排序）。
+    - 支持展开查看每个用户的详细领域画像（政治、经济、娱乐等）。
+    - 支持精细化删除（单条画像、单个用户）或一键清空。
+- [x] **强制刷新**:
+    - 在分析结果卡片上增加"重新分析"按钮，允许用户忽略缓存强制更新。
+
+#### 核心功能 (v0.3.0)
+- [x] **多平台架构**: 预留 Reddit 等多平台支持的扩展接口。
+- [x] **多模型支持**:
+    - 新增 **通义千问 (Qwen)** 和 **Custom (OpenAI 兼容)** 服务商。
+    - 支持**动态加载模型列表**，避免手动输入错误。
+- [x] **知乎数据抓取**: 
+    - 自动解析用户 Hash ID 为 URL Token。
+    - **混合数据源**: 并行抓取用户的**原创内容 (回答/文章)** 与 **赞同动态**。
+    - 支持抓取数量配置 (10-50条)。
+- [x] **上下文感知 (Context-Aware)**:
+    - **精准提取**: 自动提取当前页面的问题标题和**知乎官方话题标签**。
+    - **智能分类**: 引入 **TopicService**，将话题自动归类为"政治"、"经济"、"科技"等八大宏观领域。
+    - **混合分类策略**: 优先使用关键词匹配，匹配失败时自动降级调用 LLM 进行智能分类。
+- [x] **深度画像生成**:
+    - **内容为王**: 优先提取并分析**回答/文章正文**，而非简短摘要。
+    - **规避风控**: 将"政治倾向"降敏为"**价值取向**"，从"经济"、"文化"、"国际观"等多维度进行中性分析。
+    - **矛盾点分析**: 要求 LLM 在总结中解释用户观点中的矛盾之处。
+    - **证据引用**: 提供可点击的原文引用链接，支持跳转到具体回答/文章。
+
+#### 用户体验 (UI/UX)
+- [x] **无感注入**: 仅在用户昵称右侧显示 "🔍" 图标，自动过滤头像和重复链接。
+- [x] **实时反馈**: 
+    - 点击即显示用户昵称。
+    - 详细的进度提示 (获取信息 -> 抓取动态 -> AI 分析)。
+- [x] **结果展示**:
+    - **多维价值图谱**: 使用进度条展示不同维度上的价值取向。
+    - 折叠式证据栏，保持界面整洁。
+- [x] **连接测试**: 在设置页提供"测试连接"功能，并返回**友好的中文错误提示** (如余额不足、Key无效)。
+
+#### 高级设置
+- [x] **自定义配置**:
+    - **模型下拉选择**: 自动获取并展示可用模型列表。
+    - 自定义 API Base URL (支持代理)。
+- [x] **分析模式**:
+    - **⚡ 极速**: 快速概览。
+    - **⚖️ 平衡**: 标准分析。
+    - **🧠 深度**: 启用思维链 (CoT)，深度识别反讽、隐喻。
+- [x] **开发者调试 (Debug Mode)**:
+    - **透明化**: 新增 Source 字段，清晰展示"抓取了多少 -> 找到了多少相关 -> 最终分析了多少"。
+    - **数据溯源**: 新增 Breakdown 字段，展示原创内容 vs 赞同内容的比例。
+
+---
+
+## 版本历史
+
+### v0.5.1 (2024-01-10) - 多语言支持
+*   **Major Feature**: 全面支持 **简体中文** 和 **English** 双语切换。
+*   **Feature**: AI 分析结果自动适配所选语言。
+*   **Refactor**: 引入 I18nService 统一管理文本资源。
+
+### v0.5.0 (2024-01-09) - 评论区舆情总结
+*   **Major Feature**: **评论区舆情总结**，一键生成当前页面的舆论画像，包括立场分布、核心观点和情绪检测。
+*   **Security**: 采用**零风险分析**策略，仅分析已加载的 DOM 文本，不调用知乎 API，彻底规避风控。
+
+### v0.4.2 (2024-01-08) - 导出增强与体验优化
+*   **Feature**: 导出图片支持显示用户头像和二维码。
+*   **Feature**: 历史记录管理支持图片导出。
+*   **Fix**: 修复历史记录中用户昵称显示问题。
+*   **Fix**: 优化知乎 API 请求头，解决 403 问题。
+*   **UX**: 错误提示文案优化，更加友好俏皮。
+
+### v0.4.1 (2024-01-07) - 性能优化
+*   **Optimization**: **Prompt 动态剪裁**，根据话题分类仅加载相关标签定义，大幅减少 Token 消耗并提升响应速度。
+*   **Refactor**: 优化标签服务与话题服务，提升代码可维护性。
+
+### v0.4.0 (2024-01-06) - 历史记录与智能分类
+*   **Major Feature**: **历史记录系统**，支持本地缓存、秒级响应和可视化管理。
+*   **Major Feature**: **八大维度全谱系分类**，引入政治、经济、社会、科技等 30+ 个细分维度，画像更立体。
+*   **Feature**: **混合分类策略**，结合关键词匹配与 LLM 智能分类，确保话题归类准确无误。
+*   **Feature**: **领域自适应分析**，LLM 自动判断内容相关性，避免"张冠李戴"的错误分析。
+*   **Optimization**: **Prompt 深度降敏**，大幅降低触发内容安全风控的概率。
+*   **UI**: 设置页面新增"历史记录"面板，支持展开查看和精细化管理。
+
+### v0.3.0 (2024-01-04) - 精准聚焦与体验优化
+*   **Major Feature**: **重构上下文感知算法**，使用话题标签进行精准匹配，并采用动态截断策略，彻底解决话题跑偏问题。
+*   **Major Feature**: **重构 Prompt**，使用"价值取向"代替"政治倾向"，规避国产模型风控，并要求 AI 解释矛盾点。
+*   **Feature**: **新增"连接测试"功能**，提供友好的中文错误提示。
+*   **Feature**: **动态加载模型列表**，将模型名称输入框升级为下拉选择框。
+*   **Feature**: 新增对**通义千问 (Qwen)** 和**自定义 OpenAI 兼容接口**的支持。
+*   **Feature**: 数据源增加**用户点赞动态**，并能在 Debug 面板中展示来源比例。
+*   **Fix**: 优先提取并分析回答/文章的**完整正文**，而非简短摘要。
+*   **UI**: 设置页面 UI 现代化，采用卡片式布局。
+
+### v0.2.0 (2024-01-03) - 深度分析与上下文感知
+*   **Feature**: 新增上下文感知功能，根据当前浏览的问题自动筛选用户相关回答。
+*   **Feature**: 新增"分析模式"设置 (极速/平衡/深度)，深度模式支持识别反讽。
+*   **Feature**: 画像标签新增置信度概率展示。
+*   **Feature**: Debug 模式增强，显示话题分类和抓取策略。
+*   **Fix**: 优化注入逻辑，精准定位昵称右侧，排除头像干扰。
+*   **Fix**: 修复引用链接为 API 格式的问题，统一为网页链接。
+
+### v0.1.0 (2024-01-02) - MVP 发布
+*   **Feature**: 完成基础架构 (Plasmo + React + TypeScript)。
+*   **Feature**: 实现知乎 API 抓取与清洗。
+*   **Feature**: 对接 OpenAI/Gemini/Ollama 接口。
+*   **Feature**: 实现基础 UI 注入与画像展示卡片。
+*   **Feature**: 支持 API Key 配置。
+
+---
+
+## 📅 待办计划 (Roadmap)
+
+- [ ] **更多平台**: 探索支持 Reddit、Bilibili、微博等其他平台。
+`;
 
 const PROVIDERS: { value: AIProvider; label: string }[] = [
   { value: "openai", label: "OpenAI" },
@@ -27,7 +203,7 @@ const LANGUAGES: { value: Language; label: string }[] = [
 const ZhihuIcon = <img src="https://static.zhihu.com/heifetz/assets/apple-touch-icon-152.a53ae37b.png" alt="Zhihu" style={{ width: "24px", height: "24px", borderRadius: "4px", objectFit: "contain" }} />;
 const RedditIcon = <img src="https://www.redditstatic.com/desktop2x/img/favicon/apple-icon-120x120.png" alt="Reddit" style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "contain" }} />;
 
-type PlatformId = 'general' | 'zhihu' | 'reddit' | 'debug' | 'history';
+type PlatformId = 'general' | 'zhihu' | 'reddit' | 'debug' | 'history' | 'version';
 
 const Card: React.FC<{ title: string; children: React.ReactNode; icon?: React.ReactNode }> = ({ title, children, icon }) => (
   <div style={{
@@ -523,6 +699,7 @@ export default function Options() {
     { id: 'reddit', name: I18nService.t('settings_reddit'), icon: RedditIcon },
     { id: 'history', name: I18nService.t('settings_history'), icon: <span style={{ fontSize: "24px" }}>📅</span> },
     { id: 'debug', name: I18nService.t('settings_debug'), icon: <span style={{ fontSize: "24px" }}>🛠️</span> },
+    { id: 'version', name: I18nService.t('version_info'), icon: <span style={{ fontSize: "24px" }}>ℹ️</span> },
   ];
 
   const renderPlatformSettings = (platformId: PlatformId) => {
@@ -1074,6 +1251,51 @@ export default function Options() {
                 <div style={{ fontSize: "13px", color: "#718096", marginTop: "6px" }}>
                   {I18nService.t('debug_mode_desc')}
                 </div>
+              </div>
+            </div>
+          </Card>
+        );
+      case 'version':
+        return (
+          <Card title={I18nService.t('version_info')} icon={<span style={{ fontSize: "24px" }}>ℹ️</span>}>
+            <div style={{ marginBottom: "20px" }}>
+              <div style={{ fontSize: "16px", fontWeight: "600", color: "#2d3748", marginBottom: "8px" }}>
+                {I18nService.t('current_version')}: 
+                <span style={{ color: "#3498db", marginLeft: "8px" }}>{`v${getVersion()}`}</span>
+              </div>
+            </div>
+            
+            <div style={{ marginBottom: "20px" }}>
+              <h4 style={{ margin: "0 0 12px 0", fontSize: "16px", fontWeight: "600", color: "#2d3748" }}>
+                {I18nService.t('changelog')}
+              </h4>
+              <div style={{ 
+                maxHeight: "400px", 
+                overflowY: "auto", 
+                padding: "16px", 
+                backgroundColor: "#f8fafc", 
+                borderRadius: "8px", 
+                border: "1px solid #e2e8f0",
+                lineHeight: "1.6"
+              }}>
+                <MarkdownRenderer content={changelogContent} />
+              </div>
+            </div>
+            
+            <div>
+              <h4 style={{ margin: "0 0 12px 0", fontSize: "16px", fontWeight: "600", color: "#2d3748" }}>
+                {I18nService.t('version_history')}
+              </h4>
+              <div style={{ 
+                maxHeight: "300px", 
+                overflowY: "auto", 
+                padding: "16px", 
+                backgroundColor: "#f8fafc", 
+                borderRadius: "8px", 
+                border: "1px solid #e2e8f0",
+                lineHeight: "1.6"
+              }}>
+                <MarkdownRenderer content={changelogContent} />
               </div>
             </div>
           </Card>
