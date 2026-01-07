@@ -119,5 +119,11 @@ export const zhCN: LocaleDict = {
   anonymous_user: "匿名用户",
   
   // General
-  unknown_type: "未知类型"
+  unknown_type: "未知类型",
+  
+  // Version & Changelog
+  version_info: "版本信息",
+  current_version: "当前版本",
+  changelog: "更新日志",
+  version_history: "版本历史"
 };

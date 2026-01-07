@@ -119,5 +119,11 @@ export const enUS: LocaleDict = {
   anonymous_user: "Anonymous User",
   
   // General
-  unknown_type: "Unknown Type"
+  unknown_type: "Unknown Type",
+  
+  // Version & Changelog
+  version_info: "Version Info",
+  current_version: "Current Version",
+  changelog: "Changelog",
+  version_history: "Version History"
 };

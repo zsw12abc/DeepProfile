@@ -15,6 +15,13 @@ console.log("DeepProfile Background Service Started")
 // Initialize I18n
 I18nService.init();
 
+// Open options page on install/update
+chrome.runtime.onInstalled.addListener((details) => {
+  if (details.reason === "update") {
+    chrome.runtime.openOptionsPage();
+  }
+});
+
 // Open options page when extension icon is clicked
 chrome.action.onClicked.addListener(() => {
   chrome.runtime.openOptionsPage();

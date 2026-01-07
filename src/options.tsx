@@ -9,6 +9,28 @@ import icon from "data-base64:../assets/icon.png"
 import html2canvas from "html2canvas"
 import { ZhihuClient } from "~services/ZhihuClient"
 import { I18nService } from "~services/I18nService"
+import MarkdownRenderer from "~components/MarkdownRenderer"
+import zhCNChangelog from "data-text:./locales/zh-CN/CHANGELOG.md"
+import enUSChangelog from "data-text:./locales/en-US/CHANGELOG.md"
+
+// 获取版本信息
+const getVersion = (): string => {
+  try {
+    const manifest = chrome.runtime.getManifest();
+    return manifest.version;
+  } catch (e) {
+    return "0.5.1"; // Fallback
+  }
+};
+
+// 新增函数：获取CHANGELOG内容
+const fetchChangelogContent = async (lang: string): Promise<string> => {
+  if (lang === 'zh-CN') {
+    return zhCNChangelog;
+  } else {
+    return enUSChangelog;
+  }
+};
 
 const PROVIDERS: { value: AIProvider; label: string }[] = [
   { value: "openai", label: "OpenAI" },
@@ -27,7 +49,7 @@ const LANGUAGES: { value: Language; label: string }[] = [
 const ZhihuIcon = <img src="https://static.zhihu.com/heifetz/assets/apple-touch-icon-152.a53ae37b.png" alt="Zhihu" style={{ width: "24px", height: "24px", borderRadius: "4px", objectFit: "contain" }} />;
 const RedditIcon = <img src="https://www.redditstatic.com/desktop2x/img/favicon/apple-icon-120x120.png" alt="Reddit" style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "contain" }} />;
 
-type PlatformId = 'general' | 'zhihu' | 'reddit' | 'debug' | 'history';
+type PlatformId = 'general' | 'zhihu' | 'reddit' | 'debug' | 'history' | 'version';
 
 const Card: React.FC<{ title: string; children: React.ReactNode; icon?: React.ReactNode }> = ({ title, children, icon }) => (
   <div style={{
@@ -87,6 +109,7 @@ export default function Options() {
   const [historyRecords, setHistoryRecords] = useState<UserHistoryRecord[]>([])
   const [loadingHistory, setLoadingHistory] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
+  const [changelog, setChangelog] = useState("");
 
   // Force re-render when language changes
   const [, setTick] = useState(0);
@@ -99,6 +122,20 @@ export default function Options() {
         forceUpdate();
     })
   }, [])
+
+  useEffect(() => {
+    const fetchChangelog = async () => {
+        if (!config?.language) return;
+
+        const lang = config.language;
+        const changelogText = await fetchChangelogContent(lang);
+        setChangelog(changelogText);
+    };
+
+    if (config) {
+        fetchChangelog();
+    }
+  }, [config?.language]);
 
   useEffect(() => {
     if (activePlatform === 'history') {
@@ -261,7 +298,6 @@ export default function Options() {
                     </div>
                 </div>
             </div>
-        </div>
       `;
 
       // 等待图片加载
@@ -523,6 +559,7 @@ export default function Options() {
     { id: 'reddit', name: I18nService.t('settings_reddit'), icon: RedditIcon },
     { id: 'history', name: I18nService.t('settings_history'), icon: <span style={{ fontSize: "24px" }}>📅</span> },
     { id: 'debug', name: I18nService.t('settings_debug'), icon: <span style={{ fontSize: "24px" }}>🛠️</span> },
+    { id: 'version', name: I18nService.t('version_info'), icon: <span style={{ fontSize: "24px" }}>ℹ️</span> },
   ];
 
   const renderPlatformSettings = (platformId: PlatformId) => {
@@ -1074,6 +1111,51 @@ export default function Options() {
                 <div style={{ fontSize: "13px", color: "#718096", marginTop: "6px" }}>
                   {I18nService.t('debug_mode_desc')}
                 </div>
+              </div>
+            </div>
+          </Card>
+        );
+      case 'version':
+        return (
+          <Card title={I18nService.t('version_info')} icon={<span style={{ fontSize: "24px" }}>ℹ️</span>}>
+            <div style={{ marginBottom: "20px" }}>
+              <div style={{ fontSize: "16px", fontWeight: "600", color: "#2d3748", marginBottom: "8px" }}>
+                {I18nService.t('current_version')}: 
+                <span style={{ color: "#3498db", marginLeft: "8px" }}>{`v${getVersion()}`}</span>
+              </div>
+            </div>
+            
+            <div style={{ marginBottom: "20px" }}>
+              <h4 style={{ margin: "0 0 12px 0", fontSize: "16px", fontWeight: "600", color: "#2d3748" }}>
+                {I18nService.t('changelog')}
+              </h4>
+              <div style={{ 
+                maxHeight: "400px", 
+                overflowY: "auto", 
+                padding: "16px", 
+                backgroundColor: "#f8fafc", 
+                borderRadius: "8px", 
+                border: "1px solid #e2e8f0",
+                lineHeight: "1.6"
+              }}>
+                <MarkdownRenderer content={changelog} />
+              </div>
+            </div>
+            
+            <div>
+              <h4 style={{ margin: "0 0 12px 0", fontSize: "16px", fontWeight: "600", color: "#2d3748" }}>
+                {I18nService.t('version_history')}
+              </h4>
+              <div style={{ 
+                maxHeight: "300px", 
+                overflowY: "auto", 
+                padding: "16px", 
+                backgroundColor: "#f8fafc", 
+                borderRadius: "8px", 
+                border: "1px solid #e2e8f0",
+                lineHeight: "1.6"
+              }}>
+                <MarkdownRenderer content={changelog} />
               </div>
             </div>
           </Card>
