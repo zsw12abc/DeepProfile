@@ -2,6 +2,8 @@ import type { PlasmoCSConfig } from "plasmo"
 import React, { useEffect, useState, useRef, useCallback } from "react"
 import { createRoot } from "react-dom/client"
 import { ProfileCard } from "~components/ProfileCard"
+import { ConfigService } from "~services/ConfigService"
+import { I18nService } from "~services/I18nService"
 import type { ZhihuContent, UserProfile } from "~services/ZhihuClient"
 
 export const config: PlasmoCSConfig = {
@@ -22,11 +24,14 @@ const RedditOverlay = () => {
     cachedContext?: string
   } | null>(null)
   const [loading, setLoading] = useState(false)
-  const [statusMessage, setStatusMessage] = useState("正在初始化...")
+  const [statusMessage, setStatusMessage] = useState(I18nService.t('loading'))
   const [error, setError] = useState<string | undefined>()
   const overlayContainerRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
+    // Initialize I18n
+    I18nService.init();
+
     // Listen for progress messages from background
     const messageListener = (request: any) => {
       if (request.type === "ANALYSIS_PROGRESS") {
@@ -133,74 +138,68 @@ const RedditOverlay = () => {
     }
   }, [targetUser, profileData, loading, statusMessage, error, initialNickname, currentContext]);
 
-  // Function to inject analyze buttons
   useEffect(() => {
-    const injectButtons = () => {
-      console.log("Attempting to inject buttons on Reddit page..."); // Debug log
-      
-      // Ensure we're on a Reddit page
-      if (!window.location.hostname.includes('reddit.com')) {
-        console.log('Not on a Reddit page, skipping injection');
-        return;
+    let observer: MutationObserver | null = null;
+    let isEnabled = false;
+
+    // 清理函数：停止观察并移除所有已注入的元素
+    const cleanup = () => {
+      if (observer) {
+        observer.disconnect();
+        observer = null;
       }
+      document.querySelectorAll('.deep-profile-btn').forEach(el => el.remove());
+      document.querySelectorAll('[data-deep-profile-injected]').forEach(el => el.removeAttribute('data-deep-profile-injected'));
+    };
+
+    // 注入逻辑
+    const injectButtons = () => {
+      if (!isEnabled) return;
+
+      // 1. 清理孤儿按钮
+      document.querySelectorAll('.deep-profile-btn').forEach(btn => {
+          const prev = btn.previousElementSibling as HTMLAnchorElement | null;
+          if (!prev || prev.tagName !== 'A' || !prev.href.includes('/user/')) {
+              btn.remove();
+          }
+      });
+
+      // 2. 检查并重置状态
+      const injectedLinks = document.querySelectorAll('a[data-deep-profile-injected="true"]');
+      injectedLinks.forEach(link => {
+          const next = link.nextElementSibling;
+          if (!next || !next.classList.contains('deep-profile-btn')) {
+              link.removeAttribute('data-deep-profile-injected');
+          }
+      });
+
+      // 3. 注入新按钮
+      const links = document.querySelectorAll('a[href*="/user/"]')
       
-      // Find only the actual用户 profile links (href="/user/...") that are not on avatars
-      // We specifically look for <a> tags with href containing "/user/" but exclude those that are likely avatars
-      const userLinks = Array.from(document.querySelectorAll(
-        `a[href*="/user/"]:not([data-deep-profile-injected])`
-      )).filter((el: Element) => {
-        // Ensure it's an anchor element and has the correct href pattern
-        const href = el.getAttribute('href');
+      links.forEach((element) => {
+        const link = element as HTMLAnchorElement
+        if (link.getAttribute("data-deep-profile-injected")) return
         
-        // Skip if it's likely an avatar (has aria-label containing 'avatar')
-        const ariaLabel = el.getAttribute('aria-label');
-        if (ariaLabel && ariaLabel.toLowerCase().includes('avatar')) {
-          return false;
-        }
-        
-        // Skip if it has classes indicating it's an avatar/image
-        const classes = el.className.toLowerCase();
-        if (classes.includes('avatar') || classes.includes('snoo') || classes.includes('img')) {
-          return false;
-        }
-        
-        // Skip if it contains an img element (likely an avatar)
-        if (el.querySelector('img')) {
-          return false;
-        }
-        
-        return href && href.includes('/user/');
-      }) as HTMLAnchorElement[];
-      
-      console.log(`Found ${userLinks.length} user profile links`); // Debug log
-      
-      userLinks.forEach((link) => {
-        // Extract username from href
-        const href = link.getAttribute("href") || ""
+        const href = link.href
         const match = href.match(/\/user\/([^\/\?#]+)/i)
-        if (!match) return;
+        if (!match) return
         
         const userId = match[1]
-        
-        console.log(`Processing user link with href: ${href}, extracted userId: ${userId}`); // Debug log
-        
-        if (!userId || userId === '[deleted]' || userId === 'AutoModerator' || userId === 'reddit' || userId === '') return
 
-        // Skip if the link is a subreddit link instead of user link (though with our selector this shouldn't happen)
-        if (href.includes('/r/') && !href.includes('/user/')) {
-          console.log("Skipping subreddit link"); // Debug log
-          return
-        }
+        if (!userId || userId === '[deleted]' || userId === 'AutoModerator' || userId === 'reddit' || userId === '') return
+        if (link.querySelector('img')) return
+        if (!link.textContent?.trim()) return
+        if (link.closest('.avatar') || link.closest('[aria-label*="avatar"]')) return
 
         const btn = document.createElement("span")
-        btn.innerHTML = "🔍"  // Using innerHTML to properly render emoji
+        btn.innerHTML = " 🔍"  // Using innerHTML to properly render emoji
         btn.style.cursor = "pointer"
         btn.style.fontSize = "14px"
         btn.style.marginLeft = "4px"
         btn.style.color = "#8590a6"
         btn.style.verticalAlign = "middle"
         btn.style.display = "inline-block"
-        btn.title = "DeepProfile 分析"
+        btn.title = I18nService.t('deep_profile_analysis')
         btn.className = "deep-profile-btn"
         
         btn.onmouseover = () => { btn.style.color = "#0084ff" }
@@ -213,7 +212,7 @@ const RedditOverlay = () => {
           // 阻止链接的默认行为，防止Reddit悬停卡片显示
           e.stopImmediatePropagation()
           
-          const nickname = link.textContent?.trim() || userId
+          const nickname = link.textContent?.trim()
           
           // Extract context from the current post/thread
           let contextParts: string[] = [];
@@ -279,8 +278,6 @@ const RedditOverlay = () => {
 
           const richContext = contextParts.filter(Boolean).join(' | ')
 
-          console.log(`Triggering analysis for user: ${userId}, nickname: ${nickname}, context: ${richContext}`); // Debug log
-          
           // Set the target user to show the overlay
           setTargetUser(userId)
           setInitialNickname(nickname)
@@ -290,72 +287,69 @@ const RedditOverlay = () => {
           handleAnalyze(userId, nickname, richContext)
         }
 
-        // Prevent the original link from triggering hover cards
-        link.addEventListener('click', (e) => {
-          if (document.getElementById('deep-profile-overlay-container')) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-          }
-        }, true); // 使用捕获阶段
-
-        // Properly insert the button next to the link
-        link.setAttribute("data-deep-profile-injected", "true");
+        link.setAttribute("data-deep-profile-injected", "true")
         
-        // Insert the button directly after the link
         if (link.parentNode) {
-          link.parentNode.insertBefore(btn, link.nextSibling);
-        } else {
-          // Fallback: append to the link itself if it's allowed
-          link.appendChild(btn);
+            link.parentNode.insertBefore(btn, link.nextSibling)
         }
-        
-        console.log("Successfully injected button for user:", userId); // Debug log
       })
     }
 
-    // Run immediately
-    injectButtons()
-
-    // Set up observer for dynamic content
-    const observer = new MutationObserver((mutations) => {
-      // Check if new content has been added
-      let shouldInject = false;
-      for (const mutation of mutations) {
-        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-          shouldInject = true;
-          break;
-        }
-      }
+    const startInjection = () => {
+      if (observer) return; // Already running
       
-      if (shouldInject) {
-        // Add a small delay to ensure content is fully loaded
-        setTimeout(() => {
-          injectButtons();
-        }, 500);
+      injectButtons();
+      
+      observer = new MutationObserver(() => {
+        if (isEnabled) injectButtons();
+      });
+      
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+    };
+
+    const checkConfig = async () => {
+      const config = await ConfigService.getConfig();
+      const newEnabled = config.globalEnabled;
+      
+      // console.log("Checking config. Enabled:", newEnabled);
+
+      if (newEnabled !== isEnabled) {
+        isEnabled = newEnabled;
+        if (isEnabled) {
+          startInjection();
+        } else {
+          cleanup();
+        }
+      } else if (isEnabled && !observer) {
+          // If enabled but observer died for some reason
+          startInjection();
       }
-    })
+    };
 
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true
-    })
+    // Initial check
+    checkConfig();
 
-    // 安全地清理DOM观察器
+    // Listen for storage changes to react immediately to options changes
+    const storageListener = (changes: any, area: string) => {
+      if (area === 'local' && changes['deep_profile_config']) {
+        checkConfig();
+      }
+    };
+    chrome.storage.onChanged.addListener(storageListener);
+
     return () => {
-      try {
-        observer.disconnect()
-      } catch (e) {
-        // 忽略上下文失效错误
-        console.debug("Extension context may have been invalidated, ignoring error:", e)
-      }
-    }
+      chrome.storage.onChanged.removeListener(storageListener);
+      cleanup();
+    };
   }, [])
 
   const handleAnalyze = async (userId: string, nickname?: string, context?: string, forceRefresh: boolean = false) => {
     // Don't reset the UI state here since we want to keep the overlay visible
     setLoading(true)
-    setStatusMessage(forceRefresh ? "正在强制刷新..." : "正在连接后台服务...")
+    setStatusMessage(forceRefresh ? I18nService.t('reanalyze') + "..." : I18nService.t('analyzing') + "...")
     setError(undefined)
     if (forceRefresh) {
         setProfileData(null)
@@ -376,7 +370,7 @@ const RedditOverlay = () => {
         setError(response.error)
       }
     } catch (err) {
-      setError("Failed to communicate with background service.")
+      setError(I18nService.t('error_network'))
     } finally {
       setLoading(false)
     }
