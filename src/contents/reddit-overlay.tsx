@@ -65,7 +65,7 @@ const RedditOverlay = () => {
         background-color: #f0f2f5; /* Reddit的主要背景色 */
         box-shadow: 0 4px 24px rgba(0,0,0,0.15);
         border-radius: 8px; /* 更符合Reddit的圆角 */
-        padding: 16px; /* 减少内边距以匹配Reddit风格 */
+        padding: 0; /* 移除容器的padding，让ProfileCard组件自己处理 */
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         font-size: 14px;
         color: #1c1c1c; /* Reddit的深灰色文本 */
@@ -91,41 +91,26 @@ const RedditOverlay = () => {
       const container = createOverlayContainer();
       const root = createRoot(container);
       
-      // 使用Reddit风格的样式包装ProfileCard
+      // 由于ProfileCard组件本身是固定定位的，我们不需要再创建额外的包装
+      // 直接渲染ProfileCard，但通过props来控制关闭行为
       root.render(
-        <div style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column'
-        }}>
-          <div style={{
-            backgroundColor: '#ffffff', /* 内容区域使用白色 */
-            borderRadius: '6px',
-            padding: '12px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-            minHeight: 0, // 使内部内容可以滚动
-            maxHeight: 'calc(80vh - 40px)' // 考虑外部容器的padding
-          }}>
-            <ProfileCard
-              userId={targetUser}
-              initialNickname={initialNickname}
-              profileData={profileData}
-              loading={loading}
-              statusMessage={statusMessage}
-              error={error}
-              onClose={() => {
-                setTargetUser(null);
-                removeOverlayContainer();
-              }}
-              onRefresh={() => {
-                if (targetUser) {
-                  handleAnalyze(targetUser, initialNickname, currentContext, true);
-                }
-              }}
-            />
-          </div>
-        </div>
+        <ProfileCard
+          userId={targetUser}
+          initialNickname={initialNickname}
+          profileData={profileData}
+          loading={loading}
+          statusMessage={statusMessage}
+          error={error}
+          onClose={() => {
+            setTargetUser(null);
+            removeOverlayContainer();
+          }}
+          onRefresh={() => {
+            if (targetUser) {
+              handleAnalyze(targetUser, initialNickname, currentContext, true);
+            }
+          }}
+        />
       );
       
       // 添加点击外部区域关闭overlay的功能
