@@ -10,6 +10,9 @@ export interface RedditPost {
   subreddit: string;
   author: string;
   permalink: string;
+  num_comments: number;
+  ups: number;
+  downs: number;
 }
 
 export interface RedditUser {
@@ -51,6 +54,47 @@ export class RedditClient {
     return null;
   }
 
+  // Enhanced content enhancement similar to ZhihuClient
+  private static async enhanceContent(items: ZhihuContent[]): Promise<ZhihuContent[]> {
+    // For Reddit, we don't need to fetch additional content as it's already included in the API response
+    // However, we can enhance content by adding more context from the API
+    return items;
+  }
+
+  // Fetch detailed content for a specific post
+  static async fetchDetailContent(id: string, type: 'post' | 'comment'): Promise<string | null> {
+    try {
+      let url;
+      if (type === 'post') {
+        // Fetch the full post with comments
+        url = `${this.BASE_URL}/comments/${id}.json?limit=1`;
+      } else {
+        // For comments, we would need a different approach
+        return null;
+      }
+      
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        console.error(`Failed to fetch ${type} ${id}: ${response.status} ${response.statusText}`);
+        return null;
+      }
+
+      const data = await response.json();
+      
+      // Extract the post content
+      if (data && data[0] && data[0].data && data[0].data.children && data[0].data.children[0]) {
+        const post = data[0].data.children[0].data;
+        return post.selftext || post.title || null;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error(`Error fetching ${type} ${id}:`, error);
+      return null;
+    }
+  }
+
   static async fetchUserContent(username: string, limit: number = 15, context?: string): Promise<FetchResult> {
     try {
       // Fetch user's posts and comments
@@ -76,26 +120,36 @@ export class RedditClient {
       }
 
       // Combine and convert to ZhihuContent format
-      const allContent = [...posts, ...comments].slice(0, limit * 2);
+      const allItemsMap = new Map<string, RedditPost>();
+      [...posts, ...comments].forEach(item => {
+        if (!allItemsMap.has(item.id.toString())) {
+          allItemsMap.set(item.id.toString(), item);
+        }
+      });
+      
+      const allContent = Array.from(allItemsMap.values()).slice(0, limit * 2);
       const convertedContent = allContent.map(item => this.convertToZhihuContent(item));
       
       let combined = convertedContent;
       const totalFetched = combined.length;
       
       if (context && context.length > 1) {
-        console.log(`Filtering content by context: "${context}"`);
-        combined = this.sortByRelevance(combined, context);
+          console.log(`Filtering content by context: "${context}"`);
+          combined = this.sortByRelevance(combined, context);
       } else {
-        combined.sort((a, b) => b.created_time - a.created_time);
+          combined.sort((a, b) => b.created_time - a.created_time);
       }
 
       const totalRelevant = combined.filter(i => i.is_relevant).length;
       const result = combined.slice(0, limit);
       
-      console.log(`Fetched ${totalFetched} items, returning top ${result.length}`);
+      // Enhance content similar to ZhihuClient
+      const enhancedResult = await this.enhanceContent(result);
+      
+      console.log(`Fetched ${totalFetched} items, returning top ${enhancedResult.length}`);
       
       return {
-        items: result,
+        items: enhancedResult,
         totalFetched,
         totalRelevant
       };

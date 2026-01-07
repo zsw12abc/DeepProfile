@@ -1,6 +1,6 @@
 # DeepProfile 开发进展与更新日志
 
-## 当前版本: v0.5.1 (Beta)
+## 当前版本: v0.6.0 (Beta)
 
 ### ✅ 已达成功能
 
@@ -106,6 +106,14 @@
 ---
 
 ## 版本历史
+
+### v0.6.0 (2024-01-08) - Reddit 平台多语言支持增强
+*   **Feature**: 修复 Reddit 平台的 [I18nService](file:///E:/Repo/DeepProfile/DeepProfile/src/services/I18nService.ts#L10-L13) 初始化问题，确保多语言功能正常工作。
+*   **Feature**: 重构 Reddit 平台的按钮注入逻辑，使其与 Zhihu 平台保持一致，解决按钮消失的问题。
+*   **Feature**: 确保 Reddit 平台的分析按钮和用户画像卡片支持中英文界面切换。
+*   **Feature**: 实现了与 Zhihu 平台一致的按钮注入机制，包括配置检查、清理函数和孤儿按钮清理等功能。
+*   **Feature**: 更新了加载、分析和错误状态消息的国际化支持，确保界面完全遵循用户语言设置。
+*   **Feature**: 修复了 Reddit overlay 中的 useCallback 导入问题，优化了组件性能。
 
 ### v0.5.1 (2024-01-10) - 多语言支持
 *   **Major Feature**: 全面支持 **简体中文** 和 **English** 双语切换。

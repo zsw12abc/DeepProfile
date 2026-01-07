@@ -1,4 +1,4 @@
-import { getLabelCategories } from "./LabelDefinitions";
+import { getLabelCategories, createLabelCategories } from "./LabelDefinitions";
 import { I18nService } from "./I18nService";
 
 // 后备映射：确保即使无法加载LabelDefinitions，也能将ID转换为中文名称
@@ -108,17 +108,31 @@ export function parseLabelName(labelName: string): { left: string, right: string
 // 根据分数和标签名称计算最终显示的标签和百分比
 export function calculateFinalLabel(labelName: string, score: number): { label: string, percentage: number } {
   const isEn = I18nService.getLanguage() === 'en-US';
-  const fallbackMap = isEn ? FALLBACK_ID_NAMES_EN : FALLBACK_ID_NAMES;
-
+  
   // 1. 尝试查找标签定义，如果输入的是ID，则获取其显示名称
   let nameToParse = labelName;
-  const labelInfo = getLabelInfo(labelName);
+  
+  // 直接使用createLabelCategories确保获取最新语言的标签
+  const categories = createLabelCategories();
+  let labelInfo = null;
+  
+  // 首先尝试将labelName作为ID查找
+  for (const category of categories) {
+    const label = category.labels.find(l => l.id === labelName);
+    if (label) {
+      labelInfo = { ...label, categoryName: category.name };
+      break;
+    }
+  }
   
   if (labelInfo) {
     nameToParse = labelInfo.name;
-  } else if (fallbackMap[labelName]) {
-    // 2. 如果找不到定义但有后备映射，使用后备映射
-    nameToParse = fallbackMap[labelName];
+  } else {
+    // 2. 如果找不到定义，尝试从后备映射中获取，并根据当前语言转换
+    const fallbackMap = isEn ? FALLBACK_ID_NAMES_EN : FALLBACK_ID_NAMES;
+    if (fallbackMap[labelName]) {
+      nameToParse = fallbackMap[labelName];
+    }
   }
 
   const parsed = parseLabelName(nameToParse);
@@ -140,9 +154,12 @@ export function calculateFinalLabel(labelName: string, score: number): { label: 
   };
 }
 
+import { createLabelCategories } from './LabelDefinitions';
+
 // 获取标签的详细信息
 export function getLabelInfo(labelId: string) {
-  const categories = getLabelCategories();
+  // 使用createLabelCategories函数确保获取最新语言的标签
+  const categories = createLabelCategories();
   for (const category of categories) {
     const label = category.labels.find(l => l.id === labelId);
     if (label) {
@@ -194,7 +211,7 @@ export function getRelevantLabelsByTopic(topic: string) {
   
   // 获取相关分类的所有标签
   const relevantLabels: { id: string, name: string, description: string, category: string }[] = [];
-  const categories = getLabelCategories();
+  const categories = createLabelCategories();
   
   for (const categoryId of relevantCategories) {
     const category = categories.find(cat => cat.id === categoryId);
@@ -276,7 +293,7 @@ export function filterLabelsByTopic(labels: Array<{ label: string; score: number
 // 使用模糊匹配处理未明确分类的话题
 export function getMostRelevantLabelsByTopic(topic: string): string[] {
   const topicLower = topic.toLowerCase();
-  const allCategories = getLabelCategories();
+  const allCategories = createLabelCategories();
   const matchedCategories: string[] = [];
 
   // 关键词匹配，使用更广泛的匹配策略

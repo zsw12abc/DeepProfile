@@ -6,6 +6,7 @@ import { HistoryService } from "~services/HistoryService"
 import { TopicService } from "~services/TopicService"
 import { CommentAnalysisService } from "~services/CommentAnalysisService"
 import { I18nService } from "~services/I18nService"
+import { LabelService } from "~services/LabelService"
 import type { SupportedPlatform } from "~types"
 
 export {}
@@ -61,7 +62,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
               I18nService.setLanguage(request.language);
           }
           
-          return CommentAnalysisService.analyzeComments(request.comments, contextTitle, contextContent);
+          return CommentAnalysisService.analyzeComments(request.comments, contextTitle, contextContent, request.platform);
       };
 
       analyzeWithContext()
@@ -210,6 +211,10 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
   // Ensure I18n is initialized with current config
   await I18nService.init();
   
+  // Refresh label cache to ensure language is up-to-date
+  const labelService = LabelService.getInstance();
+  labelService.refreshCategories();
+  
   console.log(`Analyzing user: ${userId}, Platform: ${platform}, Context: ${context}, ForceRefresh: ${forceRefresh}`)
   const startTime = Date.now();
   
@@ -288,7 +293,7 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
   
   try {
       // Pass macroCategory (ID) to generateProfile for optimized prompting
-      const llmResponse = await LLMService.generateProfile(cleanText, macroCategory)
+      const llmResponse = await LLMService.generateProfileForPlatform(cleanText, macroCategory, platform)
       
       const totalDuration = Date.now() - startTime;
 

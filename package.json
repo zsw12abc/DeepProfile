@@ -1,7 +1,7 @@
 {
   "name": "deep-profile",
   "displayName": "DeepProfile",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "A Chrome extension to analyze Zhihu user profiles using AI.",
   "author": "DeepProfile Team",
   "scripts": {
@@ -34,7 +34,10 @@
   "manifest": {
     "host_permissions": [
       "https://www.zhihu.com/*",
-      "https://*.zhimg.com/*"
+      "https://*.zhimg.com/*",
+      "https://www.reddit.com/*",
+      "https://old.reddit.com/*",
+      "https://reddit.com/*"
     ],
     "permissions": [
       "storage",

@@ -1,5 +1,5 @@
 import type { AnalysisMode, MacroCategory } from "~types";
-import { LABEL_CATEGORIES, LabelDefinition, CategoryDefinition } from "./LabelDefinitions";
+import { LABEL_CATEGORIES, LabelDefinition, CategoryDefinition, createLabelCategories } from "./LabelDefinitions";
 import { getRelevantLabelsByTopic } from "./LabelUtils";
 
 export interface ClassificationResult {
@@ -9,15 +9,22 @@ export interface ClassificationResult {
 
 export class LabelService {
   private static instance: LabelService;
-  private categories: CategoryDefinition[] = LABEL_CATEGORIES;
+  private categories: CategoryDefinition[];
 
-  private constructor() {}
+  private constructor() {
+    this.categories = createLabelCategories();
+  }
 
   static getInstance(): LabelService {
     if (!LabelService.instance) {
       LabelService.instance = new LabelService();
     }
     return LabelService.instance;
+  }
+
+  // Refresh categories when language changes
+  refreshCategories() {
+    this.categories = createLabelCategories();
   }
 
   getCategories(): CategoryDefinition[] {

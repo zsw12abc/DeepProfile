@@ -27,7 +27,10 @@ export interface LLMProvider {
 
 export class LLMService {
   private static getSystemPrompt(mode: AnalysisMode, category: MacroCategory): string {
+    // Refresh label cache to ensure language is up-to-date
     const labelService = LabelService.getInstance();
+    labelService.refreshCategories();
+    
     // OPTIMIZATION: Only get labels relevant to the current category
     const standardLabels = labelService.getLabelsForCategory(category);
     const categoryName = TopicService.getCategoryName(category);
@@ -111,6 +114,19 @@ ${standardLabels}
     
     const provider = this.getProviderInstance(config.selectedProvider, config)
     return provider.generateProfile(text, config.analysisMode || 'balanced', category)
+  }
+
+  static async generateProfileForPlatform(text: string, category: MacroCategory, platform: string): Promise<LLMResponse> {
+    const config = await ConfigService.getConfig()
+    
+    if (config.enableDebug) {
+      console.log("【LANGCHAIN REQUEST】Sending to LLM for platform:", platform, text);
+    }
+    
+    // Use platform-specific analysis mode if available, otherwise fallback to default
+    const mode = config.platformAnalysisModes?.[platform] || config.analysisMode || 'balanced';
+    const provider = this.getProviderInstance(config.selectedProvider, config)
+    return provider.generateProfile(text, mode, category)
   }
 
   static async generateRawText(prompt: string): Promise<string> {
