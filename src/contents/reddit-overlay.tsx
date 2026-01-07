@@ -53,7 +53,7 @@ const RedditOverlay = () => {
     if (!container) {
       container = document.createElement('div');
       container.id = 'deep-profile-overlay-container';
-      // 定位在右下角，与zhihu overlay类似
+      // 定位在右下角，与zhihu overlay类似，但使用Reddit风格的样式
       container.style.cssText = `
         position: fixed;
         bottom: 20px;
@@ -62,13 +62,14 @@ const RedditOverlay = () => {
         width: 380px;
         max-height: 80vh;
         overflow-y: auto;
-        background-color: #fff;
+        background-color: #f0f2f5; /* Reddit的主要背景色 */
         box-shadow: 0 4px 24px rgba(0,0,0,0.15);
-        border-radius: 12px;
-        padding: 20px;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        border-radius: 8px; /* 更符合Reddit的圆角 */
+        padding: 16px; /* 减少内边距以匹配Reddit风格 */
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         font-size: 14px;
-        color: #333;
+        color: #1c1c1c; /* Reddit的深灰色文本 */
+        border: 1px solid #ccc; /* 轻微边框以匹配Reddit风格 */
       `;
       document.body.appendChild(container);
     }
@@ -90,6 +91,7 @@ const RedditOverlay = () => {
       const container = createOverlayContainer();
       const root = createRoot(container);
       
+      // 使用Reddit风格的样式包装ProfileCard
       root.render(
         <div style={{
           width: '100%',
@@ -97,23 +99,32 @@ const RedditOverlay = () => {
           display: 'flex',
           flexDirection: 'column'
         }}>
-          <ProfileCard
-            userId={targetUser}
-            initialNickname={initialNickname}
-            profileData={profileData}
-            loading={loading}
-            statusMessage={statusMessage}
-            error={error}
-            onClose={() => {
-              setTargetUser(null);
-              removeOverlayContainer();
-            }}
-            onRefresh={() => {
-              if (targetUser) {
-                handleAnalyze(targetUser, initialNickname, currentContext, true);
-              }
-            }}
-          />
+          <div style={{
+            backgroundColor: '#ffffff', /* 内容区域使用白色 */
+            borderRadius: '6px',
+            padding: '12px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            minHeight: 0, // 使内部内容可以滚动
+            maxHeight: 'calc(80vh - 40px)' // 考虑外部容器的padding
+          }}>
+            <ProfileCard
+              userId={targetUser}
+              initialNickname={initialNickname}
+              profileData={profileData}
+              loading={loading}
+              statusMessage={statusMessage}
+              error={error}
+              onClose={() => {
+                setTargetUser(null);
+                removeOverlayContainer();
+              }}
+              onRefresh={() => {
+                if (targetUser) {
+                  handleAnalyze(targetUser, initialNickname, currentContext, true);
+                }
+              }}
+            />
+          </div>
         </div>
       );
       
@@ -148,13 +159,31 @@ const RedditOverlay = () => {
         return;
       }
       
-      // Find only the actual user profile links (href="/user/...")
-      // We specifically look for <a> tags with href containing "/user/"
+      // Find only the actual用户 profile links (href="/user/...") that are not on avatars
+      // We specifically look for <a> tags with href containing "/user/" but exclude those that are likely avatars
       const userLinks = Array.from(document.querySelectorAll(
         `a[href*="/user/"]:not([data-deep-profile-injected])`
       )).filter((el: Element) => {
         // Ensure it's an anchor element and has the correct href pattern
         const href = el.getAttribute('href');
+        
+        // Skip if it's likely an avatar (has aria-label containing 'avatar')
+        const ariaLabel = el.getAttribute('aria-label');
+        if (ariaLabel && ariaLabel.toLowerCase().includes('avatar')) {
+          return false;
+        }
+        
+        // Skip if it has classes indicating it's an avatar/image
+        const classes = el.className.toLowerCase();
+        if (classes.includes('avatar') || classes.includes('snoo') || classes.includes('img')) {
+          return false;
+        }
+        
+        // Skip if it contains an img element (likely an avatar)
+        if (el.querySelector('img')) {
+          return false;
+        }
+        
         return href && href.includes('/user/');
       }) as HTMLAnchorElement[];
       
