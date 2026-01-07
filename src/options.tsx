@@ -864,17 +864,66 @@ export default function Options() {
       case 'reddit':
         return (
           <Card title={I18nService.t('settings_reddit')} icon={RedditIcon}>
-              <div style={{ 
-                  padding: "24px", 
-                  backgroundColor: "#f8fafc", 
-                  borderRadius: "10px", 
-                  color: "#a0aec0", 
-                  fontSize: "15px",
-                  textAlign: "center",
-                  border: "1px dashed #e2e8f0"
-              }}>
-                  🚧 Reddit platform support is under development...
+            <InputGroup 
+              label={I18nService.t('analysis_mode')} 
+              subLabel={
+                  config.analysisMode === 'fast' ? I18nService.t('mode_fast_desc') :
+                  config.analysisMode === 'balanced' ? I18nService.t('mode_balanced_desc') :
+                  I18nService.t('mode_deep_desc')
+              }
+            >
+              <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                  {(['fast', 'balanced', 'deep'] as AnalysisMode[]).map((mode) => (
+                  <button
+                      key={mode}
+                      onClick={() => setConfig({ ...config, analysisMode: mode })}
+                      style={{
+                      flex: "1",
+                      minWidth: "120px",
+                      padding: "14px",
+                      borderRadius: "10px",
+                      border: config.analysisMode === mode ? "2px solid #3498db" : "2px solid #e2e8f0",
+                      backgroundColor: config.analysisMode === mode ? "#e1f0fa" : "white",
+                      color: config.analysisMode === mode ? "#2980b9" : "#4a5568",
+                      cursor: "pointer",
+                      fontWeight: config.analysisMode === mode ? "700" : "600",
+                      fontSize: "15px",
+                      transition: "all 0.2s",
+                      boxShadow: config.analysisMode === mode ? "0 4px 8px rgba(52, 152, 219, 0.15)" : "0 2px 4px rgba(0,0,0,0.05)"
+                      }}>
+                      {mode === 'fast' && I18nService.t('mode_fast')}
+                      {mode === 'balanced' && I18nService.t('mode_balanced')}
+                      {mode === 'deep' && I18nService.t('mode_deep')}
+                  </button>
+                  ))}
               </div>
+            </InputGroup>
+
+            <InputGroup label={`${I18nService.t('analyze_limit')}: ${config.analyzeLimit || 15}`}>
+              <input
+                  type="range"
+                  min="5"
+                  max="50"
+                  step="5"
+                  value={config.analyzeLimit || 15}
+                  onChange={(e) =>
+                  setConfig({ ...config, analyzeLimit: parseInt(e.target.value) })
+                  }
+                  style={{ width: "100%", accentColor: "#3498db", height: "8px", borderRadius: "4px", border: "none" }}
+              />
+              <div style={{ 
+                display: "flex", 
+                justifyContent: "space-between", 
+                fontSize: "13px", 
+                color: "#718096", 
+                marginTop: "6px",
+                position: "relative"
+              }}>
+                  <span>5</span>
+                  <span style={{ textAlign: "center", fontWeight: "600", color: "#2d3748" }}>{config.analyzeLimit || 15}</span>
+                  <span>50</span>
+              </div>
+            </InputGroup>
           </Card>
         );
       case 'history':

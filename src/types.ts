@@ -50,7 +50,7 @@ export const DEFAULT_CONFIG: AppConfig = {
   analysisMode: 'balanced',
   enabledPlatforms: {
     zhihu: true,
-    reddit: false,
+    reddit: true,
     twitter: false,
     weibo: false
   },
@@ -61,7 +61,7 @@ export const DEFAULT_CONFIG: AppConfig = {
       apiEndpoint: 'https://www.zhihu.com/api/v4'
     },
     reddit: {
-      enabled: false,
+      enabled: true,
       baseUrl: 'https://www.reddit.com',
       apiEndpoint: 'https://oauth.reddit.com'
     },

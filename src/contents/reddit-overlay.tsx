@@ -1,10 +1,11 @@
 import type { PlasmoCSConfig } from "plasmo"
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useRef, useCallback } from "react"
+import { createRoot } from "react-dom/client"
 import { ProfileCard } from "~components/ProfileCard"
 import type { ZhihuContent, UserProfile } from "~services/ZhihuClient"
 
 export const config: PlasmoCSConfig = {
-  matches: ["https://www.reddit.com/*", "https://old.reddit.com/*"]
+  matches: ["https://www.reddit.com/*", "https://old.reddit.com/*", "https://reddit.com/*"]
 }
 
 const RedditOverlay = () => {
@@ -23,6 +24,7 @@ const RedditOverlay = () => {
   const [loading, setLoading] = useState(false)
   const [statusMessage, setStatusMessage] = useState("正在初始化...")
   const [error, setError] = useState<string | undefined>()
+  const overlayContainerRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     // Listen for progress messages from background
@@ -44,35 +46,140 @@ const RedditOverlay = () => {
     }
   }, [])
 
+  // 创建独立的overlay容器
+  const createOverlayContainer = useCallback(() => {
+    let container = document.getElementById('deep-profile-overlay-container');
+    
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'deep-profile-overlay-container';
+      // 定位在右下角，与zhihu overlay类似
+      container.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000000;
+        width: 380px;
+        max-height: 80vh;
+        overflow-y: auto;
+        background-color: #fff;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+        border-radius: 12px;
+        padding: 20px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-size: 14px;
+        color: #333;
+      `;
+      document.body.appendChild(container);
+    }
+    
+    return container;
+  }, []);
+
+  // 移除overlay容器
+  const removeOverlayContainer = useCallback(() => {
+    const container = document.getElementById('deep-profile-overlay-container');
+    if (container) {
+      container.remove();
+    }
+  }, []);
+
+  // 渲染overlay到独立容器
   useEffect(() => {
-    // Function to inject analyze buttons
+    if (targetUser) {
+      const container = createOverlayContainer();
+      const root = createRoot(container);
+      
+      root.render(
+        <div style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column'
+        }}>
+          <ProfileCard
+            userId={targetUser}
+            initialNickname={initialNickname}
+            profileData={profileData}
+            loading={loading}
+            statusMessage={statusMessage}
+            error={error}
+            onClose={() => {
+              setTargetUser(null);
+              removeOverlayContainer();
+            }}
+            onRefresh={() => {
+              if (targetUser) {
+                handleAnalyze(targetUser, initialNickname, currentContext, true);
+              }
+            }}
+          />
+        </div>
+      );
+      
+      // 添加点击外部区域关闭overlay的功能
+      const handleClickOutside = (event: MouseEvent) => {
+        if (container && !container.contains(event.target as Node)) {
+          setTargetUser(null);
+          removeOverlayContainer();
+        }
+      };
+      
+      document.addEventListener('mousedown', handleClickOutside);
+      
+      return () => {
+        root.unmount();
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    } else {
+      // 当没有目标用户时，移除容器
+      removeOverlayContainer();
+    }
+  }, [targetUser, profileData, loading, statusMessage, error, initialNickname, currentContext]);
+
+  // Function to inject analyze buttons
+  useEffect(() => {
     const injectButtons = () => {
-      // Find user profile links in Reddit
-      const userLinks = document.querySelectorAll('a[href*="/user/"], .author, .user')
+      console.log("Attempting to inject buttons on Reddit page..."); // Debug log
+      
+      // Ensure we're on a Reddit page
+      if (!window.location.hostname.includes('reddit.com')) {
+        console.log('Not on a Reddit page, skipping injection');
+        return;
+      }
+      
+      // Find only the actual user profile links (href="/user/...")
+      // We specifically look for <a> tags with href containing "/user/"
+      const userLinks = Array.from(document.querySelectorAll(
+        `a[href*="/user/"]:not([data-deep-profile-injected])`
+      )).filter((el: Element) => {
+        // Ensure it's an anchor element and has the correct href pattern
+        const href = el.getAttribute('href');
+        return href && href.includes('/user/');
+      }) as HTMLAnchorElement[];
+      
+      console.log(`Found ${userLinks.length} user profile links`); // Debug log
       
       userLinks.forEach((link) => {
-        if (link.getAttribute("data-deep-profile-injected")) return
-        
-        // Extract username from href or text content
-        let userId = null
+        // Extract username from href
         const href = link.getAttribute("href") || ""
-        const match = href.match(/\/user\/([^\/\?#]+)/)
-        if (match) {
-          userId = match[1]
-        } else if (link.textContent && link.textContent.trim().startsWith('u/')) {
-          userId = link.textContent.trim().substring(2) // Remove 'u/' prefix
-        } else {
-          userId = link.textContent?.trim() || null
-        }
+        const match = href.match(/\/user\/([^\/\?#]+)/i)
+        if (!match) return;
         
-        if (!userId || userId === '[deleted]' || userId === 'AutoModerator') return
+        const userId = match[1]
+        
+        console.log(`Processing user link with href: ${href}, extracted userId: ${userId}`); // Debug log
+        
+        if (!userId || userId === '[deleted]' || userId === 'AutoModerator' || userId === 'reddit' || userId === '') return
 
-        // Skip if it's already an image or button
-        if (link.querySelector('img')) return
-        if (!link.textContent?.trim()) return
+        // Skip if the link is a subreddit link instead of user link (though with our selector this shouldn't happen)
+        if (href.includes('/r/') && !href.includes('/user/')) {
+          console.log("Skipping subreddit link"); // Debug log
+          return
+        }
 
         const btn = document.createElement("span")
-        btn.innerText = " 🔍"
+        btn.innerHTML = "🔍"  // Using innerHTML to properly render emoji
         btn.style.cursor = "pointer"
         btn.style.fontSize = "14px"
         btn.style.marginLeft = "4px"
@@ -89,21 +196,55 @@ const RedditOverlay = () => {
           e.preventDefault()
           e.stopPropagation()
           
+          // 阻止链接的默认行为，防止Reddit悬停卡片显示
+          e.stopImmediatePropagation()
+          
           const nickname = link.textContent?.trim() || userId
           
           // Extract context from the current post/thread
           let contextParts: string[] = [];
           
-          // Get post title if available
-          const postTitle = document.querySelector('h1[data-test-id="post-title"]') || 
-                           document.querySelector('div[data-adclicklocation="title"] h3')
+          // Get post title if available - try multiple selectors
+          const postTitleSelectors = [
+            'h1[data-test-id="post-title"]',
+            'div[data-adclicklocation="title"] h3',
+            'shreddit-title',
+            'h1._eYtD2DCq_3tMHxLg12j', // New Reddit design
+            'h1#post-title',
+            '.post-title',
+            '.PostTitle',
+            '[data-testid="post-title"]',
+            'h2[data-testid="post-title-text"]'
+          ];
+          
+          let postTitle = null;
+          for (const selector of postTitleSelectors) {
+            postTitle = document.querySelector(selector);
+            if (postTitle) break;
+          }
+          
           if (postTitle) {
               contextParts.push(postTitle.textContent?.trim() || "")
           }
 
-          // Get subreddit name
-          const subredditElement = document.querySelector('span[class*="subreddit"]') ||
-                                  document.querySelector('a[data-click-id="subreddit"]')
+          // Get subreddit name - try multiple selectors
+          const subredditSelectors = [
+            'span[class*="subreddit"]',
+            'a[data-click-id="subreddit"]',
+            'a[href^="/r/"]',
+            '.subreddit',
+            '.SubredditIcon',
+            'a[href^="/r/"]',
+            '[data-testid="subreddit"]',
+            '[data-testid="community-name"]'
+          ];
+          
+          let subredditElement = null;
+          for (const selector of subredditSelectors) {
+            subredditElement = document.querySelector(selector);
+            if (subredditElement) break;
+          }
+          
           if (subredditElement) {
               const subreddit = subredditElement.textContent?.trim()
               if (subreddit && !subreddit.startsWith('/r/')) {
@@ -112,29 +253,73 @@ const RedditOverlay = () => {
                   contextParts.push(subreddit)
               }
           }
+          
+          // Get post tags/categories if available
+          const tagElements = document.querySelectorAll('.icon-tag, .tag, [class*="tag"], [data-testid*="tag"]');
+          tagElements.forEach(tag => {
+            const tagText = tag.textContent?.trim();
+            if (tagText && !contextParts.includes(tagText)) {
+              contextParts.push(tagText);
+            }
+          });
 
           const richContext = contextParts.filter(Boolean).join(' | ')
 
+          console.log(`Triggering analysis for user: ${userId}, nickname: ${nickname}, context: ${richContext}`); // Debug log
+          
+          // Set the target user to show the overlay
+          setTargetUser(userId)
+          setInitialNickname(nickname)
+          setCurrentContext(richContext)
+          
+          // Also trigger the analysis
           handleAnalyze(userId, nickname, richContext)
         }
 
-        link.setAttribute("data-deep-profile-injected", "true")
+        // Prevent the original link from triggering hover cards
+        link.addEventListener('click', (e) => {
+          if (document.getElementById('deep-profile-overlay-container')) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+          }
+        }, true); // 使用捕获阶段
+
+        // Properly insert the button next to the link
+        link.setAttribute("data-deep-profile-injected", "true");
         
+        // Insert the button directly after the link
         if (link.parentNode) {
-            // Try to insert after the link
-            if (link.nextSibling) {
-                link.parentNode.insertBefore(btn, link.nextSibling)
-            } else {
-                link.parentNode.appendChild(btn)
-            }
+          link.parentNode.insertBefore(btn, link.nextSibling);
+        } else {
+          // Fallback: append to the link itself if it's allowed
+          link.appendChild(btn);
         }
+        
+        console.log("Successfully injected button for user:", userId); // Debug log
       })
     }
 
+    // Run immediately
     injectButtons()
 
-    const observer = new MutationObserver(() => {
-      injectButtons()
+    // Set up observer for dynamic content
+    const observer = new MutationObserver((mutations) => {
+      // Check if new content has been added
+      let shouldInject = false;
+      for (const mutation of mutations) {
+        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+          shouldInject = true;
+          break;
+        }
+      }
+      
+      if (shouldInject) {
+        // Add a small delay to ensure content is fully loaded
+        setTimeout(() => {
+          injectButtons();
+        }, 500);
+      }
     })
 
     observer.observe(document.body, {
@@ -154,9 +339,7 @@ const RedditOverlay = () => {
   }, [])
 
   const handleAnalyze = async (userId: string, nickname?: string, context?: string, forceRefresh: boolean = false) => {
-    setTargetUser(userId)
-    setInitialNickname(nickname)
-    setCurrentContext(context)
+    // Don't reset the UI state here since we want to keep the overlay visible
     setLoading(true)
     setStatusMessage(forceRefresh ? "正在强制刷新..." : "正在连接后台服务...")
     setError(undefined)
@@ -185,26 +368,8 @@ const RedditOverlay = () => {
     }
   }
 
-  const handleRefresh = () => {
-      if (targetUser) {
-          handleAnalyze(targetUser, initialNickname, currentContext, true);
-      }
-  }
-
-  if (!targetUser) return null
-
-  return (
-    <ProfileCard
-      userId={targetUser}
-      initialNickname={initialNickname}
-      profileData={profileData}
-      loading={loading}
-      statusMessage={statusMessage}
-      error={error}
-      onClose={() => setTargetUser(null)}
-      onRefresh={handleRefresh}
-    />
-  )
+  // 不渲染任何内容，因为overlay是通过DOM操作渲染的
+  return null;
 }
 
 export default RedditOverlay
