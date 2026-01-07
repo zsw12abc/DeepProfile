@@ -164,4 +164,4 @@
 
 ## 📅 待办计划 (Roadmap)
 
-- [ ] **更多平台**: 探索支持 Reddit、Bilibili、微博等其他平台。
+- ⬜ **更多平台**: 探索支持 Reddit、Bilibili、微博等其他平台。
