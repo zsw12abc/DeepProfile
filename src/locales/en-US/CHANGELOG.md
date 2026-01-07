@@ -107,6 +107,14 @@
 
 ## Version History
 
+### v0.6.0 (2024-01-08) - Reddit Platform Multilingual Support Enhancement
+*   **Feature**: Fixed [I18nService](file:///E:/Repo/DeepProfile/DeepProfile/src/services/I18nService.ts#L10-L13) initialization issue on Reddit platform to ensure multilingual functionality works properly.
+*   **Feature**: Refactored button injection logic on Reddit platform to align with Zhihu platform, resolving the disappearing button issue.
+*   **Feature**: Ensured that Reddit platform analysis buttons and user profile cards support Chinese/English interface switching.
+*   **Feature**: Implemented consistent button injection mechanism aligned with Zhihu platform, including configuration checks, cleanup functions, and orphaned button removal features.
+*   **Feature**: Updated internationalization support for loading, analysis, and error status messages to ensure interface fully follows user language settings.
+*   **Feature**: Fixed useCallback import issue in Reddit overlay, optimizing component performance.
+
 ### v0.5.1 (2024-01-10) - Multi-language Support
 *   **Major Feature**: Full support for **Simplified Chinese** and **English** bilingual switching.
 *   **Feature**: AI analysis results automatically adapt to selected language.
