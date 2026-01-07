@@ -5,13 +5,14 @@ import { I18nService } from "./I18nService";
 
 export class CommentAnalysisService {
   
-  static async analyzeComments(comments: CommentItem[], contextTitle: string, contextContent?: string): Promise<CommentAnalysisResult> {
+  static async analyzeComments(comments: CommentItem[], contextTitle: string, contextContent?: string, platform?: string): Promise<CommentAnalysisResult> {
     if (!comments || comments.length === 0) {
       throw new Error("没有找到可分析的评论");
     }
 
     const config = await ConfigService.getConfig();
-    const mode = config.analysisMode || 'balanced';
+    // Use platform-specific analysis mode if available and platform is specified, otherwise fallback to default
+    const mode = platform ? (config.platformAnalysisModes?.[platform] || config.analysisMode || 'balanced') : config.analysisMode || 'balanced';
     const isEn = I18nService.getLanguage() === 'en-US';
 
     // 1. 预处理评论数据，减少Token消耗

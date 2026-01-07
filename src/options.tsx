@@ -370,8 +370,24 @@ export default function Options() {
 
   const handleSave = async () => {
     if (!config) return
+    
+    // Check if language has changed
+    const oldConfig = await ConfigService.getConfig();
+    const languageChanged = oldConfig.language !== config.language;
+    
     await ConfigService.saveConfig(config)
     I18nService.setLanguage(config.language);
+    
+    // If language changed, refresh label cache to update labels in the new language
+    if (languageChanged) {
+      const labelService = LabelService.getInstance();
+      labelService.refreshCategories();
+      
+      // Also invalidate the label cache
+      const { invalidateLabelCache } = await import('~services/LabelDefinitions');
+      invalidateLabelCache();
+    }
+    
     forceUpdate();
     setStatus(I18nService.t('saved'))
     setTimeout(() => setStatus(""), 3000)
@@ -802,8 +818,8 @@ export default function Options() {
             <InputGroup 
               label={I18nService.t('analysis_mode')} 
               subLabel={
-                  config.analysisMode === 'fast' ? I18nService.t('mode_fast_desc') :
-                  config.analysisMode === 'balanced' ? I18nService.t('mode_balanced_desc') :
+                  config.platformAnalysisModes?.zhihu === 'fast' ? I18nService.t('mode_fast_desc') :
+                  config.platformAnalysisModes?.zhihu === 'balanced' ? I18nService.t('mode_balanced_desc') :
                   I18nService.t('mode_deep_desc')
               }
             >
@@ -811,20 +827,26 @@ export default function Options() {
                   {(['fast', 'balanced', 'deep'] as AnalysisMode[]).map((mode) => (
                   <button
                       key={mode}
-                      onClick={() => setConfig({ ...config, analysisMode: mode })}
+                      onClick={() => setConfig({ 
+                        ...config, 
+                        platformAnalysisModes: { 
+                          ...config.platformAnalysisModes, 
+                          zhihu: mode 
+                        }
+                      })}
                       style={{
                       flex: "1",
                       minWidth: "120px",
                       padding: "14px",
                       borderRadius: "10px",
-                      border: config.analysisMode === mode ? "2px solid #3498db" : "2px solid #e2e8f0",
-                      backgroundColor: config.analysisMode === mode ? "#e1f0fa" : "white",
-                      color: config.analysisMode === mode ? "#2980b9" : "#4a5568",
+                      border: config.platformAnalysisModes?.zhihu === mode ? "2px solid #3498db" : "2px solid #e2e8f0",
+                      backgroundColor: config.platformAnalysisModes?.zhihu === mode ? "#e1f0fa" : "white",
+                      color: config.platformAnalysisModes?.zhihu === mode ? "#2980b9" : "#4a5568",
                       cursor: "pointer",
-                      fontWeight: config.analysisMode === mode ? "700" : "600",
+                      fontWeight: config.platformAnalysisModes?.zhihu === mode ? "700" : "600",
                       fontSize: "15px",
                       transition: "all 0.2s",
-                      boxShadow: config.analysisMode === mode ? "0 4px 8px rgba(52, 152, 219, 0.15)" : "0 2px 4px rgba(0,0,0,0.05)"
+                      boxShadow: config.platformAnalysisModes?.zhihu === mode ? "0 4px 8px rgba(52, 152, 219, 0.15)" : "0 2px 4px rgba(0,0,0,0.05)"
                       }}>
                       {mode === 'fast' && I18nService.t('mode_fast')}
                       {mode === 'balanced' && I18nService.t('mode_balanced')}
@@ -867,8 +889,8 @@ export default function Options() {
             <InputGroup 
               label={I18nService.t('analysis_mode')} 
               subLabel={
-                  config.analysisMode === 'fast' ? I18nService.t('mode_fast_desc') :
-                  config.analysisMode === 'balanced' ? I18nService.t('mode_balanced_desc') :
+                  config.platformAnalysisModes?.reddit === 'fast' ? I18nService.t('mode_fast_desc') :
+                  config.platformAnalysisModes?.reddit === 'balanced' ? I18nService.t('mode_balanced_desc') :
                   I18nService.t('mode_deep_desc')
               }
             >
@@ -876,20 +898,26 @@ export default function Options() {
                   {(['fast', 'balanced', 'deep'] as AnalysisMode[]).map((mode) => (
                   <button
                       key={mode}
-                      onClick={() => setConfig({ ...config, analysisMode: mode })}
+                      onClick={() => setConfig({ 
+                        ...config, 
+                        platformAnalysisModes: { 
+                          ...config.platformAnalysisModes, 
+                          reddit: mode 
+                        }
+                      })}
                       style={{
                       flex: "1",
                       minWidth: "120px",
                       padding: "14px",
                       borderRadius: "10px",
-                      border: config.analysisMode === mode ? "2px solid #3498db" : "2px solid #e2e8f0",
-                      backgroundColor: config.analysisMode === mode ? "#e1f0fa" : "white",
-                      color: config.analysisMode === mode ? "#2980b9" : "#4a5568",
+                      border: config.platformAnalysisModes?.reddit === mode ? "2px solid #3498db" : "2px solid #e2e8f0",
+                      backgroundColor: config.platformAnalysisModes?.reddit === mode ? "#e1f0fa" : "white",
+                      color: config.platformAnalysisModes?.reddit === mode ? "#2980b9" : "#4a5568",
                       cursor: "pointer",
-                      fontWeight: config.analysisMode === mode ? "700" : "600",
+                      fontWeight: config.platformAnalysisModes?.reddit === mode ? "700" : "600",
                       fontSize: "15px",
                       transition: "all 0.2s",
-                      boxShadow: config.analysisMode === mode ? "0 4px 8px rgba(52, 152, 219, 0.15)" : "0 2px 4px rgba(0,0,0,0.05)"
+                      boxShadow: config.platformAnalysisModes?.reddit === mode ? "0 4px 8px rgba(52, 152, 219, 0.15)" : "0 2px 4px rgba(0,0,0,0.05)"
                       }}>
                       {mode === 'fast' && I18nService.t('mode_fast')}
                       {mode === 'balanced' && I18nService.t('mode_balanced')}

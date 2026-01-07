@@ -33,7 +33,8 @@ export interface AppConfig {
   customModelNames: Record<string, string>; // e.g. { openai: 'gpt-4' }
   analyzeLimit: number; // Default 15
   enableDebug: boolean;
-  analysisMode: AnalysisMode;
+  analysisMode: AnalysisMode; // Default analysis mode for all platforms
+  platformAnalysisModes: Record<SupportedPlatform, AnalysisMode>; // Platform-specific analysis modes
   enabledPlatforms: Record<SupportedPlatform, boolean>;
   platformConfigs: Record<SupportedPlatform, PlatformConfig>;
 }
@@ -48,6 +49,12 @@ export const DEFAULT_CONFIG: AppConfig = {
   analyzeLimit: 15,
   enableDebug: false,
   analysisMode: 'balanced',
+  platformAnalysisModes: {
+    zhihu: 'balanced',
+    reddit: 'balanced',
+    twitter: 'balanced',
+    weibo: 'balanced'
+  },
   enabledPlatforms: {
     zhihu: true,
     reddit: true,

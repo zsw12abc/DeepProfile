@@ -15,7 +15,8 @@ export interface CategoryDefinition {
   labels: LabelDefinition[];
 }
 
-export const getLabelCategories = (): CategoryDefinition[] => {
+// Create a factory function that returns the label categories based on current language
+export const createLabelCategories = (): CategoryDefinition[] => {
   const isEn = I18nService.getLanguage() === 'en-US';
 
   return [
@@ -110,6 +111,21 @@ export const getLabelCategories = (): CategoryDefinition[] => {
     ]
   }
 ]};
+
+// Maintain backward compatibility by exporting a getter function
+let cachedLabels: CategoryDefinition[] | null = null;
+
+export const getLabelCategories = (): CategoryDefinition[] => {
+  if (!cachedLabels) {
+    cachedLabels = createLabelCategories();
+  }
+  return cachedLabels;
+};
+
+// Export a function to invalidate the cache when language changes
+export const invalidateLabelCache = () => {
+  cachedLabels = null;
+};
 
 // For backward compatibility if needed, but prefer using getLabelCategories()
 export const LABEL_CATEGORIES = getLabelCategories();
