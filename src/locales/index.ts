@@ -1,4 +1,4 @@
-﻿export type LocaleKey = 
+export type LocaleKey = 
   // General
   | 'app_name'
   | 'app_description'
@@ -76,6 +76,11 @@
   | 'category_environment'
   | 'category_entertainment'
   | 'category_lifestyle_career'
-  | 'category_general';
+  | 'category_general'
+  
+  // Context Invalidated Error
+  | 'extension_context_invalidated'
+  | 'extension_context_invalidated_title'
+  | 'extension_context_invalidated_desc';
 
 export type LocaleDict = Record<LocaleKey, string>;

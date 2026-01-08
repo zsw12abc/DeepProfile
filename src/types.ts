@@ -60,6 +60,7 @@ export interface ThemeColors {
   errorBorder: string;
   accent: string;
   primaryText: string;
+  warningText: string;
 }
 
 export interface ThemeTypography {
@@ -241,7 +242,8 @@ export const REDDIT_WHITE_THEME: ThemeConfig = {
     errorText: '#721c24',
     errorBorder: '#f5c6cb',
     accent: '#FF4500',  // Reddit橘红
-    primaryText: '#ffffff'  // 白色文字用于primary背景上
+    primaryText: '#ffffff',  // 白色文字用于primary背景上
+    warningText: '#ffffff'  // 白色文字用于warning背景上
   },
   typography: {
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
@@ -295,7 +297,8 @@ export const REDDIT_BLACK_THEME: ThemeConfig = {
     errorText: '#ffffff',
     errorBorder: '#e74c3c',
     accent: '#FF4500',  // Reddit橘红
-    primaryText: '#ffffff'  // 白色文字用于primary背景上
+    primaryText: '#ffffff',  // 白色文字用于primary背景上
+    warningText: '#ffffff'  // 白色文字用于warning背景上
   },
   typography: {
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",

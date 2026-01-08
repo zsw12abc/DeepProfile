@@ -129,5 +129,10 @@ export const zhCN: LocaleDict = {
   color_error: "错误色",
   color_accent: "强调色",
   save_changes: "保存更改",
-  cancel: "取消"
+  cancel: "取消",
+  
+  // Context Invalidated Error
+  extension_context_invalidated: "扩展上下文失效",
+  extension_context_invalidated_title: "扩展上下文失效",
+  extension_context_invalidated_desc: "扩展上下文已失效，请刷新页面重试。"
 };

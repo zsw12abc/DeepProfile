@@ -129,5 +129,10 @@ export const enUS: LocaleDict = {
   color_error: "Error Color",
   color_accent: "Accent Color",
   save_changes: "Save Changes",
-  cancel: "Cancel"
+  cancel: "Cancel",
+  
+  // Context Invalidated Error
+  extension_context_invalidated: "Extension context invalidated",
+  extension_context_invalidated_title: "Extension Context Invalidated",
+  extension_context_invalidated_desc: "Extension context has been invalidated. Please refresh the page to retry."
 };

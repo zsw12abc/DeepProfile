@@ -74,6 +74,7 @@ export class ThemeService {
     root.style.setProperty('--theme-error-border', theme.colors.errorBorder);
     root.style.setProperty('--theme-accent', theme.colors.accent);
     root.style.setProperty('--theme-primary-text', theme.colors.primaryText);
+    root.style.setProperty('--theme-warning-text', theme.colors.warningText);
     
     // 排版
     root.style.setProperty('--theme-font-family', theme.typography.fontFamily);

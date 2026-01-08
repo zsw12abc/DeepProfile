@@ -96,7 +96,7 @@ export const HistorySection: React.FC<HistorySectionProps> = ({
                     padding: "2px 6px", 
                     borderRadius: "4px", 
                     backgroundColor: userRecord.platform === 'zhihu' ? 'var(--theme-primary, #e1f0fa)' : 'var(--theme-warning, #ffedd5)',
-                    color: userRecord.platform === 'zhihu' ? 'var(--theme-primary, #2980b9)' : 'var(--theme-warning, #c05621)',
+                    color: userRecord.platform === 'zhihu' ? 'var(--theme-primary-text, #ffffff)' : 'var(--theme-warning-text, #ffffff)',
                     fontWeight: "600"
                   }}>
                     {userRecord.platform === 'zhihu' ? '知乎' : 'Reddit'}

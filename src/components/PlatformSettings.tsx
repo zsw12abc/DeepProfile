@@ -356,7 +356,7 @@ export const PlatformSpecificSettings: React.FC<PlatformSpecificSettingsProps> =
                   ? "var(--theme-primary, #e1f0fa)" 
                   : "var(--theme-surface, white)",
                 color: config.platformAnalysisModes?.[platform] === mode 
-                  ? "var(--theme-primary, #2980b9)" 
+                  ? "var(--theme-primary-text, #ffffff)" 
                   : "var(--theme-text, #4a5568)",
                 cursor: "pointer",
                 fontWeight: config.platformAnalysisModes?.[platform] === mode ? "700" : "600",
