@@ -58,22 +58,32 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({
         display: "flex", 
         alignItems: "center", 
         padding: "16px",
-        backgroundColor: config.globalEnabled ? "#f0fff4" : "#fff5f5",
-        borderRadius: "10px",
+        backgroundColor: config.globalEnabled 
+          ? "var(--theme-success, #f0fff4)" 
+          : "var(--theme-error, #fff5f5)",
+        borderRadius: "var(--theme-border-radius-medium, 10px)",
         marginBottom: "24px",
-        border: `1px solid ${config.globalEnabled ? "#c6f6d5" : "#feb2b2"}`
+        border: `1px solid ${config.globalEnabled 
+          ? "var(--theme-success, #c6f6d5)" 
+          : "var(--theme-error, #feb2b2)"}`
       }}>
         <div style={{ flex: 1 }}>
           <label htmlFor="globalEnabled" style={{ 
             fontWeight: "700", 
             cursor: "pointer", 
             fontSize: "16px",
-            color: config.globalEnabled ? "#22543d" : "#742a2a",
+            color: config.globalEnabled 
+              ? "var(--theme-text, #22543d)" 
+              : "var(--theme-text, #742a2a)",
             display: "block"
           }}>
               {config.globalEnabled ? I18nService.t('plugin_enabled') : I18nService.t('plugin_disabled')}
           </label>
-          <div style={{ fontSize: "13px", color: config.globalEnabled ? "#2f855a" : "#9b2c2c", marginTop: "4px" }}>
+          <div style={{ fontSize: "13px", 
+            color: config.globalEnabled 
+              ? "var(--theme-success, #2f855a)" 
+              : "var(--theme-error, #9b2c2c)", 
+            marginTop: "4px" }}>
             {config.globalEnabled ? I18nService.t('plugin_enabled_desc') : I18nService.t('plugin_disabled_desc')}
           </div>
         </div>
@@ -96,7 +106,9 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: config.globalEnabled ? "#48bb78" : "#ccc",
+            backgroundColor: config.globalEnabled 
+              ? "var(--theme-success, #48bb78)" 
+              : "var(--theme-border, #ccc)",
             transition: ".4s",
             borderRadius: "34px"
           }}>
@@ -107,7 +119,7 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({
               width: "24px",
               left: config.globalEnabled ? "24px" : "4px",
               bottom: "4px",
-              backgroundColor: "white",
+              backgroundColor: "var(--theme-surface, white)",
               transition: ".4s",
               borderRadius: "50%"
             }}></span>
@@ -127,18 +139,19 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({
                 style={{ 
                     padding: "14px", 
                     width: "100%", 
-                    borderRadius: "10px", 
-                    border: "2px solid #e2e8f0",
-                    backgroundColor: "#fff",
+                    borderRadius: "var(--theme-border-radius-medium, 10px)", 
+                    border: "2px solid var(--theme-border, #e2e8f0)",
+                    backgroundColor: "var(--theme-surface, #fff)",
+                    color: "var(--theme-text, #4a5568)",
                     fontSize: "15px",
                     appearance: "none",
-                    backgroundImage: "url(\"data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%234a5568%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E\")",
+                    backgroundImage: "url(\"data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22var(--theme-text, %234a5568)%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E\")",
                     backgroundRepeat: "no-repeat",
                     backgroundPosition: "right 14px top 50%",
                     backgroundSize: "12px auto"
                 }}>
                 {LANGUAGES.map((l) => (
-                <option key={l.value} value={l.value}>
+                <option key={l.value} value={l.value} style={{ backgroundColor: "var(--theme-surface, #fff)", color: "var(--theme-text, #4a5568)" }}>
                     {l.label}
                 </option>
                 ))}
@@ -156,18 +169,19 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({
                 style={{ 
                     padding: "14px", 
                     width: "100%", 
-                    borderRadius: "10px", 
-                    border: "2px solid #e2e8f0",
-                    backgroundColor: "#fff",
+                    borderRadius: "var(--theme-border-radius-medium, 10px)", 
+                    border: "2px solid var(--theme-border, #e2e8f0)",
+                    backgroundColor: "var(--theme-surface, #fff)",
+                    color: "var(--theme-text, #4a5568)",
                     fontSize: "15px",
                     appearance: "none",
-                    backgroundImage: "url(\"data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%234a5568%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E\")",
+                    backgroundImage: "url(\"data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22var(--theme-text, %234a5568)%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E\")",
                     backgroundRepeat: "no-repeat",
                     backgroundPosition: "right 14px top 50%",
                     backgroundSize: "12px auto"
                 }}>
                 {PROVIDERS.map((p) => (
-                <option key={p.value} value={p.value}>
+                <option key={p.value} value={p.value} style={{ backgroundColor: "var(--theme-surface, #fff)", color: "var(--theme-text, #4a5568)" }}>
                     {p.label}
                 </option>
                 ))}
@@ -191,10 +205,11 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({
             style={{ 
               padding: "14px", 
               width: "100%", 
-              borderRadius: "10px", 
-              border: "2px solid #e2e8f0", 
+              borderRadius: "var(--theme-border-radius-medium, 10px)", 
+              border: "2px solid var(--theme-border, #e2e8f0)", 
               fontSize: "15px",
-              backgroundColor: "#fff"
+              backgroundColor: "var(--theme-surface, #fff)",
+              color: "var(--theme-text, #4a5568)"
             }}
             placeholder={`请输入 API Key`}
         />
@@ -217,10 +232,11 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({
             style={{ 
               padding: "14px", 
               width: "100%", 
-              borderRadius: "10px", 
-              border: "2px solid #e2e8f0", 
+              borderRadius: "var(--theme-border-radius-medium, 10px)", 
+              border: "2px solid var(--theme-border, #e2e8f0)", 
               fontSize: "15px",
-              backgroundColor: "#fff"
+              backgroundColor: "var(--theme-surface, #fff)",
+              color: "var(--theme-text, #4a5568)"
             }}
             placeholder={getBaseUrlPlaceholder(config.selectedProvider)}
             />
@@ -234,7 +250,7 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({
       <div style={{ 
         marginTop: "28px", 
         paddingTop: "24px", 
-        borderTop: "1px solid #edf2f7",
+        borderTop: "1px solid var(--theme-border, #edf2f7)",
         display: "flex",
         flexDirection: "column",
         gap: "16px"
@@ -244,9 +260,11 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({
             disabled={isTesting}
             style={{
                 padding: "12px 20px",
-                backgroundColor: isTesting ? "#cbd5e0" : "#3498db",
+                backgroundColor: isTesting 
+                  ? "var(--theme-text-secondary, #cbd5e0)" 
+                  : "var(--theme-primary, #3498db)",
                 border: "none",
-                borderRadius: "10px",
+                borderRadius: "var(--theme-border-radius-medium, 10px)",
                 cursor: isTesting ? "not-allowed" : "pointer",
                 fontSize: "15px",
                 color: "white",
@@ -256,7 +274,9 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({
                 justifyContent: "center",
                 gap: "8px",
                 transition: "all 0.2s",
-                boxShadow: isTesting ? "none" : "0 4px 6px rgba(52, 152, 219, 0.3)"
+                boxShadow: isTesting 
+                  ? "none" 
+                  : "var(--theme-shadow-small, 0 4px 6px rgba(52, 152, 219, 0.3))"
             }}
           >
             {isTesting ? "⏳ Testing..." : I18nService.t('test_connection')}
@@ -266,12 +286,18 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({
               <div style={{ 
                   marginTop: "16px", 
                   padding: "16px 20px", 
-                  borderRadius: "10px", 
-                  backgroundColor: testResult.success ? "#e6ffed" : "#ffeef0",
-                  color: testResult.success ? "#22543d" : "#742a2a",
+                  borderRadius: "var(--theme-border-radius-medium, 10px)", 
+                  backgroundColor: testResult.success 
+                    ? "var(--theme-success, #e6ffed)" 
+                    : "var(--theme-error, #ffeef0)",
+                  color: testResult.success 
+                    ? "var(--theme-success, #22543d)" 
+                    : "var(--theme-error, #742a2a)",
                   fontSize: "14px",
                   lineHeight: "1.6",
-                  border: `2px solid ${testResult.success ? "#c6f6d5" : "#feb2b2"}`
+                  border: `2px solid ${testResult.success 
+                    ? "var(--theme-success, #c6f6d5)" 
+                    : "var(--theme-error, #feb2b2)"}`  // 修复引号问题
               }}>
                   <strong style={{ display: "block", marginBottom: "6px", fontSize: "15px" }}>
                     {testResult.success ? I18nService.t('connection_success') : I18nService.t('connection_failed')}
@@ -322,15 +348,23 @@ export const PlatformSpecificSettings: React.FC<PlatformSpecificSettingsProps> =
                 flex: "1",
                 minWidth: "120px",
                 padding: "14px",
-                borderRadius: "10px",
-                border: config.platformAnalysisModes?.[platform] === mode ? "2px solid #3498db" : "2px solid #e2e8f0",
-                backgroundColor: config.platformAnalysisModes?.[platform] === mode ? "#e1f0fa" : "white",
-                color: config.platformAnalysisModes?.[platform] === mode ? "#2980b9" : "#4a5568",
+                borderRadius: "var(--theme-border-radius-medium, 10px)",
+                border: config.platformAnalysisModes?.[platform] === mode 
+                  ? "2px solid var(--theme-primary, #3498db)" 
+                  : "2px solid var(--theme-border, #e2e8f0)",
+                backgroundColor: config.platformAnalysisModes?.[platform] === mode 
+                  ? "var(--theme-primary, #e1f0fa)" 
+                  : "var(--theme-surface, white)",
+                color: config.platformAnalysisModes?.[platform] === mode 
+                  ? "var(--theme-primary-text, #ffffff)" 
+                  : "var(--theme-text, #4a5568)",
                 cursor: "pointer",
                 fontWeight: config.platformAnalysisModes?.[platform] === mode ? "700" : "600",
                 fontSize: "15px",
                 transition: "all 0.2s",
-                boxShadow: config.platformAnalysisModes?.[platform] === mode ? "0 4px 8px rgba(52, 152, 219, 0.15)" : "0 2px 4px rgba(0,0,0,0.05)"
+                boxShadow: config.platformAnalysisModes?.[platform] === mode 
+                  ? "var(--theme-shadow-small, 0 4px 8px rgba(52, 152, 219, 0.15))" 
+                  : "var(--theme-shadow-small, 0 2px 4px rgba(0,0,0,0.05))"
                 }}>
                 {mode === 'fast' && I18nService.t('mode_fast')}
                 {mode === 'balanced' && I18nService.t('mode_balanced')}
@@ -350,18 +384,23 @@ export const PlatformSpecificSettings: React.FC<PlatformSpecificSettingsProps> =
             onChange={(e) =>
             setConfig({ ...config, analyzeLimit: parseInt(e.target.value) })
             }
-            style={{ width: "100%", accentColor: "#3498db", height: "8px", borderRadius: "4px", border: "none" }}
+            style={{ 
+              width: "100%", 
+              accentColor: "var(--theme-primary, #3498db)", 
+              height: "8px", 
+              borderRadius: "4px", 
+              border: "none" }}
         />
         <div style={{ 
           display: "flex", 
           justifyContent: "space-between", 
           fontSize: "13px", 
-          color: "#718096", 
+          color: "var(--theme-text-secondary, #718096)", 
           marginTop: "6px",
           position: "relative"
         }}>
             <span>5</span>
-            <span style={{ textAlign: "center", fontWeight: "600", color: "#2d3748" }}>{config.analyzeLimit || 15}</span>
+            <span style={{ textAlign: "center", fontWeight: "600", color: "var(--theme-text, #2d3748)" }}>{config.analyzeLimit || 15}</span>
             <span>50</span>
         </div>
       </InputGroup>
@@ -382,8 +421,8 @@ export const DebugSettings: React.FC<DebugSettingsProps> = ({ config, setConfig 
         display: "flex", 
         alignItems: "flex-start", 
         padding: "14px",
-        backgroundColor: "#f8fafc",
-        borderRadius: "8px"
+        backgroundColor: "var(--theme-surface, #f8fafc)",
+        borderRadius: "var(--theme-border-radius-medium, 8px)"
       }}>
         <input
             type="checkbox"
@@ -396,7 +435,7 @@ export const DebugSettings: React.FC<DebugSettingsProps> = ({ config, setConfig 
               marginRight: "12px", 
               width: "22px", 
               height: "22px", 
-              accentColor: "#3498db",
+              accentColor: "var(--theme-primary, #3498db)",
               marginTop: "2px"
             }}
         />
@@ -405,12 +444,12 @@ export const DebugSettings: React.FC<DebugSettingsProps> = ({ config, setConfig 
             fontWeight: "600", 
             cursor: "pointer", 
             fontSize: "15px",
-            color: "#2d3748",
+            color: "var(--theme-text, #2d3748)",
             display: "block"
           }}>
               {I18nService.t('debug_mode')}
           </label>
-          <div style={{ fontSize: "13px", color: "#718096", marginTop: "6px" }}>
+          <div style={{ fontSize: "13px", color: "var(--theme-text-secondary, #718096)", marginTop: "6px" }}>
             {I18nService.t('debug_mode_desc')}
           </div>
         </div>

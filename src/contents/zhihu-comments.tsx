@@ -129,22 +129,30 @@ const CommentAnalysisPanel = ({ contextTitle, containerElement, answerId }: { co
         setStatus(I18nService.t('ai_reading'));
 
         // 2. 调用 Service
-        const response = await chrome.runtime.sendMessage({
+        try {
+          const response = await chrome.runtime.sendMessage({
             type: "ANALYZE_COMMENTS",
             comments,
             contextTitle,
             contextContent, // 传递提取的内容
             answerId, // 传递 answerId 作为 fallback
             language: I18nService.getLanguage() // 传递当前语言设置
-        });
-
-        if (response.success) {
+          });
+          
+          if (response.success) {
             console.log("[DeepProfile] Received analysis result:", response.data);
             setResult(response.data);
-        } else {
+          } else {
             throw new Error(response.error);
+          }
+        } catch (e) {
+          if (e.message && (e.message.includes('Extension context invalidated') || e.message.includes('extension context invalidated'))) {
+            console.error("[DeepProfile] Extension context invalidated, please refresh the page");
+            setError(I18nService.t('extension_context_invalidated'));
+          } else {
+            throw e;
+          }
         }
-
       } catch (e) {
         console.error("[DeepProfile] Analysis failed:", e);
         setError(e.message);
@@ -157,11 +165,19 @@ const CommentAnalysisPanel = ({ contextTitle, containerElement, answerId }: { co
   }, []);
 
   if (error) {
-      return (
-          <div style={{ padding: '12px 16px', background: '#fff1f0', border: '1px solid #ffa39e', borderRadius: 4, marginBottom: 12, fontSize: 13, color: '#cf1322' }}>
-              <strong>{I18nService.t('comment_analysis_failed')}：</strong> {error}
-          </div>
-      )
+      if (error.includes('Extension context invalidated') || error === I18nService.t('extension_context_invalidated')) {
+          return (
+              <div style={{ padding: '12px 16px', background: '#fff1f0', border: '1px solid #ffa39e', borderRadius: 4, marginBottom: 12, fontSize: 13, color: '#cf1322' }}>
+                  <strong>{I18nService.t('extension_context_invalidated_title')}：</strong> {I18nService.t('extension_context_invalidated_desc')}
+              </div>
+          )
+      } else {
+          return (
+              <div style={{ padding: '12px 16px', background: '#fff1f0', border: '1px solid #ffa39e', borderRadius: 4, marginBottom: 12, fontSize: 13, color: '#cf1322' }}>
+                  <strong>{I18nService.t('comment_analysis_failed')}：</strong> {error}
+              </div>
+          )
+      }
   }
 
   if (loading) {

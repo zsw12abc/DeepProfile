@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react"
+import React from "react"
+import { useState, useEffect, useCallback } from "react"
 import { ConfigService } from "~services/ConfigService"
 import { HistoryService } from "~services/HistoryService"
 import { TopicService, type MacroCategory } from "~services/TopicService"
@@ -19,6 +21,8 @@ import { HistorySection } from "~components/HistorySection"
 import { VersionInfo } from "~components/VersionInfo"
 import { ZhihuIcon, RedditIcon, getBaseUrlPlaceholder, shouldShowBaseUrlInput } from "~components/HelperComponents"
 import { ModelSelector } from "~components/ModelSelector"
+import ThemeSettings from "~components/ThemeSettings";
+import { ThemeService } from "~services/ThemeService";
 
 // 获取版本信息
 const getVersion = (): string => {
@@ -62,11 +66,14 @@ export default function Options() {
   const forceUpdate = () => setTick(t => t + 1);
 
   useEffect(() => {
-    ConfigService.getConfig().then((c) => {
+    // 初始化主题服务
+    ThemeService.getInstance().initialize().then(() => {
+      ConfigService.getConfig().then((c) => {
         setConfig({ ...DEFAULT_CONFIG, ...c })
         I18nService.setLanguage(c.language || 'zh-CN');
         forceUpdate();
-    })
+      })
+    });
   }, [])
 
   useEffect(() => {
@@ -206,7 +213,7 @@ export default function Options() {
                     </div>
                 </div>
                 <div style="position: absolute; top: 20px; right: 20px; text-align: right;">
-                    <div style="font-size: 10px; opacity: 0.8;">Date</div>
+                    <div style="font-size: 10px; opacity: 0.8;">${I18nService.t('date_label')}</div>
                     <div style="font-size: 14px; font-weight: 600;">${dateStr}</div>
                 </div>
             </div>
@@ -236,7 +243,7 @@ export default function Options() {
                         <img src="${qrCodeUrl}" style="width: 48px; height: 48px; border-radius: 4px;" crossOrigin="anonymous" />
                         <div>
                             <div style="font-size: 12px; font-weight: 600; color: #1a1a1a;">DeepProfile</div>
-                            <div style="font-size: 10px; color: #8590a6;">AI-powered User Profile Analysis</div>
+                            <div style="font-size: 10px; color: #8590a6;">${I18nService.t('ai_profile_analysis')}</div>
                         </div>
                     </div>
                     <div style="font-size: 10px; color: #999; text-align: right;">
@@ -314,30 +321,42 @@ export default function Options() {
     }
   }, [config?.selectedProvider, config?.apiKeys, config?.customBaseUrls, fetchModels])
 
-  const handleSave = async () => {
-    if (!config) return
+  // 自动保存配置的函数
+  const autoSaveConfig = async (newConfig: any) => {
+    if (!newConfig) return;
     
-    // Check if language has changed
+    // 检查语言是否已更改
     const oldConfig = await ConfigService.getConfig();
-    const languageChanged = oldConfig.language !== config.language;
+    const languageChanged = oldConfig.language !== newConfig.language;
     
-    await ConfigService.saveConfig(config)
-    I18nService.setLanguage(config.language);
+    // 保存配置
+    await ConfigService.saveConfig(newConfig);
     
-    // If language changed, refresh label cache to update labels in the new language
+    // 如果语言已更改，更新国际化服务
     if (languageChanged) {
+      I18nService.setLanguage(newConfig.language);
+      
+      // 如果语言已更改，刷新标签缓存以更新新语言的标签
       const labelService = LabelService.getInstance();
       labelService.refreshCategories();
       
-      // Also invalidate the label cache
+      // 同样使标签缓存无效
       const { invalidateLabelCache } = await import('~services/LabelDefinitions');
       invalidateLabelCache();
+      
+      forceUpdate();
     }
+  };
+
+  // 处理配置更改的函数
+  const handleConfigChange = async (newConfig: any) => {
+    setConfig(newConfig);
+    await autoSaveConfig(newConfig);
     
-    forceUpdate();
-    setStatus(I18nService.t('saved'))
-    setTimeout(() => setStatus(""), 3000)
-  }
+    // 显示短暂的保存状态
+    setStatus(I18nService.t('saved'));
+    setTimeout(() => setStatus(""), 1500);
+  };
 
   const handleTestConnection = async () => {
     if (!config) return
@@ -374,12 +393,12 @@ export default function Options() {
     padding: "40px", 
     textAlign: "center", 
     color: "#a0aec0",
-    backgroundColor: "#f9fafb",
+    backgroundColor: "var(--theme-background, #f9fafb)",
     minHeight: "100vh",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
+    fontFamily: "var(--theme-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif)"
   }}>
     <div style={{
       display: "flex",
@@ -389,8 +408,8 @@ export default function Options() {
       <div style={{
         width: "48px",
         height: "48px",
-        border: "3px solid #e2e8f0",
-        borderTopColor: "#3498db",
+        border: "3px solid var(--theme-border, #e2e8f0)",
+        borderTopColor: "var(--theme-primary, #3498db)",
         borderRadius: "50%",
         animation: "spin 1s linear infinite",
         marginBottom: "20px"
@@ -412,7 +431,7 @@ export default function Options() {
       models={models}
       modelError={modelError}
       config={config}
-      setConfig={setConfig}
+      setConfig={handleConfigChange}
     />;
   }
 
@@ -427,23 +446,29 @@ export default function Options() {
     { id: 'version', name: I18nService.t('version_info'), icon: <span style={{ fontSize: "24px" }}>ℹ️</span> },
   ];
 
-  const renderPlatformSettings = (platformId: PlatformId) => {
-    switch (platformId) {
-      case 'general':
+  const renderPlatformSettings = (platform: string) => {
+    switch (platform) {
+      case "general":
         return (
-          <GeneralSettings 
-            config={config} 
-            setConfig={setConfig} 
-            isTesting={isTesting}
-            testResult={testResult}
-            handleTestConnection={handleTestConnection}
-            renderModelSelector={renderModelSelector}
-          />
+          <div>
+            <GeneralSettings 
+              config={config} 
+              setConfig={setConfig} 
+              isTesting={isTesting}
+              testResult={testResult}
+              handleTestConnection={handleTestConnection}
+              renderModelSelector={renderModelSelector}
+            />
+            <ThemeSettings 
+              config={config} 
+              setConfig={handleConfigChange} 
+            />
+          </div>
         );
       case 'zhihu':
         return <PlatformSpecificSettings config={config} setConfig={setConfig} platform="zhihu" />;
       case 'reddit':
-        return <PlatformSpecificSettings config={config} setConfig={setConfig} platform="reddit" />;
+        return <PlatformSpecificSettings config={config} setConfig={handleConfigChange} platform="reddit" />;
       case 'history':
         return (
           <HistorySection 
@@ -458,7 +483,7 @@ export default function Options() {
           />
         );
       case 'debug':
-        return <DebugSettings config={config} setConfig={setConfig} />;
+        return <DebugSettings config={config} setConfig={handleConfigChange} />;
       case 'version':
         return <VersionInfo changelog={changelog} />;
       default:
@@ -470,9 +495,9 @@ export default function Options() {
     <div style={{ 
         minHeight: "100vh",
         padding: "30px 20px", 
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-        backgroundColor: "#f9fafb",
-        color: "#4a5568",
+        fontFamily: "var(--theme-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif)",
+        backgroundColor: "var(--theme-background, #f9fafb)",
+        color: "var(--theme-text, #4a5568)",
         display: "flex",
         flexDirection: "column"
     }}>
@@ -485,7 +510,7 @@ export default function Options() {
             <div style={{
               width: "70px",
               height: "70px",
-              backgroundColor: "#3498db",
+              backgroundColor: "var(--theme-primary, #3498db)",
               borderRadius: "18px",
               display: "flex",
               alignItems: "center",
@@ -498,12 +523,12 @@ export default function Options() {
             <h1 style={{ 
               fontSize: "32px", 
               fontWeight: "800", 
-              color: "#1a202c", 
+              color: "var(--theme-text, #1a202c)", 
               marginBottom: "8px",
               letterSpacing: "-0.5px"
             }}>DeepProfile</h1>
             <p style={{ 
-              color: "#718096", 
+              color: "var(--theme-text-secondary, #718096)", 
               fontSize: "18px",
               maxWidth: "500px",
               margin: "0 auto",
@@ -520,20 +545,20 @@ export default function Options() {
           {/* 左侧平台导航栏 */}
           <div style={{
             minWidth: "240px",
-            backgroundColor: "white",
-            borderRadius: "16px",
+            backgroundColor: "var(--theme-surface, white)",
+            borderRadius: "var(--theme-border-radius-large, 16px)",
             padding: "20px",
-            boxShadow: "0 10px 30px rgba(0,0,0,0.05)",
-            border: "1px solid #f0f0f0",
+            boxShadow: "var(--theme-shadow-medium, 0 10px 30px rgba(0,0,0,0.05))",
+            border: "1px solid var(--theme-border, #f0f0f0)",
             height: "fit-content"
           }}>
             <h3 style={{
               margin: "0 0 20px 0",
               padding: "0 0 12px 0",
-              borderBottom: "1px solid #edf2f7",
-              fontSize: "16px",
+              borderBottom: `1px solid var(--theme-border, #edf2f7)`,
+              fontSize: "var(--theme-font-size-medium, 16px)",
               fontWeight: "600",
-              color: "#4a5568"
+              color: "var(--theme-text, #4a5568)"
             }}>
               {I18nService.t('settings')}
             </h3>
@@ -553,24 +578,24 @@ export default function Options() {
                         gap: "10px",
                         width: "100%",
                         padding: "14px 16px",
-                        borderRadius: "10px",
+                        borderRadius: "var(--theme-border-radius-medium, 10px)",
                         border: "none",
                         backgroundColor: activePlatform === platform.id 
-                          ? "#e1f0fa" 
+                          ? "var(--theme-primary, #e1f0fa)" 
                           : "transparent",
                         color: activePlatform === platform.id 
-                          ? "#2980b9" 
-                          : "#4a5568",
+                          ? "var(--theme-primary-text, #ffffff)" 
+                          : "var(--theme-text, #4a5568)",
                         fontWeight: activePlatform === platform.id 
                           ? "700" 
                           : "500",
-                        fontSize: "15px",
+                        fontSize: "var(--theme-font-size-medium, 15px)",
                         textAlign: "left",
                         cursor: "pointer",
                         transition: "all 0.2s",
                         ...(activePlatform === platform.id 
                           ? { 
-                              boxShadow: "0 4px 8px rgba(52, 152, 219, 0.15)",
+                              boxShadow: "var(--theme-shadow-small, 0 4px 8px rgba(52, 152, 219, 0.15))",
                               transform: "translateX(4px)"
                             } 
                           : {})
@@ -589,36 +614,7 @@ export default function Options() {
           <div style={{ flex: 1 }}>
             {renderPlatformSettings(activePlatform)}
             
-            <div style={{ 
-              position: "sticky", 
-              bottom: "30px", 
-              zIndex: 100,
-              marginTop: "20px"
-            }}>
-                <button
-                    onClick={handleSave}
-                    style={{
-                    padding: "18px",
-                    backgroundColor: "#3498db",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "14px",
-                    cursor: "pointer",
-                    fontSize: "17px",
-                    fontWeight: "700",
-                    width: "100%",
-                    boxShadow: "0 6px 16px rgba(52, 152, 219, 0.4)",
-                    transition: "all 0.2s",
-                    position: "relative",
-                    overflow: "hidden"
-                    }}
-                    onMouseDown={(e) => e.currentTarget.style.transform = "scale(0.98)"}
-                    onMouseUp={(e) => e.currentTarget.style.transform = "scale(1)"}
-                    onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
-                >
-                    {I18nService.t('save')}
-                </button>
-            </div>
+
           </div>
         </div>
 
@@ -628,13 +624,13 @@ export default function Options() {
                 bottom: "90px", 
                 left: "50%", 
                 transform: "translateX(-50%)",
-                backgroundColor: "#2d3748",
-                color: "white",
+                backgroundColor: "var(--theme-surface, #2d3748)",
+                color: "var(--theme-text, white)",
                 padding: "14px 28px",
                 borderRadius: "30px",
-                boxShadow: "0 6px 20px rgba(0,0,0,0.15)",
+                boxShadow: "var(--theme-shadow-medium, 0 6px 20px rgba(0,0,0,0.15))",
                 fontWeight: "600",
-                fontSize: "15px",
+                fontSize: "var(--theme-font-size-medium, 15px)",
                 animation: "slideIn 0.4s ease-out forwards, fadeOut 0.5s ease-out 2.5s forwards",
                 zIndex: 1000
             }}>

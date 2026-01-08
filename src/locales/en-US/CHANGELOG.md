@@ -1,8 +1,13 @@
 # DeepProfile Development Progress and Changelog
 
-## Current Version: v0.5.1 (Beta)
+## Current Version: v0.6.1 (Beta)
 
 ### ✅ Features Achieved
+
+### Core Feature (v0.6.1) - Real-time Settings Save
+- ✅ **Real-time Save**: All settings changes (language, API keys, analysis modes, etc.) are **immediately saved automatically**, no save button required.
+- ✅ **Instant Application**: Configuration changes take effect immediately in the extension functionality, no restart or refresh needed.
+- ✅ **UX Optimization**: Removed manual save button, simplifying the settings workflow for a smoother user experience.
 
 ### Core Feature (v0.5.1) - Multi-language Support (i18n)
 - ✅ **Internationalization Architecture**: Introduced a lightweight `I18nService` for dynamic language switching.
@@ -107,6 +112,12 @@
 
 ## Version History
 
+### v0.6.1 (2024-01-09) - Real-time Settings Save
+*   **Feature**: Implemented **real-time settings save functionality** on the settings page, all configuration changes are immediately saved to storage automatically.
+*   **Feature**: Removed manual save button, simplifying the settings interface.
+*   **Feature**: Configuration changes take effect immediately without restart or refresh.
+*   **UX**: Improved user experience with a smoother settings workflow.
+
 ### v0.6.0 (2024-01-08) - Reddit Platform Multilingual Support Enhancement
 *   **Feature**: Fixed [I18nService](file:///E:/Repo/DeepProfile/DeepProfile/src/services/I18nService.ts#L10-L13) initialization issue on Reddit platform to ensure multilingual functionality works properly.
 *   **Feature**: Refactored button injection logic on Reddit platform to align with Zhihu platform, resolving the disappearing button issue.
@@ -172,5 +183,5 @@
 
 ## 📅 Roadmap
 
-- [ ] **v0.6.2 Theme Feature**: Implement customizable overlay styling, allowing users to customize appearance themes including color schemes, fonts, sizes, etc.
+- ✅ **v0.6.2 Theme Feature**: Implement customizable overlay styling, allowing users to customize appearance themes including color schemes, fonts, sizes, etc. (Completed)
 - [ ] **More Platforms**: Explore support for Reddit, Bilibili, Weibo, and other platforms.

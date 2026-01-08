@@ -39,7 +39,304 @@ export interface AppConfig {
   platformConfigs: Record<SupportedPlatform, PlatformConfig>;
 }
 
-export const DEFAULT_CONFIG: AppConfig = {
+// --- Theme Configuration Types ---
+
+export interface ThemeColors {
+  primary: string;
+  secondary: string;
+  background: string;
+  surface: string;
+  text: string;
+  textSecondary: string;
+  border: string;
+  success: string;
+  successBg: string;
+  successText: string;
+  successBorder: string;
+  warning: string;
+  error: string;
+  errorBg: string;
+  errorText: string;
+  errorBorder: string;
+  accent: string;
+  primaryText: string;
+  warningText: string;
+}
+
+export interface ThemeTypography {
+  fontFamily: string;
+  fontSizeBase: string;
+  fontSizeSmall: string;
+  fontSizeMedium: string;
+  fontSizeLarge: string;
+  fontWeightNormal: number;
+  fontWeightBold: number;
+  lineHeight: number;
+}
+
+export interface ThemeSpacing {
+  xs: string;
+  sm: string;
+  md: string;
+  lg: string;
+  xl: string;
+  xxl: string;
+}
+
+export interface ThemeBorderRadius {
+  small: string;
+  medium: string;
+  large: string;
+}
+
+export interface ThemeShadows {
+  small: string;
+  medium: string;
+  large: string;
+}
+
+export interface ThemeConfig {
+  id: string;
+  name: string;
+  description: string;
+  colors: ThemeColors;
+  typography: ThemeTypography;
+  spacing: ThemeSpacing;
+  borderRadius: ThemeBorderRadius;
+  shadows: ThemeShadows;
+  platformOverrides?: Partial<Record<SupportedPlatform, Partial<ThemeConfig>>>;
+}
+
+export interface ExtendedAppConfig extends AppConfig {
+  themeId: string;
+  themes: Record<string, ThemeConfig>;
+}
+
+export const ZHIHU_WHITE_THEME: ThemeConfig = {
+  id: 'zhihu-white',
+  name: 'Zhihu White Theme',
+  description: 'Zhihu-inspired light theme with blue accents',
+  colors: {
+    primary: '#0084ff',  // 知乎蓝
+    secondary: '#3498db',
+    background: '#f9fafb',
+    surface: '#ffffff',
+    text: '#333333',
+    textSecondary: '#666666',
+    border: '#e0e0e0',
+    success: '#27ae60',
+    successBg: '#d4edda',
+    successText: '#155724',
+    successBorder: '#c3e6cb',
+    warning: '#f39c12',
+    error: '#e74c3c',
+    errorBg: '#f8d7da',
+    errorText: '#721c24',
+    errorBorder: '#f5c6cb',
+    accent: '#0084ff',  // 知乎蓝
+    primaryText: '#ffffff'  // 白色文字用于primary背景上
+  },
+  typography: {
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    fontSizeBase: '14px',
+    fontSizeSmall: '12px',
+    fontSizeMedium: '16px',
+    fontSizeLarge: '18px',
+    fontWeightNormal: 400,
+    fontWeightBold: 600,
+    lineHeight: 1.5
+  },
+  spacing: {
+    xs: '4px',
+    sm: '8px',
+    md: '16px',
+    lg: '24px',
+    xl: '32px',
+    xxl: '48px'
+  },
+  borderRadius: {
+    small: '4px',
+    medium: '8px',
+    large: '12px'
+  },
+  shadows: {
+    small: '0 2px 4px rgba(0,0,0,0.05)',
+    medium: '0 4px 12px rgba(0,0,0,0.1)',
+    large: '0 8px 24px rgba(0,0,0,0.15)'
+  }
+};
+
+export const ZHIHU_BLACK_THEME: ThemeConfig = {
+  id: 'zhihu-black',
+  name: 'Zhihu Dark Theme',
+  description: 'Zhihu-inspired dark theme with blue accents',
+  colors: {
+    primary: '#0084ff',  // 知乎蓝
+    secondary: '#3498db',
+    background: '#121212',
+    surface: '#1e1e1e',
+    text: '#ffffff',
+    textSecondary: '#d0d0d0',
+    border: '#444444',
+    success: '#27ae60',
+    successBg: '#27ae60',
+    successText: '#ffffff',
+    successBorder: '#27ae60',
+    warning: '#f39c12',
+    error: '#e74c3c',
+    errorBg: '#e74c3c',
+    errorText: '#ffffff',
+    errorBorder: '#e74c3c',
+    accent: '#0084ff',  // 知乎蓝
+    primaryText: '#ffffff'  // 白色文字用于primary背景上
+  },
+  typography: {
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    fontSizeBase: '14px',
+    fontSizeSmall: '12px',
+    fontSizeMedium: '16px',
+    fontSizeLarge: '18px',
+    fontWeightNormal: 400,
+    fontWeightBold: 600,
+    lineHeight: 1.5
+  },
+  spacing: {
+    xs: '4px',
+    sm: '8px',
+    md: '16px',
+    lg: '24px',
+    xl: '32px',
+    xxl: '48px'
+  },
+  borderRadius: {
+    small: '4px',
+    medium: '8px',
+    large: '12px'
+  },
+  shadows: {
+    small: '0 2px 4px rgba(0,0,0,0.3)',
+    medium: '0 4px 12px rgba(0,0,0,0.4)',
+    large: '0 8px 24px rgba(0,0,0,0.5)'
+  }
+};
+
+export const REDDIT_WHITE_THEME: ThemeConfig = {
+  id: 'reddit-white',
+  name: 'Reddit White Theme',
+  description: 'Reddit-inspired light theme with orangered and periwinkle accents',
+  colors: {
+    primary: '#FF4500',  // Reddit橘红 (Orangered)
+    secondary: '#9494FF',  // 长春花蓝 (Periwinkle)
+    background: '#dae0e6',  // Reddit背景色
+    surface: '#ffffff',
+    text: '#1c1c1c',  // Reddit深灰色文本
+    textSecondary: '#6a6a6a',
+    border: '#ccc',
+    success: '#27ae60',
+    successBg: '#d4edda',
+    successText: '#155724',
+    successBorder: '#c3e6cb',
+    warning: '#f39c12',
+    error: '#e74c3c',
+    errorBg: '#f8d7da',
+    errorText: '#721c24',
+    errorBorder: '#f5c6cb',
+    accent: '#FF4500',  // Reddit橘红
+    primaryText: '#ffffff',  // 白色文字用于primary背景上
+    warningText: '#ffffff'  // 白色文字用于warning背景上
+  },
+  typography: {
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    fontSizeBase: '14px',
+    fontSizeSmall: '12px',
+    fontSizeMedium: '16px',
+    fontSizeLarge: '18px',
+    fontWeightNormal: 400,
+    fontWeightBold: 600,
+    lineHeight: 1.5
+  },
+  spacing: {
+    xs: '4px',
+    sm: '8px',
+    md: '16px',
+    lg: '24px',
+    xl: '32px',
+    xxl: '48px'
+  },
+  borderRadius: {
+    small: '4px',
+    medium: '8px',
+    large: '12px'
+  },
+  shadows: {
+    small: '0 2px 4px rgba(0,0,0,0.05)',
+    medium: '0 4px 12px rgba(0,0,0,0.1)',
+    large: '0 8px 24px rgba(0,0,0,0.15)'
+  }
+};
+
+export const REDDIT_BLACK_THEME: ThemeConfig = {
+  id: 'reddit-black',
+  name: 'Reddit Dark Theme',
+  description: 'Reddit-inspired dark theme with orangered and periwinkle accents',
+  colors: {
+    primary: '#FF4500',  // Reddit橘红 (Orangered)
+    secondary: '#9494FF',  // 长春花蓝 (Periwinkle)
+    background: '#1a1a1b',  // Reddit暗色背景
+    surface: '#272729',
+    text: '#ffffff',  // 白色文本
+    textSecondary: '#d0d0d0',
+    border: '#474a4e',
+    success: '#27ae60',
+    successBg: '#27ae60',
+    successText: '#ffffff',
+    successBorder: '#27ae60',
+    warning: '#f39c12',
+    error: '#e74c3c',
+    errorBg: '#e74c3c',
+    errorText: '#ffffff',
+    errorBorder: '#e74c3c',
+    accent: '#FF4500',  // Reddit橘红
+    primaryText: '#ffffff',  // 白色文字用于primary背景上
+    warningText: '#ffffff'  // 白色文字用于warning背景上
+  },
+  typography: {
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    fontSizeBase: '14px',
+    fontSizeSmall: '12px',
+    fontSizeMedium: '16px',
+    fontSizeLarge: '18px',
+    fontWeightNormal: 400,
+    fontWeightBold: 600,
+    lineHeight: 1.5
+  },
+  spacing: {
+    xs: '4px',
+    sm: '8px',
+    md: '16px',
+    lg: '24px',
+    xl: '32px',
+    xxl: '48px'
+  },
+  borderRadius: {
+    small: '4px',
+    medium: '8px',
+    large: '12px'
+  },
+  shadows: {
+    small: '0 2px 4px rgba(0,0,0,0.3)',
+    medium: '0 4px 12px rgba(0,0,0,0.4)',
+    large: '0 8px 24px rgba(0,0,0,0.5)'
+  }
+};
+
+
+
+
+
+
+
+export const DEFAULT_CONFIG: ExtendedAppConfig = {
   globalEnabled: true,
   language: 'zh-CN',
   selectedProvider: 'openai',
@@ -82,6 +379,13 @@ export const DEFAULT_CONFIG: AppConfig = {
       baseUrl: 'https://weibo.com',
       apiEndpoint: 'https://api.weibo.com'
     }
+  },
+  themeId: 'zhihu-white',
+  themes: {
+    'zhihu-white': ZHIHU_WHITE_THEME,
+    'zhihu-black': ZHIHU_BLACK_THEME,
+    'reddit-white': REDDIT_WHITE_THEME,
+    'reddit-black': REDDIT_BLACK_THEME
   }
 };
 

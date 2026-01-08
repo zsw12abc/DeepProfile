@@ -11,7 +11,7 @@ export const getVersion = (): string => {
     const manifest = chrome.runtime.getManifest();
     return manifest.version;
   } catch (e) {
-    return "0.6.1"; // Fallback
+    return "0.6.2"; // Fallback
   }
 };
 
@@ -32,41 +32,43 @@ export const VersionInfo: React.FC<VersionInfoProps> = ({ changelog }) => {
   return (
     <Card title={I18nService.t('version_info')} icon={<span style={{ fontSize: "24px" }}>ℹ️</span>}>
       <div style={{ marginBottom: "20px" }}>
-        <div style={{ fontSize: "16px", fontWeight: "600", color: "#2d3748", marginBottom: "8px" }}>
+        <div style={{ fontSize: "16px", fontWeight: "600", color: "var(--theme-text, #2d3748)", marginBottom: "8px" }}>
           {I18nService.t('current_version')}: 
-          <span style={{ color: "#3498db", marginLeft: "8px" }}>{`v${getVersion()}`}</span>
+          <span style={{ color: "var(--theme-primary, #3498db)", marginLeft: "8px" }}>{`v${getVersion()}`}</span>
         </div>
       </div>
       
       <div style={{ marginBottom: "20px" }}>
-        <h4 style={{ margin: "0 0 12px 0", fontSize: "16px", fontWeight: "600", color: "#2d3748" }}>
+        <h4 style={{ margin: "0 0 12px 0", fontSize: "16px", fontWeight: "600", color: "var(--theme-text, #2d3748)" }}>
           {I18nService.t('changelog')}
         </h4>
         <div style={{ 
           maxHeight: "400px", 
           overflowY: "auto", 
           padding: "16px", 
-          backgroundColor: "#f8fafc", 
+          backgroundColor: "var(--theme-surface, #f8fafc)", 
           borderRadius: "8px", 
-          border: "1px solid #e2e8f0",
-          lineHeight: "1.6"
+          border: "1px solid var(--theme-border, #e2e8f0)",
+          lineHeight: "1.6",
+          color: "var(--theme-text, #4a5568)"
         }}>
           <MarkdownRenderer content={changelog} />
         </div>
       </div>
       
       <div>
-        <h4 style={{ margin: "0 0 12px 0", fontSize: "16px", fontWeight: "600", color: "#2d3748" }}>
+        <h4 style={{ margin: "0 0 12px 0", fontSize: "16px", fontWeight: "600", color: "var(--theme-text, #2d3748)" }}>
           {I18nService.t('version_history')}
         </h4>
         <div style={{ 
           maxHeight: "300px", 
           overflowY: "auto", 
           padding: "16px", 
-          backgroundColor: "#f8fafc", 
+          backgroundColor: "var(--theme-surface, #f8fafc)", 
           borderRadius: "8px", 
-          border: "1px solid #e2e8f0",
-          lineHeight: "1.6"
+          border: "1px solid var(--theme-border, #e2e8f0)",
+          lineHeight: "1.6",
+          color: "var(--theme-text, #4a5568)"
         }}>
           <MarkdownRenderer content={changelog} />
         </div>
