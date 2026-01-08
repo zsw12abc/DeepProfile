@@ -40,9 +40,68 @@ export class ThemeService {
       
       // 保存主题ID到配置
       await this.updateConfig({ ...config, themeId });
+      
+      // 应用主题到整个页面
+      this.applyThemeToPage(this.currentTheme);
     } catch (error) {
       console.error("Failed to apply theme:", error);
     }
+  }
+
+  /**
+   * 应用主题样式到整个页面
+   */
+  private applyThemeToPage(theme: ThemeConfig): void {
+    // 创建或更新CSS变量
+    const root = document.documentElement;
+    
+    // 主题颜色
+    root.style.setProperty('--theme-primary', theme.colors.primary);
+    root.style.setProperty('--theme-secondary', theme.colors.secondary);
+    root.style.setProperty('--theme-background', theme.colors.background);
+    root.style.setProperty('--theme-surface', theme.colors.surface);
+    root.style.setProperty('--theme-text', theme.colors.text);
+    root.style.setProperty('--theme-text-secondary', theme.colors.textSecondary);
+    root.style.setProperty('--theme-border', theme.colors.border);
+    root.style.setProperty('--theme-success', theme.colors.success);
+    root.style.setProperty('--theme-success-bg', theme.colors.successBg);
+    root.style.setProperty('--theme-success-text', theme.colors.successText);
+    root.style.setProperty('--theme-success-border', theme.colors.successBorder);
+    root.style.setProperty('--theme-warning', theme.colors.warning);
+    root.style.setProperty('--theme-error', theme.colors.error);
+    root.style.setProperty('--theme-error-bg', theme.colors.errorBg);
+    root.style.setProperty('--theme-error-text', theme.colors.errorText);
+    root.style.setProperty('--theme-error-border', theme.colors.errorBorder);
+    root.style.setProperty('--theme-accent', theme.colors.accent);
+    root.style.setProperty('--theme-primary-text', theme.colors.primaryText);
+    
+    // 排版
+    root.style.setProperty('--theme-font-family', theme.typography.fontFamily);
+    root.style.setProperty('--theme-font-size-base', theme.typography.fontSizeBase);
+    root.style.setProperty('--theme-font-size-small', theme.typography.fontSizeSmall);
+    root.style.setProperty('--theme-font-size-medium', theme.typography.fontSizeMedium);
+    root.style.setProperty('--theme-font-size-large', theme.typography.fontSizeLarge);
+    root.style.setProperty('--theme-font-weight-normal', theme.typography.fontWeightNormal.toString());
+    root.style.setProperty('--theme-font-weight-bold', theme.typography.fontWeightBold.toString());
+    root.style.setProperty('--theme-line-height', theme.typography.lineHeight.toString());
+    
+    // 间距
+    root.style.setProperty('--theme-spacing-xs', theme.spacing.xs);
+    root.style.setProperty('--theme-spacing-sm', theme.spacing.sm);
+    root.style.setProperty('--theme-spacing-md', theme.spacing.md);
+    root.style.setProperty('--theme-spacing-lg', theme.spacing.lg);
+    root.style.setProperty('--theme-spacing-xl', theme.spacing.xl);
+    root.style.setProperty('--theme-spacing-xxl', theme.spacing.xxl);
+    
+    // 圆角
+    root.style.setProperty('--theme-border-radius-small', theme.borderRadius.small);
+    root.style.setProperty('--theme-border-radius-medium', theme.borderRadius.medium);
+    root.style.setProperty('--theme-border-radius-large', theme.borderRadius.large);
+    
+    // 阴影
+    root.style.setProperty('--theme-shadow-small', theme.shadows.small);
+    root.style.setProperty('--theme-shadow-medium', theme.shadows.medium);
+    root.style.setProperty('--theme-shadow-large', theme.shadows.large);
   }
 
   /**
@@ -95,6 +154,7 @@ export class ThemeService {
     // 如果这是当前主题，则应用它
     if (config.themeId === theme.id) {
       this.currentTheme = theme;
+      this.applyThemeToPage(theme);
     }
   }
 
@@ -115,6 +175,7 @@ export class ThemeService {
     if (config.themeId === themeId) {
       newThemeId = 'zhihu-white';
       this.currentTheme = config.themes['zhihu-white'] || DEFAULT_CONFIG.themes['zhihu-white'] || Object.values(DEFAULT_CONFIG.themes)[0];
+      this.applyThemeToPage(this.currentTheme);
     }
 
     await this.updateConfig({ ...config, themes: updatedThemes, themeId: newThemeId });
@@ -150,9 +211,13 @@ export class ThemeService {
         // 同时更新配置
         await this.updateConfig({ ...updatedConfig, themeId: 'zhihu-white' });
       }
+      
+      // 应用当前主题到页面
+      this.applyThemeToPage(this.currentTheme);
     } catch (error) {
       console.error("Failed to initialize theme:", error);
       this.currentTheme = DEFAULT_CONFIG.themes['zhihu-white'] || Object.values(DEFAULT_CONFIG.themes)[0];
+      this.applyThemeToPage(this.currentTheme);
     }
   }
 

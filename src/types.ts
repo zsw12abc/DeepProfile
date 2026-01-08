@@ -50,9 +50,16 @@ export interface ThemeColors {
   textSecondary: string;
   border: string;
   success: string;
+  successBg: string;
+  successText: string;
+  successBorder: string;
   warning: string;
   error: string;
+  errorBg: string;
+  errorText: string;
+  errorBorder: string;
   accent: string;
+  primaryText: string;
 }
 
 export interface ThemeTypography {
@@ -117,9 +124,16 @@ export const ZHIHU_WHITE_THEME: ThemeConfig = {
     textSecondary: '#666666',
     border: '#e0e0e0',
     success: '#27ae60',
+    successBg: '#d4edda',
+    successText: '#155724',
+    successBorder: '#c3e6cb',
     warning: '#f39c12',
     error: '#e74c3c',
-    accent: '#0084ff'  // 知乎蓝
+    errorBg: '#f8d7da',
+    errorText: '#721c24',
+    errorBorder: '#f5c6cb',
+    accent: '#0084ff',  // 知乎蓝
+    primaryText: '#ffffff'  // 白色文字用于primary背景上
   },
   typography: {
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
@@ -160,13 +174,20 @@ export const ZHIHU_BLACK_THEME: ThemeConfig = {
     secondary: '#3498db',
     background: '#121212',
     surface: '#1e1e1e',
-    text: '#e0e0e0',
-    textSecondary: '#aaaaaa',
+    text: '#ffffff',
+    textSecondary: '#d0d0d0',
     border: '#444444',
     success: '#27ae60',
+    successBg: '#27ae60',
+    successText: '#ffffff',
+    successBorder: '#27ae60',
     warning: '#f39c12',
     error: '#e74c3c',
-    accent: '#0084ff'  // 知乎蓝
+    errorBg: '#e74c3c',
+    errorText: '#ffffff',
+    errorBorder: '#e74c3c',
+    accent: '#0084ff',  // 知乎蓝
+    primaryText: '#ffffff'  // 白色文字用于primary背景上
   },
   typography: {
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
@@ -211,9 +232,16 @@ export const REDDIT_WHITE_THEME: ThemeConfig = {
     textSecondary: '#6a6a6a',
     border: '#ccc',
     success: '#27ae60',
+    successBg: '#d4edda',
+    successText: '#155724',
+    successBorder: '#c3e6cb',
     warning: '#f39c12',
     error: '#e74c3c',
-    accent: '#FF4500'  // Reddit橘红
+    errorBg: '#f8d7da',
+    errorText: '#721c24',
+    errorBorder: '#f5c6cb',
+    accent: '#FF4500',  // Reddit橘红
+    primaryText: '#ffffff'  // 白色文字用于primary背景上
   },
   typography: {
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
@@ -254,13 +282,20 @@ export const REDDIT_BLACK_THEME: ThemeConfig = {
     secondary: '#9494FF',  // 长春花蓝 (Periwinkle)
     background: '#1a1a1b',  // Reddit暗色背景
     surface: '#272729',
-    text: '#d7dadc',  // Reddit暗色文本
-    textSecondary: '#a8aab4',
+    text: '#ffffff',  // 白色文本
+    textSecondary: '#d0d0d0',
     border: '#474a4e',
     success: '#27ae60',
+    successBg: '#27ae60',
+    successText: '#ffffff',
+    successBorder: '#27ae60',
     warning: '#f39c12',
     error: '#e74c3c',
-    accent: '#FF4500'  // Reddit橘红
+    errorBg: '#e74c3c',
+    errorText: '#ffffff',
+    errorBorder: '#e74c3c',
+    accent: '#FF4500',  // Reddit橘红
+    primaryText: '#ffffff'  // 白色文字用于primary背景上
   },
   typography: {
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",

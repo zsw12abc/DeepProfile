@@ -20,6 +20,7 @@ import { VersionInfo } from "~components/VersionInfo"
 import { ZhihuIcon, RedditIcon, getBaseUrlPlaceholder, shouldShowBaseUrlInput } from "~components/HelperComponents"
 import { ModelSelector } from "~components/ModelSelector"
 import ThemeSettings from "~components/ThemeSettings";
+import { ThemeService } from "~services/ThemeService";
 
 // 获取版本信息
 const getVersion = (): string => {
@@ -63,11 +64,14 @@ export default function Options() {
   const forceUpdate = () => setTick(t => t + 1);
 
   useEffect(() => {
-    ConfigService.getConfig().then((c) => {
+    // 初始化主题服务
+    ThemeService.getInstance().initialize().then(() => {
+      ConfigService.getConfig().then((c) => {
         setConfig({ ...DEFAULT_CONFIG, ...c })
         I18nService.setLanguage(c.language || 'zh-CN');
         forceUpdate();
-    })
+      })
+    });
   }, [])
 
   useEffect(() => {
@@ -375,12 +379,12 @@ export default function Options() {
     padding: "40px", 
     textAlign: "center", 
     color: "#a0aec0",
-    backgroundColor: "#f9fafb",
+    backgroundColor: "var(--theme-background, #f9fafb)",
     minHeight: "100vh",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
+    fontFamily: "var(--theme-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif)"
   }}>
     <div style={{
       display: "flex",
@@ -390,8 +394,8 @@ export default function Options() {
       <div style={{
         width: "48px",
         height: "48px",
-        border: "3px solid #e2e8f0",
-        borderTopColor: "#3498db",
+        border: "3px solid var(--theme-border, #e2e8f0)",
+        borderTopColor: "var(--theme-primary, #3498db)",
         borderRadius: "50%",
         animation: "spin 1s linear infinite",
         marginBottom: "20px"
@@ -477,9 +481,9 @@ export default function Options() {
     <div style={{ 
         minHeight: "100vh",
         padding: "30px 20px", 
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-        backgroundColor: "#f9fafb",
-        color: "#4a5568",
+        fontFamily: "var(--theme-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif)",
+        backgroundColor: "var(--theme-background, #f9fafb)",
+        color: "var(--theme-text, #4a5568)",
         display: "flex",
         flexDirection: "column"
     }}>
@@ -492,7 +496,7 @@ export default function Options() {
             <div style={{
               width: "70px",
               height: "70px",
-              backgroundColor: "#3498db",
+              backgroundColor: "var(--theme-primary, #3498db)",
               borderRadius: "18px",
               display: "flex",
               alignItems: "center",
@@ -505,12 +509,12 @@ export default function Options() {
             <h1 style={{ 
               fontSize: "32px", 
               fontWeight: "800", 
-              color: "#1a202c", 
+              color: "var(--theme-text, #1a202c)", 
               marginBottom: "8px",
               letterSpacing: "-0.5px"
             }}>DeepProfile</h1>
             <p style={{ 
-              color: "#718096", 
+              color: "var(--theme-text-secondary, #718096)", 
               fontSize: "18px",
               maxWidth: "500px",
               margin: "0 auto",
@@ -527,20 +531,20 @@ export default function Options() {
           {/* 左侧平台导航栏 */}
           <div style={{
             minWidth: "240px",
-            backgroundColor: "white",
-            borderRadius: "16px",
+            backgroundColor: "var(--theme-surface, white)",
+            borderRadius: "var(--theme-border-radius-large, 16px)",
             padding: "20px",
-            boxShadow: "0 10px 30px rgba(0,0,0,0.05)",
-            border: "1px solid #f0f0f0",
+            boxShadow: "var(--theme-shadow-medium, 0 10px 30px rgba(0,0,0,0.05))",
+            border: "1px solid var(--theme-border, #f0f0f0)",
             height: "fit-content"
           }}>
             <h3 style={{
               margin: "0 0 20px 0",
               padding: "0 0 12px 0",
-              borderBottom: "1px solid #edf2f7",
-              fontSize: "16px",
+              borderBottom: `1px solid var(--theme-border, #edf2f7)`,
+              fontSize: "var(--theme-font-size-medium, 16px)",
               fontWeight: "600",
-              color: "#4a5568"
+              color: "var(--theme-text, #4a5568)"
             }}>
               {I18nService.t('settings')}
             </h3>
@@ -560,24 +564,24 @@ export default function Options() {
                         gap: "10px",
                         width: "100%",
                         padding: "14px 16px",
-                        borderRadius: "10px",
+                        borderRadius: "var(--theme-border-radius-medium, 10px)",
                         border: "none",
                         backgroundColor: activePlatform === platform.id 
-                          ? "#e1f0fa" 
+                          ? "var(--theme-primary, #e1f0fa)" 
                           : "transparent",
                         color: activePlatform === platform.id 
-                          ? "#2980b9" 
-                          : "#4a5568",
+                          ? "var(--theme-primary-text, #ffffff)" 
+                          : "var(--theme-text, #4a5568)",
                         fontWeight: activePlatform === platform.id 
                           ? "700" 
                           : "500",
-                        fontSize: "15px",
+                        fontSize: "var(--theme-font-size-medium, 15px)",
                         textAlign: "left",
                         cursor: "pointer",
                         transition: "all 0.2s",
                         ...(activePlatform === platform.id 
                           ? { 
-                              boxShadow: "0 4px 8px rgba(52, 152, 219, 0.15)",
+                              boxShadow: "var(--theme-shadow-small, 0 4px 8px rgba(52, 152, 219, 0.15))",
                               transform: "translateX(4px)"
                             } 
                           : {})
@@ -606,15 +610,15 @@ export default function Options() {
                     onClick={handleSave}
                     style={{
                     padding: "18px",
-                    backgroundColor: "#3498db",
+                    backgroundColor: "var(--theme-primary, #3498db)",
                     color: "white",
                     border: "none",
-                    borderRadius: "14px",
+                    borderRadius: "var(--theme-border-radius-medium, 14px)",
                     cursor: "pointer",
-                    fontSize: "17px",
+                    fontSize: "var(--theme-font-size-large, 17px)",
                     fontWeight: "700",
                     width: "100%",
-                    boxShadow: "0 6px 16px rgba(52, 152, 219, 0.4)",
+                    boxShadow: "var(--theme-shadow-medium, 0 6px 16px rgba(52, 152, 219, 0.4))",
                     transition: "all 0.2s",
                     position: "relative",
                     overflow: "hidden"
@@ -635,13 +639,13 @@ export default function Options() {
                 bottom: "90px", 
                 left: "50%", 
                 transform: "translateX(-50%)",
-                backgroundColor: "#2d3748",
-                color: "white",
+                backgroundColor: "var(--theme-surface, #2d3748)",
+                color: "var(--theme-text, white)",
                 padding: "14px 28px",
                 borderRadius: "30px",
-                boxShadow: "0 6px 20px rgba(0,0,0,0.15)",
+                boxShadow: "var(--theme-shadow-medium, 0 6px 20px rgba(0,0,0,0.15))",
                 fontWeight: "600",
-                fontSize: "15px",
+                fontSize: "var(--theme-font-size-medium, 15px)",
                 animation: "slideIn 0.4s ease-out forwards, fadeOut 0.5s ease-out 2.5s forwards",
                 zIndex: 1000
             }}>

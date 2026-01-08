@@ -162,16 +162,16 @@ const ThemeSettings: React.FC<ThemeSettingsProps> = ({ config, setConfig }) => {
   return (
     <div style={{ 
       padding: "20px", 
-      backgroundColor: "#fff", 
-      borderRadius: "10px", 
+      backgroundColor: "var(--theme-surface, #fff)", 
+      borderRadius: "var(--theme-border-radius-medium, 10px)", 
       marginBottom: "24px",
-      border: "1px solid #eee"
+      border: "1px solid var(--theme-border, #eee)"
     }}>
       <h3 style={{ 
         margin: "0 0 20px 0", 
         fontSize: "18px", 
         fontWeight: "600", 
-        color: "#333",
+        color: "var(--theme-text, #333)",
         display: "flex",
         alignItems: "center",
         gap: "10px"
@@ -184,9 +184,15 @@ const ThemeSettings: React.FC<ThemeSettingsProps> = ({ config, setConfig }) => {
           padding: "12px", 
           borderRadius: "6px", 
           marginBottom: "20px",
-          backgroundColor: status.type === 'success' ? "#d4edda" : "#f8d7da",
-          color: status.type === 'success' ? "#155724" : "#721c24",
-          border: `1px solid ${status.type === 'success' ? "#c3e6cb" : "#f5c6cb"}`
+          backgroundColor: status.type === 'success' 
+            ? "var(--theme-success-bg, #d4edda)" 
+            : "var(--theme-error-bg, #f8d7da)",
+          color: status.type === 'success' 
+            ? "var(--theme-success-text, #155724)" 
+            : "var(--theme-error-text, #721c24)",
+          border: `1px solid ${status.type === 'success' 
+            ? "var(--theme-success-border, #c3e6cb)" 
+            : "var(--theme-error-border, #f5c6cb)"}`
         }}>
           {status.message}
         </div>
@@ -197,7 +203,7 @@ const ThemeSettings: React.FC<ThemeSettingsProps> = ({ config, setConfig }) => {
           display: "block", 
           marginBottom: "8px", 
           fontWeight: "500", 
-          color: "#555" 
+          color: "var(--theme-text, #555)" 
         }}>
           {I18nService.t('select_theme')}
         </label>
@@ -283,15 +289,15 @@ const ThemeSettings: React.FC<ThemeSettingsProps> = ({ config, setConfig }) => {
       {/* 自定义主题创建 */}
       <div style={{ 
         padding: "20px", 
-        backgroundColor: "#f8f9fa", 
-        borderRadius: "8px", 
+        backgroundColor: "var(--theme-surface, #f8f9fa)", 
+        borderRadius: "var(--theme-border-radius-medium, 8px)", 
         marginBottom: "24px" 
       }}>
         <h4 style={{ 
           margin: "0 0 16px 0", 
           fontSize: "16px", 
           fontWeight: "600", 
-          color: "#333" 
+          color: "var(--theme-text, #333)" 
         }}>
           {I18nService.t('create_custom_theme')}
         </h4>
@@ -302,7 +308,7 @@ const ThemeSettings: React.FC<ThemeSettingsProps> = ({ config, setConfig }) => {
               display: "block", 
               marginBottom: "4px", 
               fontSize: "14px", 
-              color: "#555" 
+              color: "var(--theme-text, #555)" 
             }}>
               {I18nService.t('theme_id')}
             </label>
@@ -314,9 +320,11 @@ const ThemeSettings: React.FC<ThemeSettingsProps> = ({ config, setConfig }) => {
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-                fontSize: "14px"
+                border: "1px solid var(--theme-border, #ddd)",
+                borderRadius: "var(--theme-border-radius-small, 4px)",
+                fontSize: "14px",
+                backgroundColor: "var(--theme-surface, #fff)",
+                color: "var(--theme-text, #000)"
               }}
             />
           </div>
@@ -326,7 +334,7 @@ const ThemeSettings: React.FC<ThemeSettingsProps> = ({ config, setConfig }) => {
               display: "block", 
               marginBottom: "4px", 
               fontSize: "14px", 
-              color: "#555" 
+              color: "var(--theme-text, #555)" 
             }}>
               {I18nService.t('theme_name')}
             </label>
@@ -338,9 +346,11 @@ const ThemeSettings: React.FC<ThemeSettingsProps> = ({ config, setConfig }) => {
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-                fontSize: "14px"
+                border: "1px solid var(--theme-border, #ddd)",
+                borderRadius: "var(--theme-border-radius-small, 4px)",
+                fontSize: "14px",
+                backgroundColor: "var(--theme-surface, #fff)",
+                color: "var(--theme-text, #000)"
               }}
             />
           </div>
@@ -351,7 +361,7 @@ const ThemeSettings: React.FC<ThemeSettingsProps> = ({ config, setConfig }) => {
             display: "block", 
             marginBottom: "4px", 
             fontSize: "14px", 
-            color: "#555" 
+            color: "var(--theme-text, #555)" 
           }}>
             {I18nService.t('theme_description')}
           </label>
@@ -363,10 +373,12 @@ const ThemeSettings: React.FC<ThemeSettingsProps> = ({ config, setConfig }) => {
             style={{
               width: "100%",
               padding: "8px 12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
+              border: "1px solid var(--theme-border, #ddd)",
+              borderRadius: "var(--theme-border-radius-small, 4px)",
               fontSize: "14px",
-              resize: "vertical"
+              resize: "vertical",
+              backgroundColor: "var(--theme-surface, #fff)",
+              color: "var(--theme-text, #000)"
             }}
           />
         </div>
@@ -375,10 +387,10 @@ const ThemeSettings: React.FC<ThemeSettingsProps> = ({ config, setConfig }) => {
           onClick={handleCreateCustomTheme}
           style={{
             padding: "10px 20px",
-            backgroundColor: "#3498db",
+            backgroundColor: "var(--theme-primary, #3498db)",
             color: "white",
             border: "none",
-            borderRadius: "6px",
+            borderRadius: "var(--theme-border-radius-medium, 6px)",
             fontSize: "15px",
             cursor: "pointer",
             fontWeight: "500"
