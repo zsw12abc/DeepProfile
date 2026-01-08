@@ -50,8 +50,8 @@ export class ThemeService {
    */
   private async getConfig(): Promise<ExtendedAppConfig> {
     try {
-      const result = await chrome.storage.local.get(this.STORAGE_KEY);
-      const storedConfig = result[this.STORAGE_KEY] as Partial<ExtendedAppConfig> || {};
+      const result = await chrome.storage.local.get(ThemeService.STORAGE_KEY);
+      const storedConfig = result[ThemeService.STORAGE_KEY] as Partial<ExtendedAppConfig> || {};
       // Merge stored config with default config to ensure all fields exist
       return { ...DEFAULT_CONFIG, ...storedConfig } as ExtendedAppConfig;
     } catch (error) {
@@ -65,7 +65,7 @@ export class ThemeService {
    */
   private async updateConfig(config: ExtendedAppConfig): Promise<void> {
     try {
-      await chrome.storage.local.set({ [this.STORAGE_KEY]: config });
+      await chrome.storage.local.set({ [ThemeService.STORAGE_KEY]: config });
     } catch (error) {
       console.error("Failed to save config:", error);
       throw error;
