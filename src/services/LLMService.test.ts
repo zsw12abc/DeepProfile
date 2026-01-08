@@ -2,11 +2,20 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { LLMService } from './LLMService';
 import { ConfigService } from './ConfigService';
 
-// Mock ConfigService
+// Mock relative imports
 vi.mock('./ConfigService', () => ({
   ConfigService: {
     getConfig: vi.fn(),
   },
+}));
+
+vi.mock('./I18nService', () => ({
+  I18nService: {
+    t: (key: string) => key,
+    init: vi.fn(),
+    setLanguage: vi.fn(),
+    getLanguage: () => 'zh-CN',
+  }
 }));
 
 describe('LLMService', () => {
