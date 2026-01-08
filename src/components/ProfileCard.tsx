@@ -1,12 +1,14 @@
-import React, { useState, useRef } from "react"
+import React, { useState, useRef, useEffect } from "react"
 import type { ZhihuContent, UserProfile } from "~services/ZhihuClient"
 import { ZhihuClient } from "~services/ZhihuClient"
 import { calculateFinalLabel } from "~services/LabelUtils"
 import { TopicService, type MacroCategory } from "~services/TopicService"
 import { ExportService } from "~services/ExportService"
+import { ThemeService } from "~services/ThemeService"
 import html2canvas from "html2canvas"
 import icon from "data-base64:../../assets/icon.png"
 import { I18nService } from "~services/I18nService"
+import { DEFAULT_THEME, type ThemeConfig } from "~types"
 
 interface ProfileData {
   nickname?: string
@@ -78,8 +80,19 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   const [showDebug, setShowDebug] = useState(false)
   const [expandedEvidence, setExpandedEvidence] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
+  const [theme, setTheme] = useState<ThemeConfig>(DEFAULT_THEME)
   const cardRef = useRef<HTMLDivElement>(null)
   
+  useEffect(() => {
+    const loadTheme = async () => {
+      const themeService = ThemeService.getInstance();
+      await themeService.initialize();
+      setTheme(themeService.getCurrentTheme());
+    };
+    
+    loadTheme();
+  }, []);
+
   let nickname = initialNickname || I18nService.t('unknown_user')
   let topicClassification = I18nService.t('unknown_topic')
   let valueOrientation: Array<{ label: string; score: number }> = []
@@ -157,9 +170,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       exportContainer.style.top = '-9999px';
       exportContainer.style.left = '-9999px';
       exportContainer.style.width = '400px'; // 固定宽度，类似身份证
-      exportContainer.style.backgroundColor = '#f0f2f5'; // 浅灰色背景
+      exportContainer.style.backgroundColor = theme.colors.background; // 使用主题背景色
       exportContainer.style.padding = '20px';
-      exportContainer.style.fontFamily = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+      exportContainer.style.fontFamily = theme.typography.fontFamily; // 使用主题字体
       document.body.appendChild(exportContainer);
 
       // 构建 ID 卡片样式的内容
@@ -178,11 +191,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               
               return `
                 <div style="display: flex; align-items: center; margin-bottom: 8px; font-size: 12px;">
-                    <span style="width: 100px; font-weight: 500; color: #333;">${label}</span>
-                    <div style="flex: 1; height: 8px; background-color: #e0e0e0; border-radius: 4px; overflow: hidden;">
+                    <span style="width: 100px; font-weight: 500; color: ${theme.colors.text};">${label}</span>
+                    <div style="flex: 1; height: 8px; background-color: ${theme.colors.border}; border-radius: 4px; overflow: hidden;">
                         <div style="height: 100%; width: ${percentage}%; background-color: ${color}; border-radius: 4px;"></div>
                     </div>
-                    <span style="width: 30px; text-align: right; font-size: 11px; color: #666;">${Math.round(percentage)}%</span>
+                    <span style="width: 30px; text-align: right; font-size: 11px; color: ${theme.colors.textSecondary};">${Math.round(percentage)}%</span>
                 </div>
               `;
           }).join('');
@@ -201,52 +214,52 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent("https://chrome.google.com/webstore/detail/deepprofile")}`;
 
       exportContainer.innerHTML = `
-        <div style="background-color: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
-            <div style="background: linear-gradient(135deg, #0084ff 0%, #0055ff 100%); padding: 24px 20px; color: white; position: relative;">
+        <div style="background-color: ${theme.colors.surface}; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            <div style="background: linear-gradient(135deg, ${theme.colors.primary} 0%, ${theme.colors.secondary} 100%); padding: 24px 20px; color: white; position: relative;">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div style="width: 60px; height: 60px; background-color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); overflow: hidden;">
                         <img src="${avatarSrc}" style="width: 100%; height: 100%; object-fit: cover;" />
                     </div>
                     <div>
-                        <h2 style="margin: 0; font-size: 20px; font-weight: 700;">${displayName}</h2>
-                        <div style="font-size: 12px; opacity: 0.9; margin-top: 4px;">DeepProfile ${I18nService.t('app_description')}</div>
+                        <h2 style="margin: 0; font-size: 20px; font-weight: 700; font-family: ${theme.typography.fontFamily};">${displayName}</h2>
+                        <div style="font-size: 12px; opacity: 0.9; margin-top: 4px; font-family: ${theme.typography.fontFamily};">DeepProfile ${I18nService.t('app_description')}</div>
                     </div>
                 </div>
                 <div style="position: absolute; top: 20px; right: 20px; text-align: right;">
-                    <div style="font-size: 10px; opacity: 0.8;">Date</div>
-                    <div style="font-size: 14px; font-weight: 600;">${dateStr}</div>
+                    <div style="font-size: 10px; opacity: 0.8; font-family: ${theme.typography.fontFamily};">Date</div>
+                    <div style="font-size: 14px; font-weight: 600; font-family: ${theme.typography.fontFamily};">${dateStr}</div>
                 </div>
             </div>
             
             <div style="padding: 24px;">
                 <div style="margin-bottom: 20px;">
-                    <div style="font-size: 12px; color: #8590a6; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">${I18nService.t('topic_classification')}</div>
-                    <div style="font-size: 16px; font-weight: 600; color: #1a1a1a; background-color: #f0f2f5; display: inline-block; padding: 4px 12px; border-radius: 20px;">${topicClassification}</div>
+                    <div style="font-size: 12px; color: ${theme.colors.textSecondary}; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; font-family: ${theme.typography.fontFamily};">${I18nService.t('topic_classification')}</div>
+                    <div style="font-size: 16px; font-weight: 600; color: ${theme.colors.text}; background-color: ${theme.colors.background}; display: inline-block; padding: 4px 12px; border-radius: 20px; font-family: ${theme.typography.fontFamily};">${topicClassification}</div>
                 </div>
 
                 <div style="margin-bottom: 24px;">
-                    <div style="font-size: 12px; color: #8590a6; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">${I18nService.t('ai_summary')}</div>
-                    <div style="font-size: 14px; line-height: 1.6; color: #444; background-color: #f9f9f9; padding: 12px; border-radius: 8px; border-left: 3px solid #0084ff;">
+                    <div style="font-size: 12px; color: ${theme.colors.textSecondary}; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; font-family: ${theme.typography.fontFamily};">${I18nService.t('ai_summary')}</div>
+                    <div style="font-size: 14px; line-height: 1.6; color: ${theme.colors.text}; background-color: ${theme.colors.background}; padding: 12px; border-radius: 8px; border-left: 3px solid ${theme.colors.primary}; font-family: ${theme.typography.fontFamily};">
                         ${summary}
                     </div>
                 </div>
 
                 ${valueOrientationHtml ? `
                 <div style="margin-bottom: 20px;">
-                    <div style="font-size: 12px; color: #8590a6; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">${I18nService.t('value_orientation')}</div>
+                    <div style="font-size: 12px; color: ${theme.colors.textSecondary}; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-family: ${theme.typography.fontFamily};">${I18nService.t('value_orientation')}</div>
                     ${valueOrientationHtml}
                 </div>
                 ` : ''}
                 
-                <div style="border-top: 1px dashed #e0e0e0; margin-top: 20px; padding-top: 16px; display: flex; justify-content: space-between; align-items: center;">
+                <div style="border-top: 1px dashed ${theme.colors.border}; margin-top: 20px; padding-top: 16px; display: flex; justify-content: space-between; align-items: center;">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <img src="${qrCodeUrl}" style="width: 48px; height: 48px; border-radius: 4px;" crossOrigin="anonymous" />
                         <div>
-                            <div style="font-size: 12px; font-weight: 600; color: #1a1a1a;">DeepProfile</div>
-                            <div style="font-size: 10px; color: #8590a6;">AI-powered User Profile Analysis</div>
+                            <div style="font-size: 12px; font-weight: 600; color: ${theme.colors.text}; font-family: ${theme.typography.fontFamily};">DeepProfile</div>
+                            <div style="font-size: 10px; color: ${theme.colors.textSecondary}; font-family: ${theme.typography.fontFamily};">AI-powered User Profile Analysis</div>
                         </div>
                     </div>
-                    <div style="font-size: 10px; color: #999; text-align: right;">
+                    <div style="font-size: 10px; color: ${theme.colors.textSecondary}; text-align: right; font-family: ${theme.typography.fontFamily};">
                         Scan to install<br/>Start your AI journey
                     </div>
                 </div>
@@ -293,7 +306,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     if (hasLLMResponse) return null;
     
     return (
-      <div style={{ marginBottom: "16px", fontSize: "14px", color: "#666" }}>
+      <div style={{ 
+        marginBottom: theme.spacing.md, 
+        fontSize: theme.typography.fontSizeBase, 
+        color: theme.colors.textSecondary 
+      }}>
         {statusMessage}
       </div>
     );
@@ -311,20 +328,20 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
     return (
       <div style={{
-        backgroundColor: "#f0f9ff",
-        border: "1px solid #bae6fd",
-        borderRadius: "8px",
-        padding: "8px 12px",
-        marginBottom: "16px",
-        fontSize: "12px",
-        color: "#0369a1",
+        backgroundColor: theme.colors.primary + "20", // 20% opacity
+        border: `1px solid ${theme.colors.primary}40`, // 40% opacity
+        borderRadius: theme.borderRadius.medium,
+        padding: theme.spacing.sm,
+        marginBottom: theme.spacing.md,
+        fontSize: theme.typography.fontSizeSmall,
+        color: theme.colors.primary,
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center"
       }}>
         <div>
-          <span style={{ fontWeight: "600" }}>{I18nService.t('history_record')} ({timeStr})</span>
-          <div style={{ fontSize: "11px", marginTop: "2px", opacity: 0.8 }}>
+          <span style={{ fontWeight: theme.typography.fontWeightBold }}>{I18nService.t('history_record')} ({timeStr})</span>
+          <div style={{ fontSize: theme.typography.fontSizeSmall, marginTop: theme.spacing.xs, opacity: 0.8 }}>
             {I18nService.t('topic_classification')}: {categoryName}
           </div>
         </div>
@@ -332,22 +349,22 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           <button
             onClick={onRefresh}
             style={{
-              backgroundColor: "white",
-              border: "1px solid #0ea5e9",
-              color: "#0ea5e9",
-              borderRadius: "4px",
-              padding: "4px 8px",
-              fontSize: "11px",
+              backgroundColor: theme.colors.surface,
+              border: `1px solid ${theme.colors.primary}`,
+              color: theme.colors.primary,
+              borderRadius: theme.borderRadius.small,
+              padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
+              fontSize: theme.typography.fontSizeSmall,
               cursor: "pointer",
-              fontWeight: "500"
+              fontWeight: theme.typography.fontWeightBold
             }}
             onMouseOver={e => {
-                e.currentTarget.style.backgroundColor = "#0ea5e9";
-                e.currentTarget.style.color = "white";
+                e.currentTarget.style.backgroundColor = theme.colors.primary;
+                e.currentTarget.style.color = theme.colors.surface;
             }}
             onMouseOut={e => {
-                e.currentTarget.style.backgroundColor = "white";
-                e.currentTarget.style.color = "#0ea5e9";
+                e.currentTarget.style.backgroundColor = theme.colors.surface;
+                e.currentTarget.style.color = theme.colors.primary;
             }}
           >
             {I18nService.t('reanalyze')}
@@ -362,30 +379,30 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       ref={cardRef}
       style={{
         position: "fixed",
-        bottom: "20px",
-        right: "20px",
+        bottom: theme.spacing.lg,
+        right: theme.spacing.lg,
         width: "380px",
         maxHeight: "80vh",
         overflowY: "auto",
-        backgroundColor: "white",
-        boxShadow: "0 4px 24px rgba(0,0,0,0.15)",
-        borderRadius: "12px",
-        padding: "20px",
+        backgroundColor: theme.colors.surface,
+        boxShadow: theme.shadows.large,
+        borderRadius: theme.borderRadius.large,
+        padding: theme.spacing.lg,
         zIndex: 9999,
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-        fontSize: "14px",
-        color: "#333"
+        fontFamily: theme.typography.fontFamily,
+        fontSize: theme.typography.fontSizeBase,
+        color: theme.colors.text
       }}>
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginBottom: "16px",
-          borderBottom: "1px solid #eee",
-          paddingBottom: "10px"
+          marginBottom: theme.spacing.md,
+          borderBottom: `1px solid ${theme.colors.border}`,
+          paddingBottom: theme.spacing.sm
         }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: theme.spacing.md }}>
           {userProfile?.avatar_url && (
             <img 
               src={userProfile.avatar_url} 
@@ -394,7 +411,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             />
           )}
           <div>
-            <h3 style={{ margin: 0, fontSize: "16px", fontWeight: "bold", color: "#1a1a1a" }}>
+            <h3 style={{ margin: 0, fontSize: theme.typography.fontSizeMedium, fontWeight: theme.typography.fontWeightBold, color: theme.colors.text }}>
               {loading ? (
                   <span>{I18nService.t('analyzing')}: {displayName}</span>
               ) : (
@@ -402,20 +419,20 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     href={userHomeUrl} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    style={{ color: "#1a1a1a", textDecoration: "none" }}
-                    onMouseOver={e => e.currentTarget.style.color = "#0084ff"}
-                    onMouseOut={e => e.currentTarget.style.color = "#1a1a1a"}
+                    style={{ color: theme.colors.text, textDecoration: "none" }}
+                    onMouseOver={e => e.currentTarget.style.color = theme.colors.primary}
+                    onMouseOut={e => e.currentTarget.style.color = theme.colors.text}
                   >
                     {displayName}
                   </a>
               )}
             </h3>
-            <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
-              {I18nService.t('topic_classification')}: <span style={{ fontWeight: "500", color: "#0084ff" }}>{topicClassification}</span>
+            <div style={{ fontSize: theme.typography.fontSizeSmall, color: theme.colors.textSecondary, marginTop: theme.spacing.xs }}>
+              {I18nService.t('topic_classification')}: <span style={{ fontWeight: theme.typography.fontWeightBold, color: theme.colors.primary }}>{topicClassification}</span>
             </div>
           </div>
         </div>
-        <div style={{ display: "flex", gap: "8px" }}>
+        <div style={{ display: "flex", gap: theme.spacing.sm }}>
           {profileData && !loading && (
             <>
               <button
@@ -426,11 +443,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   border: "none",
                   fontSize: "16px",
                   cursor: "pointer",
-                  padding: "4px",
-                  borderRadius: "4px",
-                  transition: "background-color 0.2s"
+                  padding: theme.spacing.xs,
+                  borderRadius: theme.borderRadius.small,
+                  transition: "background-color 0.2s",
+                  color: theme.colors.textSecondary
                 }}
-                onMouseOver={e => e.currentTarget.style.backgroundColor = "#f0f0f0"}
+                onMouseOver={e => e.currentTarget.style.backgroundColor = theme.colors.textSecondary + "20"}
                 onMouseOut={e => e.currentTarget.style.backgroundColor = "transparent"}
               >
                 📝
@@ -444,12 +462,13 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   border: "none",
                   fontSize: "16px",
                   cursor: isExporting ? "wait" : "pointer",
-                  padding: "4px",
-                  borderRadius: "4px",
+                  padding: theme.spacing.xs,
+                  borderRadius: theme.borderRadius.small,
                   transition: "background-color 0.2s",
-                  opacity: isExporting ? 0.5 : 1
+                  opacity: isExporting ? 0.5 : 1,
+                  color: theme.colors.textSecondary
                 }}
-                onMouseOver={e => e.currentTarget.style.backgroundColor = "#f0f0f0"}
+                onMouseOver={e => e.currentTarget.style.backgroundColor = theme.colors.textSecondary + "20"}
                 onMouseOut={e => e.currentTarget.style.backgroundColor = "transparent"}
               >
                 📸
@@ -463,16 +482,16 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               border: "none",
               fontSize: "18px",
               cursor: "pointer",
-              color: "#999",
-              padding: "0",
+              color: theme.colors.textSecondary,
+              padding: 0,
               width: "24px",
               height: "24px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center"
             }}
-            onMouseOver={(e) => (e.currentTarget.style.color = "#333")}
-            onMouseOut={(e) => (e.currentTarget.style.color = "#999")}
+            onMouseOver={(e) => (e.currentTarget.style.color = theme.colors.text)}
+            onMouseOut={(e) => (e.currentTarget.style.color = theme.colors.textSecondary)}
           >
             ×
           </button>
@@ -483,22 +502,28 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       {renderCacheStatus()}
 
       {error && (
-        <div style={{ marginBottom: "16px", padding: "12px", backgroundColor: "#ffebee", borderRadius: "6px", color: "#c62828" }}>
+        <div style={{ 
+          marginBottom: theme.spacing.md, 
+          padding: theme.spacing.sm, 
+          backgroundColor: theme.colors.error + "20", 
+          borderRadius: theme.borderRadius.small, 
+          color: theme.colors.error 
+        }}>
           Error: {error}
         </div>
       )}
 
       {loading ? (
-        <div style={{ textAlign: "center", padding: "20px 0" }}>
-          <div style={{ fontSize: "16px", marginBottom: "12px", color: "#0084ff" }}>{I18nService.t('analyzing')}...</div>
-          <div style={{ fontSize: "12px", color: "#666" }}>{I18nService.t('wait_moment')}</div>
+        <div style={{ textAlign: "center", padding: `${parseInt(theme.spacing.lg) * 1.25}px 0` }}>
+          <div style={{ fontSize: theme.typography.fontSizeMedium, marginBottom: theme.spacing.sm, color: theme.colors.primary }}>{I18nService.t('analyzing')}...</div>
+          <div style={{ fontSize: theme.typography.fontSizeSmall, color: theme.colors.textSecondary }}>{I18nService.t('wait_moment')}</div>
         </div>
       ) : profileData ? (
         <div>
           {valueOrientation && valueOrientation.length > 0 && (
-            <div style={{ marginBottom: "16px" }}>
-              <h4 style={{ margin: "0 0 8px 0", fontSize: "14px", fontWeight: "600", color: "#333" }}>{I18nService.t('value_orientation')}</h4>
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            <div style={{ marginBottom: theme.spacing.md }}>
+              <h4 style={{ margin: "0 0 8px 0", fontSize: theme.typography.fontSizeBase, fontWeight: theme.typography.fontWeightBold, color: theme.colors.text }}>{I18nService.t('value_orientation')}</h4>
+              <div style={{ display: "flex", flexDirection: "column", gap: theme.spacing.sm }}>
                 {valueOrientation.map((item, index) => {
                   const { label: labelName, score } = item;
                   const { label, percentage } = calculateFinalLabel(labelName, score);
@@ -514,20 +539,20 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       style={{
                         display: "flex",
                         alignItems: "center",
-                        padding: "6px 12px",
-                        backgroundColor: "#f8f8f8",
-                        borderRadius: "12px",
-                        fontSize: "12px"
+                        padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
+                        backgroundColor: theme.colors.background,
+                        borderRadius: theme.borderRadius.medium,
+                        fontSize: theme.typography.fontSizeSmall
                       }}
                     >
                       <span style={{ 
                         flex: "0 0 auto", 
                         width: "120px", 
-                        color: "#333",
-                        backgroundColor: "#e8e8e8",
-                        padding: "4px 8px",
-                        borderRadius: "8px",
-                        fontSize: "11px",
+                        color: theme.colors.text,
+                        backgroundColor: theme.colors.surface,
+                        padding: theme.spacing.xs,
+                        borderRadius: theme.borderRadius.small,
+                        fontSize: theme.typography.fontSizeSmall,
                         textAlign: "center"
                       }}>
                         {label}
@@ -535,9 +560,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       <div style={{
                         flex: "1",
                         height: "12px",
-                        backgroundColor: "#e0e0e0",
-                        borderRadius: "6px",
-                        marginLeft: "10px",
+                        backgroundColor: theme.colors.border,
+                        borderRadius: theme.borderRadius.small,
+                        marginLeft: theme.spacing.sm,
                         overflow: "hidden"
                       }}>
                         <div 
@@ -545,11 +570,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                             height: "100%",
                             width: `${percentage}%`,
                             backgroundColor: color,
-                            borderRadius: "6px"
+                            borderRadius: theme.borderRadius.small
                           }}
                         />
                       </div>
-                      <span style={{ flex: "0 0 auto", width: "40px", textAlign: "right", color: "#666", fontSize: "11px" }}>
+                      <span style={{ flex: "0 0 auto", width: "40px", textAlign: "right", color: theme.colors.textSecondary, fontSize: theme.typography.fontSizeSmall }}>
                         {Math.round(percentage)}%
                       </span>
                     </div>
@@ -560,27 +585,27 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           )}
 
           {summary && (
-            <div style={{ marginBottom: "16px", lineHeight: "1.5" }}>
-              <h4 style={{ margin: "0 0 8px 0", fontSize: "14px", fontWeight: "600", color: "#333" }}>{I18nService.t('ai_summary')}</h4>
-              <div style={{ fontSize: "13px", color: "#555", lineHeight: "1.5" }}>
+            <div style={{ marginBottom: theme.spacing.md, lineHeight: theme.typography.lineHeight.toString() }}>
+              <h4 style={{ margin: "0 0 8px 0", fontSize: theme.typography.fontSizeBase, fontWeight: theme.typography.fontWeightBold, color: theme.colors.text }}>{I18nService.t('ai_summary')}</h4>
+              <div style={{ fontSize: theme.typography.fontSizeSmall, color: theme.colors.text, lineHeight: theme.typography.lineHeight.toString() }}>
                 {summary}
               </div>
             </div>
           )}
 
           {evidence && evidence.length > 0 && (
-            <div style={{ marginBottom: "16px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-                <h4 style={{ margin: "0", fontSize: "14px", fontWeight: "600", color: "#333" }}>{I18nService.t('evidence')}</h4>
+            <div style={{ marginBottom: theme.spacing.md }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: theme.spacing.sm }}>
+                <h4 style={{ margin: "0", fontSize: theme.typography.fontSizeBase, fontWeight: theme.typography.fontWeightBold, color: theme.colors.text }}>{I18nService.t('evidence')}</h4>
                 <button
                   onClick={toggleEvidence}
                   style={{
                     background: "none",
                     border: "none",
-                    color: "#0084ff",
+                    color: theme.colors.primary,
                     cursor: "pointer",
-                    fontSize: "12px",
-                    fontWeight: "500"
+                    fontSize: theme.typography.fontSizeSmall,
+                    fontWeight: theme.typography.fontWeightBold
                   }}
                 >
                   {expandedEvidence ? I18nService.t('collapse') : I18nService.t('expand')}
@@ -588,7 +613,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               </div>
               
               {expandedEvidence && (
-                <div style={{ fontSize: "12px" }}>
+                <div style={{ fontSize: theme.typography.fontSizeSmall }}>
                   {evidence.map((item, index) => {
                     let sourceItem = items.find(i => i.id === item.source_id);
                     // Fallback: try matching by title if ID match fails
@@ -600,14 +625,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     const sourceTitle = sourceItem?.title || item.source_title;
 
                     return (
-                      <div key={index} style={{ marginBottom: "12px", paddingBottom: "12px", borderBottom: index < evidence.length - 1 ? "1px solid #f0f0f0" : "none" }}>
-                        <div style={{ fontStyle: "italic", color: "#555", marginBottom: "4px" }}>
+                      <div key={index} style={{ marginBottom: theme.spacing.sm, paddingBottom: theme.spacing.sm, borderBottom: index < evidence.length - 1 ? `1px solid ${theme.colors.border}` : "none" }}>
+                        <div style={{ fontStyle: "italic", color: theme.colors.textSecondary, marginBottom: theme.spacing.xs }}>
                           "{item.quote}"
                         </div>
-                        <div style={{ color: "#666", marginBottom: "4px" }}>
+                        <div style={{ color: theme.colors.textSecondary, marginBottom: theme.spacing.xs }}>
                           {item.analysis}
                         </div>
-                        <div style={{ fontSize: "11px", color: "#888" }}>
+                        <div style={{ fontSize: theme.typography.fontSizeSmall, color: theme.colors.textSecondary }}>
                           {I18nService.t('source')}: 
                           {sourceUrl ? (
                             <a 
@@ -615,9 +640,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                               target="_blank" 
                               rel="noopener noreferrer"
                               style={{ 
-                                color: "#0084ff", 
+                                color: theme.colors.primary, 
                                 textDecoration: "none",
-                                marginLeft: "4px"
+                                marginLeft: theme.spacing.xs
                               }}
                               onMouseOver={e => e.currentTarget.style.textDecoration = "underline"}
                               onMouseOut={e => e.currentTarget.style.textDecoration = "none"}
@@ -625,7 +650,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                               {sourceTitle?.length > 30 ? sourceTitle.substring(0, 30) + "..." : sourceTitle}
                             </a>
                           ) : (
-                            <span style={{ marginLeft: "4px" }}>
+                            <span style={{ marginLeft: theme.spacing.xs }}>
                               {sourceTitle?.length > 30 ? sourceTitle.substring(0, 30) + "..." : sourceTitle}
                             </span>
                           )}
@@ -639,18 +664,18 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           )}
 
           {debugInfo && (
-            <div style={{ borderTop: "1px solid #eee", paddingTop: "16px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-                <h4 style={{ margin: "0", fontSize: "14px", fontWeight: "600", color: "#333" }}>{I18nService.t('debug_info')}</h4>
+            <div style={{ borderTop: `1px solid ${theme.colors.border}`, paddingTop: theme.spacing.lg }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: theme.spacing.sm }}>
+                <h4 style={{ margin: "0", fontSize: theme.typography.fontSizeBase, fontWeight: theme.typography.fontWeightBold, color: theme.colors.text }}>{I18nService.t('debug_info')}</h4>
                 <button
                   onClick={toggleDebug}
                   style={{
                     background: "none",
                     border: "none",
-                    color: "#0084ff",
+                    color: theme.colors.primary,
                     cursor: "pointer",
-                    fontSize: "12px",
-                    fontWeight: "500"
+                    fontSize: theme.typography.fontSizeSmall,
+                    fontWeight: theme.typography.fontWeightBold
                   }}
                 >
                   {showDebug ? I18nService.t('collapse') : I18nService.t('expand')}
@@ -658,7 +683,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               </div>
               
               {showDebug && (
-                <div style={{ fontSize: "11px", color: "#666", lineHeight: "1.4" }}>
+                <div style={{ fontSize: theme.typography.fontSizeSmall, color: theme.colors.textSecondary, lineHeight: theme.typography.lineHeight.toString() }}>
                   <div>{I18nService.t('token_usage')}: {debugInfo.model}</div>
                   <div>{I18nService.t('total_duration')}: {(debugInfo.totalDurationMs / 1000).toFixed(1)}s</div>
                   <div>{I18nService.t('llm_duration')}: {(debugInfo.llmDurationMs / 1000).toFixed(1)}s</div>

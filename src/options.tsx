@@ -19,6 +19,7 @@ import { HistorySection } from "~components/HistorySection"
 import { VersionInfo } from "~components/VersionInfo"
 import { ZhihuIcon, RedditIcon, getBaseUrlPlaceholder, shouldShowBaseUrlInput } from "~components/HelperComponents"
 import { ModelSelector } from "~components/ModelSelector"
+import ThemeSettings from "~components/ThemeSettings";
 
 // 获取版本信息
 const getVersion = (): string => {
@@ -427,18 +428,24 @@ export default function Options() {
     { id: 'version', name: I18nService.t('version_info'), icon: <span style={{ fontSize: "24px" }}>ℹ️</span> },
   ];
 
-  const renderPlatformSettings = (platformId: PlatformId) => {
-    switch (platformId) {
-      case 'general':
+  const renderPlatformSettings = (platform: string) => {
+    switch (platform) {
+      case "general":
         return (
-          <GeneralSettings 
-            config={config} 
-            setConfig={setConfig} 
-            isTesting={isTesting}
-            testResult={testResult}
-            handleTestConnection={handleTestConnection}
-            renderModelSelector={renderModelSelector}
-          />
+          <div>
+            <GeneralSettings 
+              config={config} 
+              setConfig={setConfig} 
+              isTesting={isTesting}
+              testResult={testResult}
+              handleTestConnection={handleTestConnection}
+              renderModelSelector={renderModelSelector}
+            />
+            <ThemeSettings 
+              config={config} 
+              setConfig={setConfig} 
+            />
+          </div>
         );
       case 'zhihu':
         return <PlatformSpecificSettings config={config} setConfig={setConfig} platform="zhihu" />;

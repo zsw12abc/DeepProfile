@@ -39,7 +39,213 @@ export interface AppConfig {
   platformConfigs: Record<SupportedPlatform, PlatformConfig>;
 }
 
-export const DEFAULT_CONFIG: AppConfig = {
+// --- Theme Configuration Types ---
+
+export interface ThemeColors {
+  primary: string;
+  secondary: string;
+  background: string;
+  surface: string;
+  text: string;
+  textSecondary: string;
+  border: string;
+  success: string;
+  warning: string;
+  error: string;
+  accent: string;
+}
+
+export interface ThemeTypography {
+  fontFamily: string;
+  fontSizeBase: string;
+  fontSizeSmall: string;
+  fontSizeMedium: string;
+  fontSizeLarge: string;
+  fontWeightNormal: number;
+  fontWeightBold: number;
+  lineHeight: number;
+}
+
+export interface ThemeSpacing {
+  xs: string;
+  sm: string;
+  md: string;
+  lg: string;
+  xl: string;
+  xxl: string;
+}
+
+export interface ThemeBorderRadius {
+  small: string;
+  medium: string;
+  large: string;
+}
+
+export interface ThemeShadows {
+  small: string;
+  medium: string;
+  large: string;
+}
+
+export interface ThemeConfig {
+  id: string;
+  name: string;
+  description: string;
+  colors: ThemeColors;
+  typography: ThemeTypography;
+  spacing: ThemeSpacing;
+  borderRadius: ThemeBorderRadius;
+  shadows: ThemeShadows;
+  platformOverrides?: Partial<Record<SupportedPlatform, Partial<ThemeConfig>>>;
+}
+
+export interface ExtendedAppConfig extends AppConfig {
+  themeId: string;
+  themes: Record<string, ThemeConfig>;
+}
+
+export const DEFAULT_THEME: ThemeConfig = {
+  id: 'default',
+  name: 'Default Theme',
+  description: 'The default theme for DeepProfile',
+  colors: {
+    primary: '#0084ff',
+    secondary: '#3498db',
+    background: '#f9fafb',
+    surface: '#ffffff',
+    text: '#333333',
+    textSecondary: '#666666',
+    border: '#eeeeee',
+    success: '#27ae60',
+    warning: '#f39c12',
+    error: '#e74c3c',
+    accent: '#9b59b6'
+  },
+  typography: {
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    fontSizeBase: '14px',
+    fontSizeSmall: '12px',
+    fontSizeMedium: '16px',
+    fontSizeLarge: '18px',
+    fontWeightNormal: 400,
+    fontWeightBold: 600,
+    lineHeight: 1.5
+  },
+  spacing: {
+    xs: '4px',
+    sm: '8px',
+    md: '16px',
+    lg: '24px',
+    xl: '32px',
+    xxl: '48px'
+  },
+  borderRadius: {
+    small: '4px',
+    medium: '8px',
+    large: '12px'
+  },
+  shadows: {
+    small: '0 2px 4px rgba(0,0,0,0.05)',
+    medium: '0 4px 12px rgba(0,0,0,0.1)',
+    large: '0 8px 24px rgba(0,0,0,0.15)'
+  }
+};
+
+export const DARK_THEME: ThemeConfig = {
+  id: 'dark',
+  name: 'Dark Theme',
+  description: 'Dark theme for low-light environments',
+  colors: {
+    primary: '#0084ff',
+    secondary: '#3498db',
+    background: '#121212',
+    surface: '#1e1e1e',
+    text: '#e0e0e0',
+    textSecondary: '#aaaaaa',
+    border: '#444444',
+    success: '#27ae60',
+    warning: '#f39c12',
+    error: '#e74c3c',
+    accent: '#9b59b6'
+  },
+  typography: {
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    fontSizeBase: '14px',
+    fontSizeSmall: '12px',
+    fontSizeMedium: '16px',
+    fontSizeLarge: '18px',
+    fontWeightNormal: 400,
+    fontWeightBold: 600,
+    lineHeight: 1.5
+  },
+  spacing: {
+    xs: '4px',
+    sm: '8px',
+    md: '16px',
+    lg: '24px',
+    xl: '32px',
+    xxl: '48px'
+  },
+  borderRadius: {
+    small: '4px',
+    medium: '8px',
+    large: '12px'
+  },
+  shadows: {
+    small: '0 2px 4px rgba(0,0,0,0.3)',
+    medium: '0 4px 12px rgba(0,0,0,0.4)',
+    large: '0 8px 24px rgba(0,0,0,0.5)'
+  }
+};
+
+export const COMPACT_THEME: ThemeConfig = {
+  id: 'compact',
+  name: 'Compact Theme',
+  description: 'Space-saving compact theme',
+  colors: {
+    primary: '#0084ff',
+    secondary: '#3498db',
+    background: '#f0f2f5',
+    surface: '#ffffff',
+    text: '#1a1a1a',
+    textSecondary: '#666666',
+    border: '#dddddd',
+    success: '#27ae60',
+    warning: '#f39c12',
+    error: '#e74c3c',
+    accent: '#9b59b6'
+  },
+  typography: {
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    fontSizeBase: '13px',
+    fontSizeSmall: '11px',
+    fontSizeMedium: '14px',
+    fontSizeLarge: '16px',
+    fontWeightNormal: 400,
+    fontWeightBold: 500,
+    lineHeight: 1.4
+  },
+  spacing: {
+    xs: '2px',
+    sm: '4px',
+    md: '8px',
+    lg: '12px',
+    xl: '16px',
+    xxl: '24px'
+  },
+  borderRadius: {
+    small: '2px',
+    medium: '4px',
+    large: '6px'
+  },
+  shadows: {
+    small: '0 1px 2px rgba(0,0,0,0.05)',
+    medium: '0 2px 6px rgba(0,0,0,0.1)',
+    large: '0 4px 12px rgba(0,0,0,0.1)'
+  }
+};
+
+export const DEFAULT_CONFIG: ExtendedAppConfig = {
   globalEnabled: true,
   language: 'zh-CN',
   selectedProvider: 'openai',
@@ -82,6 +288,12 @@ export const DEFAULT_CONFIG: AppConfig = {
       baseUrl: 'https://weibo.com',
       apiEndpoint: 'https://api.weibo.com'
     }
+  },
+  themeId: 'default',
+  themes: {
+    'default': DEFAULT_THEME,
+    'dark': DARK_THEME,
+    'compact': COMPACT_THEME
   }
 };
 
