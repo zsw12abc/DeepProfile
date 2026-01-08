@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react"
+import React from "react"
+import { useState, useEffect, useCallback } from "react"
 import { ConfigService } from "~services/ConfigService"
 import { HistoryService } from "~services/HistoryService"
 import { TopicService, type MacroCategory } from "~services/TopicService"
@@ -319,30 +321,42 @@ export default function Options() {
     }
   }, [config?.selectedProvider, config?.apiKeys, config?.customBaseUrls, fetchModels])
 
-  const handleSave = async () => {
-    if (!config) return
+  // 自动保存配置的函数
+  const autoSaveConfig = async (newConfig: any) => {
+    if (!newConfig) return;
     
-    // Check if language has changed
+    // 检查语言是否已更改
     const oldConfig = await ConfigService.getConfig();
-    const languageChanged = oldConfig.language !== config.language;
+    const languageChanged = oldConfig.language !== newConfig.language;
     
-    await ConfigService.saveConfig(config)
-    I18nService.setLanguage(config.language);
+    // 保存配置
+    await ConfigService.saveConfig(newConfig);
     
-    // If language changed, refresh label cache to update labels in the new language
+    // 如果语言已更改，更新国际化服务
     if (languageChanged) {
+      I18nService.setLanguage(newConfig.language);
+      
+      // 如果语言已更改，刷新标签缓存以更新新语言的标签
       const labelService = LabelService.getInstance();
       labelService.refreshCategories();
       
-      // Also invalidate the label cache
+      // 同样使标签缓存无效
       const { invalidateLabelCache } = await import('~services/LabelDefinitions');
       invalidateLabelCache();
+      
+      forceUpdate();
     }
+  };
+
+  // 处理配置更改的函数
+  const handleConfigChange = async (newConfig: any) => {
+    setConfig(newConfig);
+    await autoSaveConfig(newConfig);
     
-    forceUpdate();
-    setStatus(I18nService.t('saved'))
-    setTimeout(() => setStatus(""), 3000)
-  }
+    // 显示短暂的保存状态
+    setStatus(I18nService.t('saved'));
+    setTimeout(() => setStatus(""), 1500);
+  };
 
   const handleTestConnection = async () => {
     if (!config) return
@@ -447,14 +461,14 @@ export default function Options() {
             />
             <ThemeSettings 
               config={config} 
-              setConfig={setConfig} 
+              setConfig={handleConfigChange} 
             />
           </div>
         );
       case 'zhihu':
         return <PlatformSpecificSettings config={config} setConfig={setConfig} platform="zhihu" />;
       case 'reddit':
-        return <PlatformSpecificSettings config={config} setConfig={setConfig} platform="reddit" />;
+        return <PlatformSpecificSettings config={config} setConfig={handleConfigChange} platform="reddit" />;
       case 'history':
         return (
           <HistorySection 
@@ -469,7 +483,7 @@ export default function Options() {
           />
         );
       case 'debug':
-        return <DebugSettings config={config} setConfig={setConfig} />;
+        return <DebugSettings config={config} setConfig={handleConfigChange} />;
       case 'version':
         return <VersionInfo changelog={changelog} />;
       default:
@@ -600,36 +614,7 @@ export default function Options() {
           <div style={{ flex: 1 }}>
             {renderPlatformSettings(activePlatform)}
             
-            <div style={{ 
-              position: "sticky", 
-              bottom: "30px", 
-              zIndex: 100,
-              marginTop: "20px"
-            }}>
-                <button
-                    onClick={handleSave}
-                    style={{
-                    padding: "18px",
-                    backgroundColor: "var(--theme-primary, #3498db)",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "var(--theme-border-radius-medium, 14px)",
-                    cursor: "pointer",
-                    fontSize: "var(--theme-font-size-large, 17px)",
-                    fontWeight: "700",
-                    width: "100%",
-                    boxShadow: "var(--theme-shadow-medium, 0 6px 16px rgba(52, 152, 219, 0.4))",
-                    transition: "all 0.2s",
-                    position: "relative",
-                    overflow: "hidden"
-                    }}
-                    onMouseDown={(e) => e.currentTarget.style.transform = "scale(0.98)"}
-                    onMouseUp={(e) => e.currentTarget.style.transform = "scale(1)"}
-                    onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
-                >
-                    {I18nService.t('save')}
-                </button>
-            </div>
+
           </div>
         </div>
 
