@@ -4,6 +4,34 @@ import { ThemeService } from "~services/ThemeService";
 import { ConfigService } from "~services/ConfigService";
 import type { ThemeConfig, ExtendedAppConfig } from "~types";
 
+// 获取国际化主题名称和描述
+const getLocalizedThemeInfo = (themeId: string) => {
+  switch (themeId) {
+    case 'zhihu-white':
+      return {
+        name: I18nService.t('theme_zhihu_white_name'),
+        description: I18nService.t('theme_zhihu_white_desc')
+      };
+    case 'zhihu-black':
+      return {
+        name: I18nService.t('theme_zhihu_black_name'),
+        description: I18nService.t('theme_zhihu_black_desc')
+      };
+    case 'reddit-white':
+      return {
+        name: I18nService.t('theme_reddit_white_name'),
+        description: I18nService.t('theme_reddit_white_desc')
+      };
+    case 'reddit-black':
+      return {
+        name: I18nService.t('theme_reddit_black_name'),
+        description: I18nService.t('theme_reddit_black_desc')
+      };
+    default:
+      return null;
+  }
+};
+
 interface ThemeSettingsProps {
   config: ExtendedAppConfig;
   setConfig: (config: ExtendedAppConfig) => void;
@@ -84,11 +112,12 @@ const ThemeSettings: React.FC<ThemeSettingsProps> = ({ config, setConfig }) => {
   const handleEditTheme = (theme: ThemeConfig) => {
     if (theme.id === 'zhihu-white' || theme.id === 'zhihu-black' || theme.id === 'reddit-white' || theme.id === 'reddit-black') {
       // 为内置主题创建副本进行编辑
+      const localizedInfo = getLocalizedThemeInfo(theme.id);
       const newThemeId = `${theme.id}_custom`;
       setEditingTheme({
         ...theme,
         id: newThemeId,
-        name: `${theme.name} (Custom Copy)`
+        name: localizedInfo ? `${localizedInfo.name} (Custom Copy)` : `${theme.name} (Custom Copy)`
       });
       setIsEditing(true);
     } else {
@@ -208,81 +237,88 @@ const ThemeSettings: React.FC<ThemeSettingsProps> = ({ config, setConfig }) => {
           {I18nService.t('select_theme')}
         </label>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "12px" }}>
-          {themes.map(theme => (
-            <div 
-              key={theme.id}
-              onClick={() => handleThemeChange(theme.id)}
-              style={{
-                padding: "16px",
-                border: selectedThemeId === theme.id 
-                  ? `2px solid ${theme.colors.primary}` 
-                  : `1px solid ${theme.colors.border}`,
-                borderRadius: theme.borderRadius.medium,
-                cursor: "pointer",
-                backgroundColor: theme.colors.surface,
-                transition: "all 0.2s ease",
-                position: "relative"
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-                <strong style={{ color: theme.colors.text, fontSize: theme.typography.fontSizeMedium }}>
-                  {theme.name}
-                </strong>
-                {selectedThemeId === theme.id && (
-                  <span style={{ color: theme.colors.primary, fontSize: "16px" }}>✓</span>
-                )}
+          {themes.map(theme => {
+            // 对内置主题使用国际化名称和描述
+            const localizedInfo = getLocalizedThemeInfo(theme.id);
+            const displayName = localizedInfo ? localizedInfo.name : theme.name;
+            const displayDescription = localizedInfo ? localizedInfo.description : theme.description;
+            
+            return (
+              <div 
+                key={theme.id}
+                onClick={() => handleThemeChange(theme.id)}
+                style={{
+                  padding: "16px",
+                  border: selectedThemeId === theme.id 
+                    ? `2px solid ${theme.colors.primary}` 
+                    : `1px solid ${theme.colors.border}`,
+                  borderRadius: theme.borderRadius.medium,
+                  cursor: "pointer",
+                  backgroundColor: theme.colors.surface,
+                  transition: "all 0.2s ease",
+                  position: "relative"
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                  <strong style={{ color: theme.colors.text, fontSize: theme.typography.fontSizeMedium }}>
+                    {displayName}
+                  </strong>
+                  {selectedThemeId === theme.id && (
+                    <span style={{ color: theme.colors.primary, fontSize: "16px" }}>✓</span>
+                  )}
+                </div>
+                <div style={{ fontSize: theme.typography.fontSizeSmall, color: theme.colors.textSecondary, marginBottom: "12px" }}>
+                  {displayDescription}
+                </div>
+                <div style={{ display: "flex", gap: "4px" }}>
+                  <div style={{ width: "20px", height: "20px", backgroundColor: theme.colors.primary, borderRadius: "4px" }}></div>
+                  <div style={{ width: "20px", height: "20px", backgroundColor: theme.colors.secondary, borderRadius: "4px" }}></div>
+                  <div style={{ width: "20px", height: "20px", backgroundColor: theme.colors.success, borderRadius: "4px" }}></div>
+                  <div style={{ width: "20px", height: "20px", backgroundColor: theme.colors.warning, borderRadius: "4px" }}></div>
+                </div>
+                <div style={{ marginTop: "8px", display: "flex", gap: "8px" }}>
+                  {!(theme.id === 'zhihu-white' || theme.id === 'zhihu-black' || theme.id === 'reddit-white' || theme.id === 'reddit-black') && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditTheme(theme);
+                      }}
+                      style={{
+                        padding: "4px 8px",
+                        backgroundColor: theme.colors.primary,
+                        color: "white",
+                        border: "none",
+                        borderRadius: theme.borderRadius.small,
+                        fontSize: theme.typography.fontSizeSmall,
+                        cursor: "pointer"
+                      }}
+                    >
+                      {I18nService.t('edit')}
+                    </button>
+                  )}
+                  {!(theme.id === 'zhihu-white' || theme.id === 'zhihu-black' || theme.id === 'reddit-white' || theme.id === 'reddit-black') && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteTheme(theme.id);
+                      }}
+                      style={{
+                        padding: "4px 8px",
+                        backgroundColor: theme.colors.error,
+                        color: "white",
+                        border: "none",
+                        borderRadius: theme.borderRadius.small,
+                        fontSize: theme.typography.fontSizeSmall,
+                        cursor: "pointer"
+                      }}
+                    >
+                      {I18nService.t('delete')}
+                    </button>
+                  )}
+                </div>
               </div>
-              <div style={{ fontSize: theme.typography.fontSizeSmall, color: theme.colors.textSecondary, marginBottom: "12px" }}>
-                {theme.description}
-              </div>
-              <div style={{ display: "flex", gap: "4px" }}>
-                <div style={{ width: "20px", height: "20px", backgroundColor: theme.colors.primary, borderRadius: "4px" }}></div>
-                <div style={{ width: "20px", height: "20px", backgroundColor: theme.colors.secondary, borderRadius: "4px" }}></div>
-                <div style={{ width: "20px", height: "20px", backgroundColor: theme.colors.success, borderRadius: "4px" }}></div>
-                <div style={{ width: "20px", height: "20px", backgroundColor: theme.colors.warning, borderRadius: "4px" }}></div>
-              </div>
-              <div style={{ marginTop: "8px", display: "flex", gap: "8px" }}>
-                {!(theme.id === 'zhihu-white' || theme.id === 'zhihu-black' || theme.id === 'reddit-white' || theme.id === 'reddit-black') && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEditTheme(theme);
-                    }}
-                    style={{
-                      padding: "4px 8px",
-                      backgroundColor: theme.colors.primary,
-                      color: "white",
-                      border: "none",
-                      borderRadius: theme.borderRadius.small,
-                      fontSize: theme.typography.fontSizeSmall,
-                      cursor: "pointer"
-                    }}
-                  >
-                    {I18nService.t('edit')}
-                  </button>
-                )}
-                {!(theme.id === 'zhihu-white' || theme.id === 'zhihu-black' || theme.id === 'reddit-white' || theme.id === 'reddit-black') && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteTheme(theme.id);
-                    }}
-                    style={{
-                      padding: "4px 8px",
-                      backgroundColor: theme.colors.error,
-                      color: "white",
-                      border: "none",
-                      borderRadius: theme.borderRadius.small,
-                      fontSize: theme.typography.fontSizeSmall,
-                      cursor: "pointer"
-                    }}
-                  >
-                    {I18nService.t('delete')}
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

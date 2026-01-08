@@ -37,7 +37,9 @@ export const HistorySection: React.FC<HistorySectionProps> = ({
     <Card title={I18nService.t('settings_history')} icon={<span style={{ fontSize: "24px" }}>📅</span>}>
       <div style={{ marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ fontSize: "14px", color: "var(--theme-text-secondary, #666)" }}>
-          Total {historyRecords.length} users (Max {200})
+          {I18nService.t('total_users_max')
+            .replace('{count}', historyRecords.length.toString())
+            .replace('{max}', '200')}
         </div>
         {historyRecords.length > 0 && (
           <button
