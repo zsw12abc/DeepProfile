@@ -10,15 +10,19 @@ export const zhCN: LocaleDict = {
   cancel: "取消",
   delete: "删除",
   confirm_delete: "确定要删除吗？",
+  clear_all: "清空全部",
   confirm_clear_all: "确定要清空所有历史记录吗？此操作不可恢复。",
   export_markdown: "导出为 Markdown",
   export_image: "导出为图片",
+  export_image_failed: "图片导出失败",
   settings: "设置菜单",
 
   // Options Page
   settings_general: "通用设置",
   settings_zhihu: "知乎设置",
   settings_reddit: "Reddit 设置",
+  debug_mode: "调试模式",
+  debug_mode_desc: "启用详细日志记录",
   settings_history: "历史记录",
   settings_debug: "开发者选项",
   plugin_enabled: "✅ 插件已启用",
@@ -33,9 +37,13 @@ export const zhCN: LocaleDict = {
   connection_success: "✅ 连接成功",
   connection_failed: "❌ 连接失败",
   analysis_mode: "分析模式",
+  analyze_limit: "分析回答数量",
   mode_fast: "⚡ 极速",
+  mode_fast_desc: "最少内容，最快分析",
   mode_balanced: "⚖️ 平衡",
+  mode_balanced_desc: "适中内容，平衡速度与质量",
   mode_deep: "🧠 深度",
+  mode_deep_desc: "最多内容，最全面分析",
   
   // Categories
   category_politics: "🏛️ 政治 (Politics)",
@@ -60,6 +68,7 @@ export const zhCN: LocaleDict = {
   reanalyze: "重新分析",
   wait_moment: "请稍等片刻...",
   history_record: "历史记录",
+  history_empty: "暂无历史记录",
   debug_info: "调试信息",
   token_usage: "模型",
   total_duration: "总耗时",
@@ -83,6 +92,10 @@ export const zhCN: LocaleDict = {
   click_jump: "点击跳转",
   no_data: "暂无数据",
   generated_by: "由",
+  scan_to_install: "扫码安装",
+  start_ai_journey: "开启AI之旅",
+  ai_profile_analysis: "AI驱动的用户画像分析",
+  date_label: "日期",
   
   // Comment Analysis
   analyzing_comments: "正在分析当前页面的评论...",

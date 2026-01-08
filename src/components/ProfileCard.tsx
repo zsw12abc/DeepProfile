@@ -189,7 +189,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ record, platform, onRefresh, 
                     </div>
                 </div>
                 <div style="position: absolute; top: 20px; right: 20px; text-align: right;">
-                    <div style="font-size: 10px; opacity: 0.8; font-family: ${theme.typography.fontFamily};">Date</div>
+                    <div style="font-size: 10px; opacity: 0.8; font-family: ${theme.typography.fontFamily};">${I18nService.t('date_label')}</div>
                     <div style="font-size: 14px; font-weight: 600; font-family: ${theme.typography.fontFamily};">${dateStr}</div>
                 </div>
             </div>
@@ -219,7 +219,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ record, platform, onRefresh, 
                         <img src="${qrCodeUrl}" style="width: 48px; height: 48px; border-radius: 4px;" crossOrigin="anonymous" />
                         <div>
                             <div style="font-size: 12px; font-weight: 600; color: ${theme.colors.text}; font-family: ${theme.typography.fontFamily};">DeepProfile</div>
-                            <div style="font-size: 10px; color: ${theme.colors.textSecondary}; font-family: ${theme.typography.fontFamily};">AI-powered User Profile Analysis</div>
+                            <div style="font-size: 10px; color: ${theme.colors.textSecondary}; font-family: ${theme.typography.fontFamily};">${I18nService.t('ai_profile_analysis')}</div>
                         </div>
                     </div>
                     <div style="font-size: 10px; color: ${theme.colors.textSecondary}; text-align: right; font-family: ${theme.typography.fontFamily};">

@@ -44,8 +44,8 @@ export const HistorySection: React.FC<HistorySectionProps> = ({
             onClick={handleClearAllHistory}
             style={{
               padding: "8px 16px",
-              backgroundColor: "var(--theme-error, #fee2e2)",
-              color: "var(--theme-error, #c53030)",
+              backgroundColor: "var(--theme-error, #e53e3e)",
+              color: "var(--theme-error-text, #ffffff)",
               border: "none",
               borderRadius: "8px",
               cursor: "pointer",

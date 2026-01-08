@@ -213,7 +213,7 @@ export default function Options() {
                     </div>
                 </div>
                 <div style="position: absolute; top: 20px; right: 20px; text-align: right;">
-                    <div style="font-size: 10px; opacity: 0.8;">Date</div>
+                    <div style="font-size: 10px; opacity: 0.8;">${I18nService.t('date_label')}</div>
                     <div style="font-size: 14px; font-weight: 600;">${dateStr}</div>
                 </div>
             </div>
@@ -243,7 +243,7 @@ export default function Options() {
                         <img src="${qrCodeUrl}" style="width: 48px; height: 48px; border-radius: 4px;" crossOrigin="anonymous" />
                         <div>
                             <div style="font-size: 12px; font-weight: 600; color: #1a1a1a;">DeepProfile</div>
-                            <div style="font-size: 10px; color: #8590a6;">AI-powered User Profile Analysis</div>
+                            <div style="font-size: 10px; color: #8590a6;">${I18nService.t('ai_profile_analysis')}</div>
                         </div>
                     </div>
                     <div style="font-size: 10px; color: #999; text-align: right;">
