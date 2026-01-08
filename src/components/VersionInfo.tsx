@@ -49,7 +49,8 @@ export const VersionInfo: React.FC<VersionInfoProps> = ({ changelog }) => {
           backgroundColor: "var(--theme-surface, #f8fafc)", 
           borderRadius: "8px", 
           border: "1px solid var(--theme-border, #e2e8f0)",
-          lineHeight: "1.6"
+          lineHeight: "1.6",
+          color: "var(--theme-text, #4a5568)"
         }}>
           <MarkdownRenderer content={changelog} />
         </div>
@@ -66,7 +67,8 @@ export const VersionInfo: React.FC<VersionInfoProps> = ({ changelog }) => {
           backgroundColor: "var(--theme-surface, #f8fafc)", 
           borderRadius: "8px", 
           border: "1px solid var(--theme-border, #e2e8f0)",
-          lineHeight: "1.6"
+          lineHeight: "1.6",
+          color: "var(--theme-text, #4a5568)"
         }}>
           <MarkdownRenderer content={changelog} />
         </div>
