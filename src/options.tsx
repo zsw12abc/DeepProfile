@@ -431,7 +431,7 @@ export default function Options() {
       models={models}
       modelError={modelError}
       config={config}
-      setConfig={setConfig}
+      setConfig={handleConfigChange}
     />;
   }
 
