@@ -2,8 +2,8 @@ import React from "react";
 import { Card } from "./UIComponents";
 import { I18nService } from "~services/I18nService";
 import MarkdownRenderer from "~components/MarkdownRenderer";
-import zhCNChangelog from "data-text:./locales/zh-CN/CHANGELOG.md";
-import enUSChangelog from "data-text:./locales/en-US/CHANGELOG.md";
+import zhCNChangelog from "data-text:../locales/zh-CN/CHANGELOG.md";
+import enUSChangelog from "data-text:../locales/en-US/CHANGELOG.md";
 
 // 获取版本信息
 export const getVersion = (): string => {

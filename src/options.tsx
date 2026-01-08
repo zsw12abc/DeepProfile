@@ -12,6 +12,13 @@ import { I18nService } from "~services/I18nService"
 import MarkdownRenderer from "~components/MarkdownRenderer"
 import zhCNChangelog from "data-text:./locales/zh-CN/CHANGELOG.md"
 import enUSChangelog from "data-text:./locales/en-US/CHANGELOG.md"
+import { GeneralSettings } from "~components/PlatformSettings"
+import { PlatformSpecificSettings } from "~components/PlatformSettings"
+import { DebugSettings } from "~components/PlatformSettings"
+import { HistorySection } from "~components/HistorySection"
+import { VersionInfo } from "~components/VersionInfo"
+import { ZhihuIcon, RedditIcon, getBaseUrlPlaceholder, shouldShowBaseUrlInput } from "~components/HelperComponents"
+import { ModelSelector } from "~components/ModelSelector"
 
 // 获取版本信息
 const getVersion = (): string => {
@@ -32,68 +39,7 @@ const fetchChangelogContent = async (lang: string): Promise<string> => {
   }
 };
 
-const PROVIDERS: { value: AIProvider; label: string }[] = [
-  { value: "openai", label: "OpenAI" },
-  { value: "deepseek", label: "DeepSeek" },
-  { value: "qwen", label: "通义千问 (Qwen)" },
-  { value: "gemini", label: "Google Gemini" },
-  { value: "ollama", label: "Ollama (Local)" },
-  { value: "custom", label: "Custom (OpenAI Compatible)" }
-]
-
-const LANGUAGES: { value: Language; label: string }[] = [
-  { value: "zh-CN", label: "简体中文" },
-  { value: "en-US", label: "English" }
-]
-
-const ZhihuIcon = <img src="https://static.zhihu.com/heifetz/assets/apple-touch-icon-152.a53ae37b.png" alt="Zhihu" style={{ width: "24px", height: "24px", borderRadius: "4px", objectFit: "contain" }} />;
-const RedditIcon = <img src="https://www.redditstatic.com/desktop2x/img/favicon/apple-icon-120x120.png" alt="Reddit" style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "contain" }} />;
-
 type PlatformId = 'general' | 'zhihu' | 'reddit' | 'debug' | 'history' | 'version';
-
-const Card: React.FC<{ title: string; children: React.ReactNode; icon?: React.ReactNode }> = ({ title, children, icon }) => (
-  <div style={{
-    backgroundColor: "white",
-    borderRadius: "16px",
-    padding: "28px",
-    marginBottom: "24px",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.05)",
-    border: "1px solid #f0f0f0",
-    transition: "transform 0.3s ease, box-shadow 0.3s ease"
-  }}>
-    <h2 style={{ 
-        fontSize: "20px", 
-        margin: "0 0 24px 0", 
-        color: "#1a1a1a",
-        display: "flex",
-        alignItems: "center",
-        gap: "10px",
-        fontWeight: "600"
-    }}>
-        {icon && <span style={{ display: "flex", alignItems: "center", marginRight: "10px" }}>{icon}</span>}
-        {title}
-    </h2>
-    {children}
-  </div>
-);
-
-const InputGroup: React.FC<{ label: string; children: React.ReactNode; subLabel?: string }> = ({ label, children, subLabel }) => (
-    <div style={{ marginBottom: "24px" }}>
-        <label style={{ 
-          display: "block", 
-          marginBottom: "10px", 
-          fontWeight: "600", 
-          color: "#2d3748", 
-          fontSize: "15px",
-          alignItems: "center",
-          gap: "6px"
-        }}>
-            {label}
-        </label>
-        {children}
-        {subLabel && <div style={{ fontSize: "13px", color: "#718096", marginTop: "6px", lineHeight: "1.5" }}>{subLabel}</div>}
-    </div>
-)
 
 export default function Options() {
   const [config, setConfig] = useState<AppConfig | null>(null)
@@ -461,113 +407,16 @@ export default function Options() {
   </div>
 
   const renderModelSelector = () => {
-    if (isLoadingModels) {
-      return <div style={{ 
-        color: "#718096", 
-        fontSize: "14px", 
-        padding: "14px", 
-        backgroundColor: "#f8fafc", 
-        borderRadius: "10px", 
-        display: "flex", 
-        alignItems: "center", 
-        gap: "8px"
-      }}>⏳ {I18nService.t('loading')}</div>
-    }
-    
-    const hasModels = models.length > 0;
-    
-    return (
-      <>
-        {hasModels ? (
-            <div style={{ position: "relative" }}>
-                <select
-                value={config.customModelNames?.[config.selectedProvider] || ""}
-                onChange={(e) =>
-                    setConfig({
-                    ...config,
-                    customModelNames: {
-                        ...config.customModelNames,
-                        [config.selectedProvider]: e.target.value
-                    }
-                    })
-                }
-                style={{ 
-                    padding: "14px", 
-                    width: "100%", 
-                    borderRadius: "10px", 
-                    border: "2px solid #e2e8f0", 
-                    backgroundColor: "#fff",
-                    fontSize: "15px",
-                    appearance: "none",
-                    backgroundImage: "url(\"data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%234a5568%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E\")",
-                    backgroundRepeat: "no-repeat",
-                    backgroundPosition: "right 14px top 50%",
-                    backgroundSize: "12px auto"
-                }}
-                >
-                <option value="">-- {I18nService.t('model_select')} --</option>
-                {models.map(m => <option key={m} value={m}>{m}</option>)}
-                </select>
-            </div>
-        ) : (
-            <input
-              type="text"
-              value={config.customModelNames?.[config.selectedProvider] || ""}
-              onChange={(e) =>
-                setConfig({
-                  ...config,
-                  customModelNames: {
-                    ...config.customModelNames,
-                    [config.selectedProvider]: e.target.value
-                  }
-                })
-              }
-              style={{ 
-                padding: "14px", 
-                width: "100%", 
-                borderRadius: "10px", 
-                border: "2px solid #e2e8f0", 
-                fontSize: "15px",
-                backgroundColor: "#fff"
-              }}
-              placeholder="手动输入模型名称 (如 gpt-4o)"
-            />
-        )}
-        
-        {modelError && (
-            <div style={{ 
-              color: "#e53e3e", 
-              fontSize: "13px", 
-              marginTop: "8px", 
-              display: "flex", 
-              alignItems: "center", 
-              gap: "6px",
-              backgroundColor: "#fed7d7",
-              padding: "10px",
-              borderRadius: "8px"
-            }}>
-                ⚠️ {modelError}
-            </div>
-        )}
-      </>
-    )
+    return <ModelSelector 
+      isLoadingModels={isLoadingModels}
+      models={models}
+      modelError={modelError}
+      config={config}
+      setConfig={setConfig}
+    />;
   }
 
-  const getBaseUrlPlaceholder = (provider: AIProvider) => {
-      switch(provider) {
-          case 'ollama': return "http://localhost:11434";
-          case 'qwen': return "https://dashscope.aliyuncs.com/compatible-mode/v1";
-          case 'deepseek': return "https://api.deepseek.com/v1";
-          case 'custom': return "https://api.example.com/v1";
-          default: return "https://api.openai.com/v1";
-      }
-  }
-
-  const showBaseUrlInput = config.selectedProvider === "ollama" || 
-                           config.selectedProvider === "custom" || 
-                           config.selectedProvider === "qwen" ||
-                           config.selectedProvider === "deepseek" ||
-                           config.selectedProvider === "openai";
+  const showBaseUrlInput = shouldShowBaseUrlInput(config.selectedProvider);
 
   const PLATFORMS = [
     { id: 'general', name: I18nService.t('settings_general'), icon: <span style={{ fontSize: "24px" }}>⚙️</span> },
@@ -607,157 +456,6 @@ export default function Options() {
             handleExportMarkdown={handleExportMarkdown}
             handleExportImage={handleExportImage}
           />
-        );                  <details key={`${userRecord.platform}-${userRecord.userId}`} style={{
-                    padding: "16px",
-                    backgroundColor: "#fff",
-                    border: "1px solid #e2e8f0",
-                    borderRadius: "10px",
-                    transition: "all 0.2s",
-                    boxShadow: "0 2px 4px rgba(0,0,0,0.02)"
-                  }}>
-                    <summary style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      cursor: "pointer"
-                    }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <span style={{ 
-                          fontSize: "12px", 
-                          padding: "2px 6px", 
-                          borderRadius: "4px", 
-                          backgroundColor: userRecord.platform === 'zhihu' ? '#e1f0fa' : '#ffedd5',
-                          color: userRecord.platform === 'zhihu' ? '#2980b9' : '#c05621',
-                          fontWeight: "600"
-                        }}>
-                          {userRecord.platform === 'zhihu' ? '知乎' : 'Reddit'}
-                        </span>
-                        <span style={{ fontWeight: "600", color: "#2d3748" }}>
-                          {userRecord.userInfo?.name || Object.values(userRecord.profiles)[0]?.profileData.nickname || userRecord.userId}
-                        </span>
-                        <span style={{ fontSize: "13px", color: "#a0aec0" }}>({userRecord.userId})</span>
-                      </div>
-                      <button
-                        onClick={(e) => { e.preventDefault(); handleDeleteUser(userRecord.userId, userRecord.platform); }}
-                        style={{
-                          padding: "8px",
-                          backgroundColor: "transparent",
-                          border: "none",
-                          cursor: "pointer",
-                          fontSize: "16px",
-                          color: "#cbd5e0",
-                          transition: "color 0.2s"
-                        }}
-                        onMouseOver={e => e.currentTarget.style.color = "#e53e3e"}
-                        onMouseOut={e => e.currentTarget.style.color = "#cbd5e0"}
-                        title={I18nService.t('delete')}
-                      >
-                        ×
-                      </button>
-                    </summary>
-                    <div style={{ marginTop: "16px", borderTop: "1px solid #f0f0f0", paddingTop: "12px", display: "flex", flexDirection: "column", gap: "8px" }}>
-                      {Object.values(userRecord.profiles).map(profile => {
-                        const date = new Date(profile.timestamp);
-                        const timeStr = date.toLocaleString(config?.language === 'en-US' ? 'en-US' : 'zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-                        const categoryName = TopicService.getCategoryName(profile.category as MacroCategory);
-                        const summary = profile.profileData.summary;
-                        const labels = profile.profileData.value_orientation || profile.profileData.political_leaning || [];
-
-                        return (
-                          <details key={profile.category} style={{ fontSize: "13px", color: "#4a5568", padding: "8px", borderRadius: "6px", backgroundColor: "#f8fafc" }}>
-                            <summary style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
-                              <div>
-                                <div style={{ fontWeight: "500" }}>{categoryName}</div>
-                                <div style={{ fontSize: "11px", color: "#a0aec0", marginTop: "2px" }}>🕒 {timeStr}</div>
-                              </div>
-                              <div style={{ display: "flex", gap: "8px" }}>
-                                <button
-                                  onClick={(e) => { 
-                                    e.preventDefault(); 
-                                    handleExportMarkdown(profile.profileData as ProfileData, profile.category as MacroCategory, userRecord.userId, profile.timestamp); 
-                                  }}
-                                  style={{
-                                    padding: "4px",
-                                    backgroundColor: "transparent",
-                                    border: "none",
-                                    cursor: "pointer",
-                                    fontSize: "14px",
-                                    color: "#cbd5e0",
-                                    transition: "color 0.2s"
-                                  }}
-                                  onMouseOver={e => e.currentTarget.style.color = "#3498db"}
-                                  onMouseOut={e => e.currentTarget.style.color = "#cbd5e0"}
-                                  title={I18nService.t('export_markdown')}
-                                >
-                                  📝
-                                </button>
-                                <button
-                                  onClick={(e) => { 
-                                    e.preventDefault(); 
-                                    handleExportImage(profile.profileData as ProfileData, profile.category as MacroCategory, userRecord.userId, profile.timestamp, userRecord.userInfo); 
-                                  }}
-                                  style={{
-                                    padding: "4px",
-                                    backgroundColor: "transparent",
-                                    border: "none",
-                                    cursor: isExporting ? "wait" : "pointer",
-                                    fontSize: "14px",
-                                    color: "#cbd5e0",
-                                    transition: "color 0.2s",
-                                    opacity: isExporting ? 0.5 : 1
-                                  }}
-                                  onMouseOver={e => e.currentTarget.style.color = "#3498db"}
-                                  onMouseOut={e => e.currentTarget.style.color = "#cbd5e0"}
-                                  title={I18nService.t('export_image')}
-                                  disabled={isExporting}
-                                >
-                                  📸
-                                </button>
-                                <button
-                                  onClick={(e) => { e.preventDefault(); handleDeleteProfile(userRecord.userId, userRecord.platform, profile.category); }}
-                                  style={{
-                                    padding: "4px",
-                                    backgroundColor: "transparent",
-                                    border: "none",
-                                    cursor: "pointer",
-                                    fontSize: "14px",
-                                    color: "#cbd5e0",
-                                    transition: "color 0.2s"
-                                  }}
-                                  onMouseOver={e => e.currentTarget.style.color = "#e53e3e"}
-                                  onMouseOut={e => e.currentTarget.style.color = "#cbd5e0"}
-                                  title={I18nService.t('delete')}
-                                >
-                                  🗑️
-                                </button>
-                              </div>
-                            </summary>
-                            <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px dashed #e2e8f0" }}>
-                              <p style={{ margin: "0 0 10px 0", fontStyle: "italic" }}>"{summary}"</p>
-                              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                                {labels.map((item: { label: string; score: number }, index: number) => {
-                                  const { label, percentage } = calculateFinalLabel(item.label, item.score);
-                                  return (
-                                    <div key={index} style={{ display: "flex", alignItems: "center", fontSize: "12px" }}>
-                                      <span style={{ width: "80px", fontWeight: "500" }}>{label}</span>
-                                      <div style={{ flex: 1, height: "8px", backgroundColor: "#e0e0e0", borderRadius: "4px", overflow: "hidden" }}>
-                                        <div style={{ height: "100%", width: `${percentage}%`, backgroundColor: item.score > 0 ? "#3498db" : "#e74c3c", borderRadius: "4px" }} />
-                                      </div>
-                                      <span style={{ width: "30px", textAlign: "right", fontSize: "11px" }}>{percentage}%</span>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          </details>
-                        );
-                      })}
-                    </div>
-                  </details>
-                ))}
-              </div>
-            )}
-          </Card>
         );
       case 'debug':
         return <DebugSettings config={config} setConfig={setConfig} />;
