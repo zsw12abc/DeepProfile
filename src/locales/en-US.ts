@@ -134,5 +134,11 @@ export const enUS: LocaleDict = {
   // Context Invalidated Error
   extension_context_invalidated: "Extension context invalidated",
   extension_context_invalidated_title: "Extension Context Invalidated",
-  extension_context_invalidated_desc: "Extension context has been invalidated. Please refresh the page to retry."
+  extension_context_invalidated_desc: "Extension context has been invalidated. Please refresh the page to retry.",
+  
+  // Version Info
+  version_info: "Version Information",
+  current_version: "Current Version",
+  changelog: "Changelog",
+  version_history: "Version History"
 };

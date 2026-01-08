@@ -11,7 +11,7 @@ export const getVersion = (): string => {
     const manifest = chrome.runtime.getManifest();
     return manifest.version;
   } catch (e) {
-    return "0.6.1"; // Fallback
+    return "0.6.2"; // Fallback
   }
 };
 

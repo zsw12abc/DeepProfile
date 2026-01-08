@@ -81,6 +81,12 @@ export type LocaleKey =
   // Context Invalidated Error
   | 'extension_context_invalidated'
   | 'extension_context_invalidated_title'
-  | 'extension_context_invalidated_desc';
+  | 'extension_context_invalidated_desc'
+  
+  // Version Info
+  | 'version_info'
+  | 'current_version'
+  | 'changelog'
+  | 'version_history';
 
 export type LocaleDict = Record<LocaleKey, string>;

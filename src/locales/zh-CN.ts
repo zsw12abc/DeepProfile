@@ -134,5 +134,11 @@ export const zhCN: LocaleDict = {
   // Context Invalidated Error
   extension_context_invalidated: "扩展上下文失效",
   extension_context_invalidated_title: "扩展上下文失效",
-  extension_context_invalidated_desc: "扩展上下文已失效，请刷新页面重试。"
+  extension_context_invalidated_desc: "扩展上下文已失效，请刷新页面重试。",
+  
+  // Version Info
+  version_info: "版本信息",
+  current_version: "当前版本",
+  changelog: "更新日志",
+  version_history: "版本历史"
 };
