@@ -27,7 +27,7 @@ describe("ThemeService", () => {
 
   it("should get the default theme initially", () => {
     const currentTheme = themeService.getCurrentTheme();
-    expect(currentTheme.id).toBe('default');
+    expect(currentTheme.id).toBe('zhihu-white');
   });
 
   it("should apply a new theme", async () => {
@@ -118,7 +118,7 @@ describe("ThemeService", () => {
     storageMock.get.mockResolvedValue({ deep_profile_config: DEFAULT_CONFIG });
     const themes = await themeService.getAllThemes();
     expect(themes).toHaveLength(Object.keys(DEFAULT_CONFIG.themes).length);
-    expect(themes.some(t => t.id === 'default')).toBe(true);
+    expect(themes.some(t => t.id === 'zhihu-white')).toBe(true);
   });
 
   it("should add a new theme", async () => {
@@ -187,20 +187,20 @@ describe("ThemeService", () => {
   });
 
   it("should not allow deleting built-in themes", async () => {
-    await expect(themeService.deleteTheme('default')).rejects.toThrow("Cannot delete built-in themes");
+    await expect(themeService.deleteTheme('zhihu-white')).rejects.toThrow("Cannot delete built-in themes");
   });
 
   it("should initialize with the configured theme", async () => {
     // Setup: Save a config with a non-default theme
     const customConfig = {
       ...DEFAULT_CONFIG,
-      themeId: 'dark'
+      themeId: 'zhihu-black'
     };
     storageMock.get.mockResolvedValue({ deep_profile_config: customConfig });
 
     await themeService.initialize();
     const currentTheme = themeService.getCurrentTheme();
     
-    expect(currentTheme.id).toBe('dark');
+    expect(currentTheme.id).toBe('zhihu-black');
   });
 });

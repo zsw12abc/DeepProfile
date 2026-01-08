@@ -104,22 +104,22 @@ export interface ExtendedAppConfig extends AppConfig {
   themes: Record<string, ThemeConfig>;
 }
 
-export const DEFAULT_THEME: ThemeConfig = {
-  id: 'default',
-  name: 'Default Theme',
-  description: 'The default theme for DeepProfile',
+export const ZHIHU_WHITE_THEME: ThemeConfig = {
+  id: 'zhihu-white',
+  name: 'Zhihu White Theme',
+  description: 'Zhihu-inspired light theme with blue accents',
   colors: {
-    primary: '#0084ff',
+    primary: '#0084ff',  // 知乎蓝
     secondary: '#3498db',
     background: '#f9fafb',
     surface: '#ffffff',
     text: '#333333',
     textSecondary: '#666666',
-    border: '#eeeeee',
+    border: '#e0e0e0',
     success: '#27ae60',
     warning: '#f39c12',
     error: '#e74c3c',
-    accent: '#9b59b6'
+    accent: '#0084ff'  // 知乎蓝
   },
   typography: {
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
@@ -151,12 +151,12 @@ export const DEFAULT_THEME: ThemeConfig = {
   }
 };
 
-export const DARK_THEME: ThemeConfig = {
-  id: 'dark',
-  name: 'Dark Theme',
-  description: 'Dark theme for low-light environments',
+export const ZHIHU_BLACK_THEME: ThemeConfig = {
+  id: 'zhihu-black',
+  name: 'Zhihu Dark Theme',
+  description: 'Zhihu-inspired dark theme with blue accents',
   colors: {
-    primary: '#0084ff',
+    primary: '#0084ff',  // 知乎蓝
     secondary: '#3498db',
     background: '#121212',
     surface: '#1e1e1e',
@@ -166,7 +166,7 @@ export const DARK_THEME: ThemeConfig = {
     success: '#27ae60',
     warning: '#f39c12',
     error: '#e74c3c',
-    accent: '#9b59b6'
+    accent: '#0084ff'  // 知乎蓝
   },
   typography: {
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
@@ -198,52 +198,105 @@ export const DARK_THEME: ThemeConfig = {
   }
 };
 
-export const COMPACT_THEME: ThemeConfig = {
-  id: 'compact',
-  name: 'Compact Theme',
-  description: 'Space-saving compact theme',
+export const REDDIT_WHITE_THEME: ThemeConfig = {
+  id: 'reddit-white',
+  name: 'Reddit White Theme',
+  description: 'Reddit-inspired light theme with orangered and periwinkle accents',
   colors: {
-    primary: '#0084ff',
-    secondary: '#3498db',
-    background: '#f0f2f5',
+    primary: '#FF4500',  // Reddit橘红 (Orangered)
+    secondary: '#9494FF',  // 长春花蓝 (Periwinkle)
+    background: '#dae0e6',  // Reddit背景色
     surface: '#ffffff',
-    text: '#1a1a1a',
-    textSecondary: '#666666',
-    border: '#dddddd',
+    text: '#1c1c1c',  // Reddit深灰色文本
+    textSecondary: '#6a6a6a',
+    border: '#ccc',
     success: '#27ae60',
     warning: '#f39c12',
     error: '#e74c3c',
-    accent: '#9b59b6'
+    accent: '#FF4500'  // Reddit橘红
   },
   typography: {
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-    fontSizeBase: '13px',
-    fontSizeSmall: '11px',
-    fontSizeMedium: '14px',
-    fontSizeLarge: '16px',
+    fontSizeBase: '14px',
+    fontSizeSmall: '12px',
+    fontSizeMedium: '16px',
+    fontSizeLarge: '18px',
     fontWeightNormal: 400,
-    fontWeightBold: 500,
-    lineHeight: 1.4
+    fontWeightBold: 600,
+    lineHeight: 1.5
   },
   spacing: {
-    xs: '2px',
-    sm: '4px',
-    md: '8px',
-    lg: '12px',
-    xl: '16px',
-    xxl: '24px'
+    xs: '4px',
+    sm: '8px',
+    md: '16px',
+    lg: '24px',
+    xl: '32px',
+    xxl: '48px'
   },
   borderRadius: {
-    small: '2px',
-    medium: '4px',
-    large: '6px'
+    small: '4px',
+    medium: '8px',
+    large: '12px'
   },
   shadows: {
-    small: '0 1px 2px rgba(0,0,0,0.05)',
-    medium: '0 2px 6px rgba(0,0,0,0.1)',
-    large: '0 4px 12px rgba(0,0,0,0.1)'
+    small: '0 2px 4px rgba(0,0,0,0.05)',
+    medium: '0 4px 12px rgba(0,0,0,0.1)',
+    large: '0 8px 24px rgba(0,0,0,0.15)'
   }
 };
+
+export const REDDIT_BLACK_THEME: ThemeConfig = {
+  id: 'reddit-black',
+  name: 'Reddit Dark Theme',
+  description: 'Reddit-inspired dark theme with orangered and periwinkle accents',
+  colors: {
+    primary: '#FF4500',  // Reddit橘红 (Orangered)
+    secondary: '#9494FF',  // 长春花蓝 (Periwinkle)
+    background: '#1a1a1b',  // Reddit暗色背景
+    surface: '#272729',
+    text: '#d7dadc',  // Reddit暗色文本
+    textSecondary: '#a8aab4',
+    border: '#474a4e',
+    success: '#27ae60',
+    warning: '#f39c12',
+    error: '#e74c3c',
+    accent: '#FF4500'  // Reddit橘红
+  },
+  typography: {
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    fontSizeBase: '14px',
+    fontSizeSmall: '12px',
+    fontSizeMedium: '16px',
+    fontSizeLarge: '18px',
+    fontWeightNormal: 400,
+    fontWeightBold: 600,
+    lineHeight: 1.5
+  },
+  spacing: {
+    xs: '4px',
+    sm: '8px',
+    md: '16px',
+    lg: '24px',
+    xl: '32px',
+    xxl: '48px'
+  },
+  borderRadius: {
+    small: '4px',
+    medium: '8px',
+    large: '12px'
+  },
+  shadows: {
+    small: '0 2px 4px rgba(0,0,0,0.3)',
+    medium: '0 4px 12px rgba(0,0,0,0.4)',
+    large: '0 8px 24px rgba(0,0,0,0.5)'
+  }
+};
+
+
+
+
+
+
 
 export const DEFAULT_CONFIG: ExtendedAppConfig = {
   globalEnabled: true,
@@ -289,11 +342,12 @@ export const DEFAULT_CONFIG: ExtendedAppConfig = {
       apiEndpoint: 'https://api.weibo.com'
     }
   },
-  themeId: 'default',
+  themeId: 'zhihu-white',
   themes: {
-    'default': DEFAULT_THEME,
-    'dark': DARK_THEME,
-    'compact': COMPACT_THEME
+    'zhihu-white': ZHIHU_WHITE_THEME,
+    'zhihu-black': ZHIHU_BLACK_THEME,
+    'reddit-white': REDDIT_WHITE_THEME,
+    'reddit-black': REDDIT_BLACK_THEME
   }
 };
 

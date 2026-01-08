@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { I18nService } from "~services/I18nService";
 import { ThemeService } from "~services/ThemeService";
 import { ConfigService } from "~services/ConfigService";
-import { DEFAULT_THEME, DARK_THEME, COMPACT_THEME } from "~types";
 import type { ThemeConfig, ExtendedAppConfig } from "~types";
 
 interface ThemeSettingsProps {
@@ -63,9 +62,10 @@ const ThemeSettings: React.FC<ThemeSettingsProps> = ({ config, setConfig }) => {
     }
 
     try {
-      // 使用默认主题作为基础进行自定义
+      // 使用当前主题作为基础进行自定义
+      const currentTheme = await ThemeService.getInstance().getCurrentTheme();
       const newTheme: ThemeConfig = {
-        ...DEFAULT_THEME,
+        ...currentTheme,
         id: customTheme.id,
         name: customTheme.name,
         description: customTheme.description || `Custom theme: ${customTheme.name}`
@@ -82,7 +82,7 @@ const ThemeSettings: React.FC<ThemeSettingsProps> = ({ config, setConfig }) => {
   };
 
   const handleEditTheme = (theme: ThemeConfig) => {
-    if (theme.id === 'default' || theme.id === 'dark' || theme.id === 'compact') {
+    if (theme.id === 'zhihu-white' || theme.id === 'zhihu-black' || theme.id === 'reddit-white' || theme.id === 'reddit-black') {
       // 为内置主题创建副本进行编辑
       const newThemeId = `${theme.id}_custom`;
       setEditingTheme({
@@ -98,7 +98,7 @@ const ThemeSettings: React.FC<ThemeSettingsProps> = ({ config, setConfig }) => {
   };
 
   const handleDeleteTheme = async (themeId: string) => {
-    if (themeId === 'default' || themeId === 'dark' || themeId === 'compact') {
+    if (themeId === 'zhihu-white' || themeId === 'zhihu-black' || themeId === 'reddit-white' || themeId === 'reddit-black') {
       setStatus({ type: 'error', message: I18nService.t('cannot_delete_builtin_theme') });
       return;
     }
@@ -107,7 +107,7 @@ const ThemeSettings: React.FC<ThemeSettingsProps> = ({ config, setConfig }) => {
       try {
         await ThemeService.getInstance().deleteTheme(themeId);
         if (selectedThemeId === themeId) {
-          await handleThemeChange('default');
+          await handleThemeChange('zhihu-white');
         }
         await loadThemes();
         setStatus({ type: 'success', message: I18nService.t('theme_deleted') });
@@ -236,7 +236,7 @@ const ThemeSettings: React.FC<ThemeSettingsProps> = ({ config, setConfig }) => {
                 <div style={{ width: "20px", height: "20px", backgroundColor: theme.colors.warning, borderRadius: "4px" }}></div>
               </div>
               <div style={{ marginTop: "8px", display: "flex", gap: "8px" }}>
-                {!['default', 'dark', 'compact'].includes(theme.id) && (
+                {!(theme.id === 'zhihu-white' || theme.id === 'zhihu-black' || theme.id === 'reddit-white' || theme.id === 'reddit-black') && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -255,7 +255,7 @@ const ThemeSettings: React.FC<ThemeSettingsProps> = ({ config, setConfig }) => {
                     {I18nService.t('edit')}
                   </button>
                 )}
-                {!['default', 'dark', 'compact'].includes(theme.id) && (
+                {!(theme.id === 'zhihu-white' || theme.id === 'zhihu-black' || theme.id === 'reddit-white' || theme.id === 'reddit-black') && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -434,7 +434,7 @@ const ThemeSettings: React.FC<ThemeSettingsProps> = ({ config, setConfig }) => {
                 type="text"
                 value={editingTheme.id}
                 onChange={(e) => handleThemeFieldChange('id', e.target.value)}
-                disabled={editingTheme.id === 'default' || editingTheme.id === 'dark' || editingTheme.id === 'compact'}
+                disabled={editingTheme.id === 'zhihu-white' || editingTheme.id === 'zhihu-black' || editingTheme.id === 'reddit-white' || editingTheme.id === 'reddit-black'}
                 style={{
                   width: "100%",
                   padding: "8px 12px",

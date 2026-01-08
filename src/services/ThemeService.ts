@@ -6,7 +6,7 @@ export class ThemeService {
   private currentTheme: ThemeConfig;
 
   private constructor() {
-    this.currentTheme = DEFAULT_CONFIG.themes['default'] || DEFAULT_CONFIG.themes['default'];
+    this.currentTheme = DEFAULT_CONFIG.themes['zhihu-white'] || Object.values(DEFAULT_CONFIG.themes)[0];
   }
 
   public static getInstance(): ThemeService {
@@ -33,7 +33,7 @@ export class ThemeService {
       
       if (!theme) {
         console.warn(`Theme ${themeId} not found, falling back to default`);
-        this.currentTheme = config.themes['default'] || DEFAULT_CONFIG.themes['default'];
+        this.currentTheme = config.themes['zhihu-white'] || DEFAULT_CONFIG.themes['zhihu-white'] || Object.values(DEFAULT_CONFIG.themes)[0];
       } else {
         this.currentTheme = theme;
       }
@@ -52,8 +52,19 @@ export class ThemeService {
     try {
       const result = await chrome.storage.local.get(ThemeService.STORAGE_KEY);
       const storedConfig = result[ThemeService.STORAGE_KEY] as Partial<ExtendedAppConfig> || {};
+      
       // Merge stored config with default config to ensure all fields exist
-      return { ...DEFAULT_CONFIG, ...storedConfig } as ExtendedAppConfig;
+      //特别注意合并themes字段，保留新增的主题
+      const mergedThemes = {
+        ...DEFAULT_CONFIG.themes,
+        ...(storedConfig.themes || {})
+      };
+      
+      return { 
+        ...DEFAULT_CONFIG, 
+        ...storedConfig,
+        themes: mergedThemes
+      } as ExtendedAppConfig;
     } catch (error) {
       console.error("Failed to get config:", error);
       return DEFAULT_CONFIG as ExtendedAppConfig;
@@ -91,7 +102,7 @@ export class ThemeService {
    * 删除主题
    */
   public async deleteTheme(themeId: string): Promise<void> {
-    if (themeId === 'default' || themeId === 'dark' || themeId === 'compact') {
+    if (themeId === 'zhihu-white' || themeId === 'zhihu-black' || themeId === 'reddit-white' || themeId === 'reddit-black') {
       throw new Error("Cannot delete built-in themes");
     }
 
@@ -102,8 +113,8 @@ export class ThemeService {
     // 如果删除的是当前主题，切换回默认主题
     let newThemeId = config.themeId;
     if (config.themeId === themeId) {
-      newThemeId = 'default';
-      this.currentTheme = config.themes['default'] || DEFAULT_CONFIG.themes['default'];
+      newThemeId = 'zhihu-white';
+      this.currentTheme = config.themes['zhihu-white'] || DEFAULT_CONFIG.themes['zhihu-white'] || Object.values(DEFAULT_CONFIG.themes)[0];
     }
 
     await this.updateConfig({ ...config, themes: updatedThemes, themeId: newThemeId });
@@ -123,19 +134,66 @@ export class ThemeService {
   public async initialize(): Promise<void> {
     try {
       const config = await this.getConfig();
-      const theme = config.themes[config.themeId];
+      
+      // 清理旧主题并确保只保留内置主题
+      await this.cleanupOldThemes();
+      
+      // 重新获取配置以确保旧主题已被移除
+      const updatedConfig = await this.getConfig();
+      const theme = updatedConfig.themes[updatedConfig.themeId];
       
       if (theme) {
         this.currentTheme = theme;
       } else {
         // 如果配置的主题不存在，使用默认主题
-        this.currentTheme = config.themes['default'] || DEFAULT_CONFIG.themes['default'];
+        this.currentTheme = updatedConfig.themes['zhihu-white'] || DEFAULT_CONFIG.themes['zhihu-white'] || Object.values(DEFAULT_CONFIG.themes)[0];
         // 同时更新配置
-        await this.updateConfig({ ...config, themeId: 'default' });
+        await this.updateConfig({ ...updatedConfig, themeId: 'zhihu-white' });
       }
     } catch (error) {
       console.error("Failed to initialize theme:", error);
-      this.currentTheme = DEFAULT_CONFIG.themes['default'];
+      this.currentTheme = DEFAULT_CONFIG.themes['zhihu-white'] || Object.values(DEFAULT_CONFIG.themes)[0];
+    }
+  }
+
+  /**
+   * 清理旧主题，确保只保留内置主题
+   */
+  private async cleanupOldThemes(): Promise<void> {
+    const config = await this.getConfig();
+    const oldThemeIds = ['default', 'dark', 'compact'];
+    const hasOldThemes = oldThemeIds.some(id => config.themes && config.themes[id]);
+    
+    if (hasOldThemes) {
+      console.log('发现旧主题，正在清理...');
+      
+      // 创建新主题对象，只保留新主题
+      const newThemes = { ...config.themes };
+      oldThemeIds.forEach(id => {
+        if (newThemes[id]) {
+          delete newThemes[id];
+          console.log(`已移除旧主题: ${id}`);
+        }
+      });
+      
+      // 确保内置主题存在
+      const builtinThemes = ['zhihu-white', 'zhihu-black', 'reddit-white', 'reddit-black'];
+      builtinThemes.forEach(id => {
+        if (!newThemes[id]) {
+          newThemes[id] = DEFAULT_CONFIG.themes[id];
+          console.log(`已添加缺失的内置主题: ${id}`);
+        }
+      });
+      
+      // 如果当前主题是旧主题，切换到新默认主题
+      let newThemeId = config.themeId;
+      if (oldThemeIds.includes(config.themeId)) {
+        newThemeId = 'zhihu-white';
+        console.log(`当前主题为旧主题，切换到默认主题: ${newThemeId}`);
+      }
+      
+      await this.updateConfig({ ...config, themes: newThemes, themeId: newThemeId });
+      console.log('旧主题清理完成');
     }
   }
 }

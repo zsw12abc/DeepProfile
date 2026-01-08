@@ -72,7 +72,7 @@ describe('ConfigService', () => {
         }
       },
       // Include theme-related fields to make the config complete
-      themeId: 'default',
+      themeId: 'zhihu-white',
       themes: DEFAULT_CONFIG.themes
     };
     storageMock.get.mockResolvedValue({ deep_profile_config: storedConfig });
@@ -125,7 +125,7 @@ describe('ConfigService', () => {
           enabled: true
         }
       },
-      themeId: 'default',
+      themeId: 'zhihu-white',
       themes: DEFAULT_CONFIG.themes
     };
     await ConfigService.saveConfig(newConfig);
@@ -177,7 +177,7 @@ describe('ConfigService', () => {
           enabled: true
         }
       },
-      themeId: 'default',
+      themeId: 'zhihu-white',
       themes: DEFAULT_CONFIG.themes
     };
     storageMock.get.mockResolvedValue({ deep_profile_config: initialConfig });

@@ -7,8 +7,19 @@ export class ConfigService {
     try {
       const result = await chrome.storage.local.get(this.STORAGE_KEY)
       const storedConfig = result[this.STORAGE_KEY] as Partial<ExtendedAppConfig> || {}
+      
       // Merge stored config with default config to ensure all fields exist
-      return { ...DEFAULT_CONFIG, ...storedConfig } as ExtendedAppConfig
+      //特别注意合并themes字段，保留新增的主题
+      const mergedThemes = {
+        ...DEFAULT_CONFIG.themes,
+        ...(storedConfig.themes || {})
+      };
+      
+      return { 
+        ...DEFAULT_CONFIG, 
+        ...storedConfig,
+        themes: mergedThemes
+      } as ExtendedAppConfig
     } catch (error) {
       console.error("Failed to get config:", error)
       return DEFAULT_CONFIG as ExtendedAppConfig

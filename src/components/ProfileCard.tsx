@@ -8,20 +8,13 @@ import { ThemeService } from "~services/ThemeService"
 import html2canvas from "html2canvas"
 import icon from "data-base64:../../assets/icon.png"
 import { I18nService } from "~services/I18nService"
-import { DEFAULT_THEME, type ThemeConfig } from "~types"
-
-interface ProfileData {
-  nickname?: string
-  topic_classification?: string
-  value_orientation?: Array<{ label: string; score: number }>
-  summary?: string
-  evidence?: Array<{
-    quote: string
-    analysis: string
-    source_title: string
-    source_id?: string
-  }>
-}
+import { 
+  type ThemeConfig, 
+  type UserHistoryRecord, 
+  type ProfileData,
+  type SupportedPlatform,
+  ZHIHU_WHITE_THEME
+} from "../types";
 
 interface DebugInfo {
   totalDurationMs: number;
@@ -40,47 +33,17 @@ interface DebugInfo {
 }
 
 interface ProfileCardProps {
-  userId: string
-  initialNickname?: string
-  profileData: {
-    profile: {  // 现在 profile 是 LLMResponse 对象
-      content: any,  // 解析后的画像数据
-      usage?: {
-        prompt_tokens: number;
-        completion_tokens: number;
-        total_tokens: number;
-      };
-      durationMs: number;
-      model: string;
-    },
-    items: ZhihuContent[]
-    userProfile: UserProfile | null
-    debugInfo?: DebugInfo
-    fromCache?: boolean
-    cachedAt?: number
-    cachedContext?: string
-  } | null
-  loading: boolean
-  statusMessage?: string
-  error?: string
-  onClose: () => void
-  onRefresh?: () => void // New prop for force refresh
+  record: UserHistoryRecord
+  platform: SupportedPlatform
+  onRefresh?: () => void
+  onDelete?: () => void
+  onExport?: () => void
 }
 
-const ProfileCard: React.FC<ProfileCardProps> = ({
-  userId,
-  initialNickname,
-  profileData,
-  loading,
-  statusMessage,
-  error,
-  onClose,
-  onRefresh
-}) => {
-  const [showDebug, setShowDebug] = useState(false)
-  const [expandedEvidence, setExpandedEvidence] = useState(false)
-  const [isExporting, setIsExporting] = useState(false)
-  const [theme, setTheme] = useState<ThemeConfig>(DEFAULT_THEME)
+const ProfileCard: React.FC<ProfileCardProps> = ({ record, platform, onRefresh, onDelete, onExport }) => {
+  const [isExpanded, setIsExpanded] = useState(true);
+  const [theme, setTheme] = useState<ThemeConfig>(ZHIHU_WHITE_THEME);
+  const [isLoading, setIsLoading] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null)
   
   useEffect(() => {
@@ -93,7 +56,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     loadTheme();
   }, []);
 
-  let nickname = initialNickname || I18nService.t('unknown_user')
+  let nickname = record.nickname || I18nService.t('unknown_user')
   let topicClassification = I18nService.t('unknown_topic')
   let valueOrientation: Array<{ label: string; score: number }> = []
   let summary = ""
@@ -105,9 +68,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   let cachedContext = ""
   let userProfile: UserProfile | null = null
 
-  if (profileData) {
+  if (record.profileData) {
     try {
-      const parsedProfile: ProfileData = profileData.profile;
+      const parsedProfile: ProfileData = record.profileData;
       nickname = parsedProfile.nickname || nickname
       topicClassification = parsedProfile.topic_classification || topicClassification
       
@@ -117,29 +80,29 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       
       summary = parsedProfile.summary || ""
       evidence = parsedProfile.evidence || []
-      debugInfo = profileData.debugInfo
-      items = profileData.items || []
-      fromCache = profileData.fromCache || false
-      cachedAt = profileData.cachedAt || 0
-      cachedContext = profileData.cachedContext || ""
-      userProfile = profileData.userProfile
+      debugInfo = record.debugInfo
+      items = record.items || []
+      fromCache = record.fromCache || false
+      cachedAt = record.cachedAt || 0
+      cachedContext = record.cachedContext || ""
+      userProfile = record.userProfile
     } catch (e) {
       console.error("Failed to parse profile data:", e)
     }
   }
 
-  const displayName = nickname || `${I18nService.t('unknown_user')}${userId.substring(0, 8)}`
-  const userHomeUrl = `https://www.zhihu.com/people/${userId}`
+  const displayName = nickname || `${I18nService.t('unknown_user')}${record.userId.substring(0, 8)}`
+  const userHomeUrl = `https://www.zhihu.com/people/${record.userId}`
 
   const toggleDebug = () => setShowDebug(!showDebug)
   const toggleEvidence = () => setExpandedEvidence(!expandedEvidence)
 
   // 导出 Markdown
   const handleExportMarkdown = () => {
-    if (!profileData) return;
+    if (!record.profileData) return;
     
     const category = TopicService.classify(cachedContext || "");
-    const md = ExportService.toMarkdown(profileData.profile as ProfileData, category, userHomeUrl, cachedAt || Date.now());
+    const md = ExportService.toMarkdown(record.profileData as ProfileData, category, userHomeUrl, cachedAt || Date.now());
     
     const blob = new Blob([md], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
@@ -299,9 +262,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
   // 计算进度条
   const renderProgressBar = () => {
-    if (!loading && !statusMessage) return null;
+    if (!isLoading && !statusMessage) return null;
     
-    const hasLLMResponse = profileData !== null;
+    const hasLLMResponse = record.profileData !== null;
     
     if (hasLLMResponse) return null;
     
@@ -412,7 +375,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           )}
           <div>
             <h3 style={{ margin: 0, fontSize: theme.typography.fontSizeMedium, fontWeight: theme.typography.fontWeightBold, color: theme.colors.text }}>
-              {loading ? (
+              {isLoading ? (
                   <span>{I18nService.t('analyzing')}: {displayName}</span>
               ) : (
                   <a 
@@ -433,7 +396,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           </div>
         </div>
         <div style={{ display: "flex", gap: theme.spacing.sm }}>
-          {profileData && !loading && (
+          {record.profileData && !isLoading && (
             <>
               <button
                 onClick={handleExportMarkdown}
@@ -513,12 +476,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         </div>
       )}
 
-      {loading ? (
+      {isLoading ? (
         <div style={{ textAlign: "center", padding: `${parseInt(theme.spacing.lg) * 1.25}px 0` }}>
           <div style={{ fontSize: theme.typography.fontSizeMedium, marginBottom: theme.spacing.sm, color: theme.colors.primary }}>{I18nService.t('analyzing')}...</div>
           <div style={{ fontSize: theme.typography.fontSizeSmall, color: theme.colors.textSecondary }}>{I18nService.t('wait_moment')}</div>
         </div>
-      ) : profileData ? (
+      ) : record.profileData ? (
         <div>
           {valueOrientation && valueOrientation.length > 0 && (
             <div style={{ marginBottom: theme.spacing.md }}>
