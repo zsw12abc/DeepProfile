@@ -172,4 +172,5 @@
 
 ## 📅 Roadmap
 
+- [ ] **v0.6.2 Theme Feature**: Implement customizable overlay styling, allowing users to customize appearance themes including color schemes, fonts, sizes, etc.
 - [ ] **More Platforms**: Explore support for Reddit, Bilibili, Weibo, and other platforms.
