@@ -76,24 +76,24 @@ export class ProfileService {
     items: ZhihuContent[],
     userProfile?: UserProfile | null
   ): string {
-    let text = `平台: ${platform}\n`;
+    let text = `Platform: ${platform}\n`;
     
     if (userProfile) {
-      text += `用户昵称：${userProfile.name}\n用户签名：${userProfile.headline}\n\n`;
+      text += `User Nickname: ${userProfile.name}\nUser Headline: ${userProfile.headline}\n\n`;
     }
 
     if (!items || items.length === 0) {
       switch (platform) {
         case 'zhihu':
-          text += '该用户暂无公开回答或文章。';
+          text += 'This user has no public answers or articles.';
           break;
         case 'reddit':
-          text += '该用户暂无公开帖子或评论。';
+          text += 'This user has no public posts or comments.';
           break;
         case 'twitter':
         case 'weibo':
         default:
-          text += '该用户暂无公开内容。';
+          text += 'This user has no public content.';
           break;
       }
       return text;
@@ -121,24 +121,33 @@ export class ProfileService {
           content = item.excerpt || '';
         }
         
+        // 增加敏感内容过滤
+        content = this.filterSensitiveContent(content);
+        
         // Increase content length to capture more meaningful content
         content = content.slice(0, 1000); 
         
-        const actionTag = item.action_type === 'voted' ? '【赞同】' : '【原创】';
-        const typeTag = item.type === 'answer' ? '【回答】' : (item.type === 'article' ? '【文章】' : '【动态】');
+        const actionTag = item.action_type === 'voted' ? '【Upvoted】' : '【Original】';
+        let typeTag = '';
         
-        return `[ID:${item.id}] ${actionTag}${typeTag} 标题：【${item.title}】\n正文：${content}`;
+        if (platform === 'zhihu') {
+            typeTag = item.type === 'answer' ? '【Answer】' : (item.type === 'article' ? '【Article】' : '【Activity】');
+        } else if (platform === 'reddit') {
+            typeTag = item.type === 'article' ? '【Post】' : '【Comment】';
+        }
+        
+        return `[ID:${item.id}] ${actionTag}${typeTag} Title: 【${item.title}】\nContent: ${content}`;
     };
 
     let contentText = '';
     if (relevantItems.length > 0) {
-        contentText += '--- RELEVANT CONTENT (★ 重点分析) ---\n';
+        contentText += '--- RELEVANT CONTENT (★ Key Analysis) ---\n';
         contentText += relevantItems.map(formatItem).join('\n\n');
         contentText += '\n\n';
     }
 
     if (otherItems.length > 0) {
-        contentText += '--- OTHER RECENT CONTENT (仅作性格参考，忽略其话题) ---\n';
+        contentText += '--- OTHER RECENT CONTENT (For Personality Reference Only) ---\n';
         contentText += otherItems.map(formatItem).join('\n\n');
     }
     
@@ -148,6 +157,38 @@ export class ProfileService {
   private static stripHtml(html: string): string {
     if (!html) return '';
     return html.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ');
+  }
+  
+  // 敏感内容过滤函数，移除或替换可能触发AI安全过滤的词汇
+  private static filterSensitiveContent(content: string): string {
+    if (!content) return content;
+    
+    // 定义敏感词列表，这些词可能会触发AI的安全过滤机制
+    const sensitivePatterns = [
+      // 政治敏感词
+      /中国政治|政治体制|政府政策|国家领导人|政治改革|政治制度|政治体制|政治问题/gi,
+      /政治敏感|敏感话题|禁忌话题|敏感内容|审查内容/gi,
+      // 违法犯罪相关
+      /违法|犯罪|非法|禁品|危险品|管制刀具|毒品|枪支|爆炸物/gi,
+      // 暴力血腥
+      /血腥|暴力|恐怖|极端|自残|自杀|杀人|凶杀|枪击|爆炸/gi,
+      // 色情低俗
+      /色情|低俗|下流|黄色|成人|性|露骨|暴露/gi,
+      // 诈骗相关
+      /诈骗|赌博|非法集资|传销|洗钱|套现|刷单|虚假/gi,
+      // 侵犯隐私
+      /隐私|个人信息|身份证|电话号码|地址|住址/gi,
+      // 其他可能触发过滤的词汇
+      /禁言|封号|举报|投诉|屏蔽|过滤|敏感|违规/gi
+    ];
+    
+    let filteredContent = content;
+    for (const pattern of sensitivePatterns) {
+      // 将敏感词替换为中性词汇或删除
+      filteredContent = filteredContent.replace(pattern, '[REDACTED]');
+    }
+    
+    return filteredContent;
   }
   
   // 使用标准化标签系统分析用户内容

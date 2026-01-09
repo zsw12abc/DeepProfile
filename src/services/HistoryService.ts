@@ -42,6 +42,11 @@ export class HistoryService {
         userRecord.userInfo = { ...userRecord.userInfo, ...userInfo };
     }
 
+    // Ensure profiles object exists
+    if (!userRecord.profiles) {
+      userRecord.profiles = {};
+    }
+
     // 2. Update the specific category profile
     userRecord.profiles[category] = {
       category,
@@ -70,7 +75,7 @@ export class HistoryService {
     const history = await this.getAllUserRecords();
     const userRecord = history.find(r => r.userId === userId && r.platform === platform);
     
-    if (!userRecord || !userRecord.profiles[category]) {
+    if (!userRecord || !userRecord.profiles || !userRecord.profiles[category]) {
       return null;
     }
 
@@ -110,17 +115,20 @@ export class HistoryService {
     
     if (index !== -1) {
       const userRecord = history[index];
-      delete userRecord.profiles[category];
       
-      // If no profiles left, remove the user record
-      if (Object.keys(userRecord.profiles).length === 0) {
-        history.splice(index, 1);
-      } else {
-        // Otherwise just update the array (it's a reference, but let's be safe)
-        history[index] = userRecord;
+      if (userRecord.profiles && userRecord.profiles[category]) {
+        delete userRecord.profiles[category];
+        
+        // If no profiles left, remove the user record
+        if (Object.keys(userRecord.profiles).length === 0) {
+          history.splice(index, 1);
+        } else {
+          // Otherwise just update the array (it's a reference, but let's be safe)
+          history[index] = userRecord;
+        }
+        
+        await chrome.storage.local.set({ [STORAGE_KEY]: history });
       }
-      
-      await chrome.storage.local.set({ [STORAGE_KEY]: history });
     }
   }
 

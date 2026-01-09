@@ -1,9 +1,11 @@
 import type { PlasmoCSConfig } from "plasmo"
-import React, { useEffect, useState, useRef } from "react"
+import React, { useEffect, useState, useRef, useCallback } from "react"
+import { createRoot, type Root } from "react-dom/client"
 import { ProfileCard } from "~components/ProfileCard"
 import { ConfigService } from "~services/ConfigService"
 import { I18nService } from "~services/I18nService"
-import type { ZhihuContent, UserProfile } from "~services/ZhihuClient"
+import type { ZhihuContent, UserProfile, UserHistoryRecord, SupportedPlatform } from "~services/ZhihuClient"
+import type { ProfileData } from "~types"
 
 export const config: PlasmoCSConfig = {
   matches: ["https://www.zhihu.com/*"]
@@ -25,6 +27,7 @@ const ZhihuOverlay = () => {
   const [loading, setLoading] = useState(false)
   const [statusMessage, setStatusMessage] = useState(I18nService.t('loading'))
   const [error, setError] = useState<string | undefined>()
+  const rootRef = useRef<Root | null>(null)
 
   useEffect(() => {
     // Initialize I18n
@@ -48,6 +51,104 @@ const ZhihuOverlay = () => {
       }
     }
   }, [])
+
+  // 创建独立的overlay容器
+  const createOverlayContainer = useCallback(() => {
+    let container = document.getElementById('deep-profile-overlay-container');
+    
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'deep-profile-overlay-container';
+      // 容器本身不设置样式，由ProfileCard组件控制
+      document.body.appendChild(container);
+    }
+    
+    return container;
+  }, []);
+
+  // 移除overlay容器
+  const removeOverlayContainer = useCallback(() => {
+    const container = document.getElementById('deep-profile-overlay-container');
+    if (container) {
+      // 如果存在React root，先卸载它
+      if (rootRef.current) {
+        rootRef.current.unmount();
+        rootRef.current = null;
+      }
+      container.remove();
+    }
+  }, []);
+
+  // 渲染overlay到独立容器
+  useEffect(() => {
+    if (targetUser) {
+      const container = createOverlayContainer();
+      
+      // 如果还没有创建root，就创建一个新的
+      if (!rootRef.current) {
+        rootRef.current = createRoot(container);
+      }
+      
+      // 准备ProfileCard所需的数据结构
+      const recordData = {
+        userId: targetUser,
+        platform: 'zhihu' as SupportedPlatform,
+        nickname: initialNickname || targetUser,
+        profileData: profileData?.profile || null,
+        items: profileData?.items || [],
+        userProfile: profileData?.userProfile || null,
+        debugInfo: profileData?.debugInfo,
+        fromCache: profileData?.fromCache || false,
+        cachedAt: profileData?.cachedAt || 0,
+        cachedContext: profileData?.cachedContext || ""
+      };
+      
+      // 无论何时，只要状态改变就重新渲染
+      rootRef.current.render(
+        <ProfileCard
+          record={recordData}
+          platform={'zhihu'}
+          isLoading={loading}
+          statusMessage={statusMessage}
+          error={error}
+          onRefresh={() => {
+            if (targetUser) {
+              handleAnalyze(targetUser, initialNickname, currentContext, true);
+            }
+          }}
+          onClose={() => setTargetUser(null)}
+          onExport={undefined}
+        />
+      );
+      
+      // 添加点击外部区域关闭overlay的功能
+      const handleClickOutside = (event: MouseEvent) => {
+        // 检查点击是否在ProfileCard内部
+        // 由于ProfileCard渲染在container内部，我们只需要检查container是否包含target
+        // 但是ProfileCard组件本身有样式，container只是一个包装器
+        // 实际上ProfileCard组件渲染了一个fixed定位的div，我们需要确保点击不在那个div上
+        // 这里简化处理：如果点击的是container本身（如果它覆盖全屏）或者body，则关闭
+        // 但目前的实现container只是一个挂载点，ProfileCard是fixed定位
+        // 最好的方式是在ProfileCard内部处理点击外部，或者在这里通过类名判断
+        
+        // 简单实现：如果点击的目标不在ProfileCard的DOM树中，则关闭
+        // 注意：这需要ProfileCard组件有一个明确的根元素引用，或者我们可以假设container的第一个子元素是ProfileCard
+        // 由于React Portal或直接render，container内部就是ProfileCard的内容
+        
+        // 更好的方法：让ProfileCard组件处理点击外部，或者在这里不做处理，只依赖关闭按钮
+        // 为了用户体验，我们暂时只依赖关闭按钮，避免误触关闭
+      };
+      
+      // document.addEventListener('mousedown', handleClickOutside);
+      
+      return () => {
+        // document.removeEventListener('mousedown', handleClickOutside);
+      };
+    } else {
+      // 当没有目标用户时，移除容器
+      removeOverlayContainer();
+    }
+  }, [targetUser, profileData, loading, statusMessage, error, initialNickname, currentContext]);
 
   useEffect(() => {
     let observer: MutationObserver | null = null;
@@ -136,6 +237,10 @@ const ZhihuOverlay = () => {
           }
 
           const richContext = contextParts.filter(Boolean).join(' | ');
+          // 设置目标用户并触发分析
+          setTargetUser(userId)
+          setInitialNickname(nickname)
+          setCurrentContext(richContext)
           handleAnalyze(userId, nickname, richContext)
         }
 
@@ -230,26 +335,9 @@ const ZhihuOverlay = () => {
     }
   }
 
-  const handleRefresh = () => {
-      if (targetUser) {
-          handleAnalyze(targetUser, initialNickname, currentContext, true);
-      }
-  }
-
-  if (!targetUser) return null
-
-  return (
-    <ProfileCard
-      userId={targetUser}
-      initialNickname={initialNickname}
-      profileData={profileData}
-      loading={loading}
-      statusMessage={statusMessage}
-      error={error}
-      onClose={() => setTargetUser(null)}
-      onRefresh={handleRefresh}
-    />
-  )
+  // 不渲染任何内容，因为overlay是通过DOM操作渲染的
+  // 但是需要返回一个空的div来保持组件挂载，这样按钮注入逻辑才能持续运行
+  return <div style={{ display: 'none' }} />;
 }
 
 export default ZhihuOverlay

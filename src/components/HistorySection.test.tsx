@@ -69,7 +69,7 @@ describe('HistorySection', () => {
     render(<HistorySection {...defaultProps} />);
 
     expect(screen.getByText('历史记录')).toBeInTheDocument();
-    expect(screen.getByText('Total 1 users (Max 200)')).toBeInTheDocument();
+    expect(screen.getByText('总计 1 用户 (最大 200)')).toBeInTheDocument();
     expect(screen.getByText('Test User')).toBeInTheDocument();
     expect(screen.getByText('Category: tech')).toBeInTheDocument();
   });

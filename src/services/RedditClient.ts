@@ -13,6 +13,8 @@ export interface RedditPost {
   num_comments: number;
   ups: number;
   downs: number;
+  body?: string; // For comments
+  link_title?: string; // For comments
 }
 
 export interface RedditUser {
@@ -32,7 +34,7 @@ export interface FetchResult {
 }
 
 export class RedditClient {
-  private static BASE_URL = 'https://oauth.reddit.com';
+  private static BASE_URL = 'https://www.reddit.com';
   private static BASE_API_URL = 'https://api.reddit.com';
 
   static async fetchUserProfile(username: string): Promise<UserProfile | null> {
@@ -164,13 +166,14 @@ export class RedditClient {
   }
 
   private static convertToZhihuContent(redditItem: RedditPost): ZhihuContent {
-    // Use full selftext (Reddit post content) instead of just a 200-char excerpt
-    const fullContent = redditItem.selftext || redditItem.title || '';
+    // Use full selftext (Reddit post content) or body (comment content)
+    const fullContent = redditItem.selftext || redditItem.body || redditItem.title || '';
+    const title = redditItem.title || redditItem.link_title || `Comment in r/${redditItem.subreddit}`;
     
     return {
       id: redditItem.id,
       type: redditItem.selftext ? 'article' : 'answer',
-      title: redditItem.title || `Comment in r/${redditItem.subreddit}`,
+      title: title,
       excerpt: fullContent.substring(0, 200), // First 200 chars as excerpt
       content: fullContent, // Full content for analysis
       created_time: redditItem.created_utc,
