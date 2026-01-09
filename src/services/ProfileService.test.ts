@@ -207,10 +207,11 @@ describe('ProfileService', () => {
 
       const result = ProfileService.cleanContentData('zhihu', mockItems, mockProfile);
 
-      expect(result).toContain('平台: zhihu');
-      expect(result).toContain('用户昵称：Test User');
-      expect(result).toContain('用户签名：Software Engineer');
-      expect(result).toContain('【原创】【回答】');
+      expect(result).toContain('Platform: zhihu');
+      expect(result).toContain('User Nickname: Test User');
+      expect(result).toContain('User Headline: Software Engineer');
+      expect(result).toContain('【Original】');
+      expect(result).toContain('【Answer】');
       expect(result).toContain('Test Question');
     });
 
@@ -229,9 +230,9 @@ describe('ProfileService', () => {
 
       const result = ProfileService.cleanContentData('zhihu', mockItems);
 
-      expect(result).toContain('平台: zhihu');
-      expect(result).not.toContain('用户昵称');
-      expect(result).not.toContain('用户签名');
+      expect(result).toContain('Platform: zhihu');
+      expect(result).not.toContain('User Nickname');
+      expect(result).not.toContain('User Headline');
     });
 
     it('should format content for Reddit platform', () => {
@@ -249,13 +250,13 @@ describe('ProfileService', () => {
 
       const result = ProfileService.cleanContentData('reddit', mockItems);
 
-      expect(result).toContain('平台: reddit');
+      expect(result).toContain('Platform: reddit');
     });
 
     it('should handle empty items', () => {
       const result = ProfileService.cleanContentData('zhihu', []);
 
-      expect(result).toContain('该用户暂无公开回答或文章。');
+      expect(result).toContain('This user has no public answers or articles.');
     });
   });
 

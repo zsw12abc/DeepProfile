@@ -1,13 +1,13 @@
-import { LLMService } from "~services/LLMService"
-import { ZhihuClient } from "~services/ZhihuClient"
-import { ConfigService } from "~services/ConfigService"
-import { ProfileService } from "~services/ProfileService"
-import { HistoryService } from "~services/HistoryService"
-import { TopicService } from "~services/TopicService"
-import { CommentAnalysisService } from "~services/CommentAnalysisService"
-import { I18nService } from "~services/I18nService"
-import { LabelService } from "~services/LabelService"
-import type { SupportedPlatform } from "~types"
+import { LLMService } from "../services/LLMService"
+import { ZhihuClient } from "../services/ZhihuClient"
+import { ConfigService } from "../services/ConfigService"
+import { ProfileService } from "../services/ProfileService"
+import { HistoryService } from "../services/HistoryService"
+import { TopicService } from "../services/TopicService"
+import { CommentAnalysisService } from "../services/CommentAnalysisService"
+import { I18nService } from "../services/I18nService"
+import { LabelService } from "../services/LabelService"
+import type { SupportedPlatform } from "../types"
 
 export {}
 

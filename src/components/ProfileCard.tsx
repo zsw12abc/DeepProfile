@@ -1,13 +1,14 @@
 import React, { useState, useRef, useEffect } from "react"
-import type { ZhihuContent, UserProfile } from "~services/ZhihuClient"
-import { ZhihuClient } from "~services/ZhihuClient"
-import { calculateFinalLabel } from "~services/LabelUtils"
-import { TopicService, type MacroCategory } from "~services/TopicService"
-import { ExportService } from "~services/ExportService"
-import { ThemeService } from "~services/ThemeService"
+import type { ZhihuContent, UserProfile } from "../services/ZhihuClient"
+import { ZhihuClient } from "../services/ZhihuClient"
+import { calculateFinalLabel } from "../services/LabelUtils"
+import { TopicService, type MacroCategory } from "../services/TopicService"
+import { ExportService } from "../services/ExportService"
+import { ThemeService } from "../services/ThemeService"
 import html2canvas from "html2canvas"
-import icon from "data-base64:../../assets/icon.png"
-import { I18nService } from "~services/I18nService"
+// Mock icon for testing
+const icon = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR7BQAAAABJRU5ErkJggg==";
+import { I18nService } from "../services/I18nService"
 import { 
   type ThemeConfig, 
   type UserHistoryRecord, 

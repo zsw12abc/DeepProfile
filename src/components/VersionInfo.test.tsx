@@ -1,8 +1,32 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { VersionInfo, getVersion, fetchChangelogContent } from './VersionInfo';
+import { vi, describe, it, expect } from 'vitest';
 
+// Mock I18nService
+vi.mock('~services/I18nService', () => ({
+  I18nService: {
+    t: (key: string) => {
+      const map: Record<string, string> = {
+        'version_info': '版本信息',
+        'current_version': '当前版本',
+        'changelog': '更新日志',
+        'version_history': '版本历史'
+      };
+      return map[key] || key;
+    }
+  }
+}));
 
+// Mock UIComponents
+vi.mock('./UIComponents', () => ({
+  Card: ({ title, children }: { title: string; children: React.ReactNode }) => (
+    <div data-testid="card">
+      <h2>{title}</h2>
+      {children}
+    </div>
+  ),
+}));
 
 // Mock MarkdownRenderer
 vi.mock('~components/MarkdownRenderer', () => ({
@@ -10,21 +34,20 @@ vi.mock('~components/MarkdownRenderer', () => ({
 }));
 
 // Mock changelog content
-vi.mock('data-text:./locales/zh-CN/CHANGELOG.md', () => ({
+vi.mock('data-text:../locales/zh-CN/CHANGELOG.md', () => ({
   default: 'Chinese Changelog Content'
 }));
-vi.mock('data-text:./locales/en-US/CHANGELOG.md', () => ({
+vi.mock('data-text:../locales/en-US/CHANGELOG.md', () => ({
   default: 'English Changelog Content'
 }));
 
 // Mock chrome runtime
 const mockManifest = { version: '0.6.1' };
-Object.defineProperty(chrome, 'runtime', {
-  value: {
+global.chrome = {
+  runtime: {
     getManifest: () => mockManifest,
   },
-  writable: true,
-});
+} as any;
 
 describe('VersionInfo', () => {
   it('renders version info section', () => {
@@ -50,24 +73,18 @@ describe('VersionInfo', () => {
 
     it('returns fallback version when manifest unavailable', () => {
       // Temporarily override the mock to simulate an error
-      const originalRuntime = chrome.runtime;
-      Object.defineProperty(chrome, 'runtime', {
-        value: {
-          getManifest: () => {
-            throw new Error('Cannot get manifest');
-          },
+      const originalRuntime = global.chrome.runtime;
+      global.chrome.runtime = {
+        getManifest: () => {
+          throw new Error('Cannot get manifest');
         },
-        writable: true,
-      });
+      } as any;
 
       const version = getVersion();
       expect(version).toBe('0.6.2'); // This should be the fallback
 
       // Restore original runtime
-      Object.defineProperty(chrome, 'runtime', {
-        value: originalRuntime,
-        writable: true,
-      });
+      global.chrome.runtime = originalRuntime;
     });
   });
 

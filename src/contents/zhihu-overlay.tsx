@@ -1,11 +1,11 @@
 import type { PlasmoCSConfig } from "plasmo"
 import React, { useEffect, useState, useRef, useCallback } from "react"
 import { createRoot, type Root } from "react-dom/client"
-import { ProfileCard } from "~components/ProfileCard"
-import { ConfigService } from "~services/ConfigService"
-import { I18nService } from "~services/I18nService"
-import type { ZhihuContent, UserProfile, UserHistoryRecord, SupportedPlatform } from "~services/ZhihuClient"
-import type { ProfileData } from "~types"
+import { ProfileCard } from "../components/ProfileCard"
+import { ConfigService } from "../services/ConfigService"
+import { I18nService } from "../services/I18nService"
+import type { ZhihuContent, UserProfile, UserHistoryRecord, SupportedPlatform } from "../services/ZhihuClient"
+import type { ProfileData } from "../types"
 
 export const config: PlasmoCSConfig = {
   matches: ["https://www.zhihu.com/*"]

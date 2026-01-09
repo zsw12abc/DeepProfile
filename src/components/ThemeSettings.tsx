@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { I18nService } from "~services/I18nService";
-import { ThemeService } from "~services/ThemeService";
-import { ConfigService } from "~services/ConfigService";
-import type { ThemeConfig, ExtendedAppConfig } from "~types";
+import { I18nService } from "../services/I18nService";
+import { ThemeService } from "../services/ThemeService";
+import { ConfigService } from "../services/ConfigService";
+import type { ThemeConfig, ExtendedAppConfig } from "../types";
 
 // 获取国际化主题名称和描述
 const getLocalizedThemeInfo = (themeId: string) => {
