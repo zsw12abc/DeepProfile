@@ -158,5 +158,30 @@ export const enUS: LocaleDict = {
   version_info: "Version Information",
   current_version: "Current Version",
   changelog: "Changelog",
-  version_history: "Version History"
+  version_history: "Version History",
+  
+  // Comment Analysis
+  comment_summary_btn: "Analyze Comments",
+  analyzing_comments: "Analyzing comments on current page...",
+  expanding_comments: "Expanding comment section...",
+  extracting_comments: "Extracting comment data...",
+  anonymous_user: "Anonymous User",
+  not_enough_comments: "Not enough comments for analysis",
+  comment_analysis_instruction: ", please try increasing the number of comments displayed.",
+  ai_reading: "AI is reading everyone's opinions...",
+  comment_analysis_summary: "Comment Analysis Summary",
+  comment_analysis_ai_generated: "AI Generated",
+  sentiment_support: "Support",
+  sentiment_neutral: "Neutral",
+  sentiment_oppose: "Oppose",
+  expand_key_points: "Expand Key Points",
+  collapse_key_points: "Collapse Key Points",
+  deep_insight: "Deep Insight",
+  logic_fallacy: "Logical Fallacy Detected",
+  unknown_type: "Unknown Type",
+  example_quote: "Example Quote",
+  comment_analysis_failed: "Analysis failed",
+  
+  // Reddit Overlay
+  deep_profile_analysis: "Deep Profile Analysis"
 };

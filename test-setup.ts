@@ -108,6 +108,34 @@ vi.mock('~services/I18nService', () => ({
         'category_general': '综合',
         'ai_summary': 'AI摘要',
         'topic_classification': '话题分类',
+        
+        // Comment Analysis
+        'comment_summary_btn': '分析评论',
+        'analyzing_comments': '正在分析当前页面的评论...',
+        'expanding_comments': '正在展开评论区...',
+        'extracting_comments': '正在提取评论数据...',
+        'anonymous_user': '匿名用户',
+        'not_enough_comments': '评论数量不足以进行分析',
+        'comment_analysis_instruction': '，请尝试增加显示的评论数量。',
+        'ai_reading': 'AI 正在阅读大家的观点...',
+        'comment_analysis_summary': '评论分析总结',
+        'comment_analysis_ai_generated': 'AI 生成',
+        'sentiment_support': '支持',
+        'sentiment_neutral': '中立',
+        'sentiment_oppose': '反对',
+        'expand_key_points': '展开要点',
+        'collapse_key_points': '收起要点',
+        'deep_insight': '深度洞察',
+        'logic_fallacy': '检测到逻辑谬误',
+        'unknown_type': '未知类型',
+        'example_quote': '示例引用',
+        'comment_analysis_failed': '分析失败',
+        
+        // Reddit Overlay
+        'deep_profile_analysis': '深度画像分析',
+        
+        // Additional keys
+        'total_users_max': '总计 {count} 用户 (最大 {max})',
       };
       return translations[key] || key;
     },

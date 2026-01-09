@@ -87,6 +87,31 @@ export type LocaleKey =
   | 'version_info'
   | 'current_version'
   | 'changelog'
-  | 'version_history';
+  | 'version_history'
+  
+  // Comment Analysis
+  | 'comment_summary_btn'
+  | 'analyzing_comments'
+  | 'expanding_comments'
+  | 'extracting_comments'
+  | 'anonymous_user'
+  | 'not_enough_comments'
+  | 'comment_analysis_instruction'
+  | 'ai_reading'
+  | 'comment_analysis_summary'
+  | 'comment_analysis_ai_generated'
+  | 'sentiment_support'
+  | 'sentiment_neutral'
+  | 'sentiment_oppose'
+  | 'expand_key_points'
+  | 'collapse_key_points'
+  | 'deep_insight'
+  | 'logic_fallacy'
+  | 'unknown_type'
+  | 'example_quote'
+  | 'comment_analysis_failed'
+  
+  // Reddit Overlay
+  | 'deep_profile_analysis';
 
 export type LocaleDict = Record<LocaleKey, string>;
