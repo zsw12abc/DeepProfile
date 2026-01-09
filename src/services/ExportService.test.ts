@@ -47,7 +47,7 @@ describe('ExportService', () => {
         ]
       };
       
-      const markdown = ExportService.toMarkdown(profile, 'technology', 'http://example.com', Date.now());
+      const markdown = ExportService.toMarkdown(profile as any, 'technology', 'http://example.com', Date.now());
       
       expect(markdown).toContain('# 👤 app_name topic_classification Report');
       expect(markdown).toContain('Test User');
@@ -65,7 +65,7 @@ describe('ExportService', () => {
         evidence: []
       };
       
-      const markdown = ExportService.toMarkdown(profile, 'technology', 'http://example.com', Date.now());
+      const markdown = ExportService.toMarkdown(profile as any, 'technology', 'http://example.com', Date.now());
       
       expect(markdown).toContain('no_data');
     });

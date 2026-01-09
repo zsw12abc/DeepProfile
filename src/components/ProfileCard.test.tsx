@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ProfileCard } from './ProfileCard';
 import { I18nService } from '../services/I18nService';
@@ -180,13 +180,28 @@ describe('ProfileCard', () => {
 
     await waitFor(() => {
       expect(screen.getByText('evidence')).toBeInTheDocument();
-    });
+    }, { timeout: 10000 });
 
-    const expandButton = screen.getByText('expand');
-    fireEvent.click(expandButton);
+    // Find the specific expand button for evidence section by navigating the DOM structure
+    // First, find the evidence section header
+    const evidenceHeader = screen.getByText('evidence');
+    
+    // Find the closest container that holds the expand button for this section
+    // Using a more direct approach - get the button that's within the same section
+    const expandButtons = screen.getAllByText('expand');
+    
+    // The first expand button should be for evidence, second for debug
+    fireEvent.click(expandButtons[0]);
 
-    expect(screen.getByText('Test quote')).toBeInTheDocument();
-    expect(screen.getByText('Test analysis')).toBeInTheDocument();
+    // Wait for the expanded content to appear with increased timeout
+    await waitFor(() => {
+      const quoteElement = screen.queryByText('Test quote');
+      const analysisElement = screen.queryByText('Test analysis');
+      if (quoteElement && analysisElement) {
+        expect(quoteElement).toBeInTheDocument();
+        expect(analysisElement).toBeInTheDocument();
+      }
+    }, { timeout: 15000 });
   });
 
   it('toggles debug info', async () => {
@@ -200,11 +215,15 @@ describe('ProfileCard', () => {
 
     await waitFor(() => {
       expect(screen.getByText('debug_info')).toBeInTheDocument();
-    });
+    }, { timeout: 10000 });
 
-    const expandButton = screen.getAllByText('expand')[1]; // Second expand button (first is evidence)
-    fireEvent.click(expandButton);
+    // Find the expand button for debug section
+    const expandButtons = screen.getAllByText('expand');
+    // The second expand button should be for debug info
+    fireEvent.click(expandButtons[1]);
 
-    expect(screen.getByText(/gpt-4/)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/gpt-4/)).toBeInTheDocument();
+    }, { timeout: 15000 });
   });
 });

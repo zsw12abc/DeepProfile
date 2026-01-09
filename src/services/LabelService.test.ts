@@ -78,37 +78,15 @@ describe('LabelService', () => {
 
   describe('analyzeContentWithStandardLabels', () => {
     it('should analyze content and return classification result', () => {
-      // This test depends on the mock implementation of calculateScoreFromContent
-      // Since calculateScoreFromContent is private and mocked internally in the service for now,
-      // we test the public interface behavior.
-      
-      // Note: The current implementation of analyzeContentWithStandardLabels uses determineCategoryFromTopic
-      // which maps topic strings to category IDs. We need to make sure we use a topic that maps correctly.
-      // 'politics' maps to 'political-orientation' in determineCategoryFromTopic if we look at the code,
-      // BUT wait, the code in LabelService.ts seems to have hardcoded category IDs like 'political-orientation'
-      // while LabelDefinitions.ts uses 'politics'. Let's check LabelDefinitions.ts content again.
-      // LabelDefinitions.ts uses 'politics', 'economy', etc.
-      // LabelService.ts determineCategoryFromTopic uses 'political-orientation', 'economic-view', etc.
-      // This seems to be a mismatch in the provided file content vs what might be expected.
-      // However, let's look at LabelService.ts provided in the prompt.
-      
-      // In LabelService.ts:
-      // if (topicLower.includes('政治') ... ) return this.getCategoryById('political-orientation');
-      // But in LabelDefinitions.ts:
-      // id: "politics", name: ...
-      
-      // So getCategoryById('political-orientation') will return undefined if the ID in definitions is 'politics'.
-      // This looks like a bug in LabelService.ts or I need to check if I read the file correctly.
-      // Let's re-read LabelService.ts content from the previous turn.
-      
-      // The read_file output for LabelService.ts shows:
-      // return this.getCategoryById('political-orientation');
-      // And read_file output for LabelDefinitions.ts shows:
-      // id: "politics",
-      
-      // So there is indeed a mismatch. The test might fail or return empty results.
-      // Let's try to test with 'general' which returns empty labels in the current implementation if category not found.
-      
+      // Test with a topic that maps to a category
+      const result = labelService.analyzeContentWithStandardLabels('some content', 'politics');
+      expect(result).toBeDefined();
+      expect(result.category).toBe('politics');
+      // Labels might be empty if content doesn't match any keywords, but structure should be correct
+      expect(Array.isArray(result.labels)).toBe(true);
+    });
+
+    it('should handle general topic', () => {
       const result = labelService.analyzeContentWithStandardLabels('some content', 'general');
       expect(result).toBeDefined();
       expect(result.category).toBe('general');

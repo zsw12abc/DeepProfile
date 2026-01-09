@@ -35,17 +35,6 @@ describe('PerformanceTest', () => {
 
       // Check if generateProfile was called for each category (3) * each mode (3) = 9 times
       expect(LLMService.generateProfile).toHaveBeenCalledTimes(9);
-      
-      // Verify calls with different modes (indirectly via implementation logic inside PerformanceTest)
-      // Since we can't easily check the internal mode setting which might be done via ConfigService inside generateProfile
-      // or passed as argument if generateProfile supported it.
-      // Looking at PerformanceTest.ts, it calls testMode which calls LLMService.generateProfile(content, category).
-      // It doesn't seem to pass the mode to generateProfile directly in the provided code for PerformanceTest.ts.
-      // Wait, let's check PerformanceTest.ts again.
-      // It calls: await LLMService.generateProfile(content, category);
-      // It does NOT pass the mode. This seems to be a bug or limitation in the PerformanceTest.ts implementation 
-      // or LLMService.generateProfile signature.
-      // However, for the purpose of this test, we just verify it runs without error and calls the service.
     });
 
     it('should handle errors gracefully', async () => {

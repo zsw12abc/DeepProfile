@@ -14,6 +14,7 @@ export const enUS: LocaleDict = {
   confirm_clear_all: "Are you sure you want to clear all history? This action cannot be undone.",
   export_markdown: "Export as Markdown",
   export_image: "Export as Image",
+  export_image_failed: "Export as Image Failed",
   settings: "Settings Menu",
 
   // Options Page
@@ -40,6 +41,9 @@ export const enUS: LocaleDict = {
   mode_fast: "⚡ Fast",
   mode_balanced: "⚖️ Balanced",
   mode_deep: "🧠 Deep",
+  mode_fast_desc: "Minimal content, fastest analysis",
+  mode_balanced_desc: "Moderate content, balanced speed and quality",
+  mode_deep_desc: "Maximum content, most comprehensive analysis",
   
   // Categories
   category_politics: "🏛️ Politics",
@@ -133,7 +137,6 @@ export const enUS: LocaleDict = {
   cannot_delete_builtin_theme: "Cannot delete built-in themes",
   confirm_delete_theme: "Are you sure you want to delete this theme? This action cannot be undone.",
   edit: "Edit",
-  delete: "Delete",
   color_settings: "Color Settings",
   color_primary: "Primary Color",
   color_secondary: "Secondary Color",
@@ -147,7 +150,6 @@ export const enUS: LocaleDict = {
   color_error: "Error Color",
   color_accent: "Accent Color",
   save_changes: "Save Changes",
-  cancel: "Cancel",
   
   // Context Invalidated Error
   extension_context_invalidated: "Extension context invalidated",
@@ -162,13 +164,9 @@ export const enUS: LocaleDict = {
   
   // Comment Analysis
   comment_summary_btn: "Analyze Comments",
-  analyzing_comments: "Analyzing comments on current page...",
-  expanding_comments: "Expanding comment section...",
-  extracting_comments: "Extracting comment data...",
   anonymous_user: "Anonymous User",
   not_enough_comments: "Not enough comments for analysis",
   comment_analysis_instruction: ", please try increasing the number of comments displayed.",
-  ai_reading: "AI is reading everyone's opinions...",
   comment_analysis_summary: "Comment Analysis Summary",
   comment_analysis_ai_generated: "AI Generated",
   sentiment_support: "Support",
@@ -180,7 +178,6 @@ export const enUS: LocaleDict = {
   logic_fallacy: "Logical Fallacy Detected",
   unknown_type: "Unknown Type",
   example_quote: "Example Quote",
-  comment_analysis_failed: "Analysis failed",
   
   // Reddit Overlay
   deep_profile_analysis: "Deep Profile Analysis"

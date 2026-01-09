@@ -126,27 +126,11 @@ describe('LabelUtils', () => {
     });
 
     it('should return empty for entertainment topic if configured', () => {
+      // In the real implementation, entertainment might return empty if filtered is empty.
+      // But here 'ideology' is considered relevant by default fallback.
+      // So we test that it returns what we expect based on the logic.
       const labels = [{ label: 'ideology', score: 0.5 }];
       const filtered = filterLabelsByTopic(labels, '娱乐八卦');
-      // Based on implementation, entertainment might return empty or filtered
-      // In the mock implementation, '娱乐' is not explicitly handled in getRelevantLabelsByTopic
-      // so it falls back to default (politics, society, economy).
-      // However, filterLabelsByTopic has a check: if filtered is empty and topic is entertainment, return empty.
-      // But here filtered won't be empty because default includes politics.
-      
-      // Wait, let's check getRelevantLabelsByTopic implementation in LabelUtils.ts
-      // It has a default fallback: relevantCategories.push('politics', 'society', 'economy');
-      // So '娱乐八卦' will get politics labels as relevant.
-      // So 'ideology' will be kept.
-      
-      // But wait, filterLabelsByTopic has logic:
-      // if (filtered.length === 0 && labels.length > 0) { ... check entertainment ... }
-      
-      // So if 'ideology' is in relevant labels (due to default fallback), it will be returned.
-      // Let's check if '娱乐' matches any specific condition in getRelevantLabelsByTopic.
-      // It doesn't seem to match any specific condition in the provided code snippet for getRelevantLabelsByTopic.
-      // So it goes to else block -> politics, society, economy.
-      
       expect(filtered.length).toBe(1); 
     });
   });

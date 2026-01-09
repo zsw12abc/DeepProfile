@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
 
 // Mock I18nService
@@ -31,6 +31,9 @@ global.chrome = {
   }
 } as any;
 
+// Import the component directly instead of dynamically
+import ZhihuOverlay from './zhihu-overlay';
+
 describe('ZhihuOverlay', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -44,8 +47,7 @@ describe('ZhihuOverlay', () => {
     } as any;
   });
 
-  it('should be defined', async () => {
-    const ZhihuOverlay = (await import('./zhihu-overlay')).default;
+  it('should be defined', () => {
     expect(ZhihuOverlay).toBeDefined();
   });
 });

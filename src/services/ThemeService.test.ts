@@ -46,7 +46,15 @@ describe("ThemeService", () => {
         success: '#00ff00',
         warning: '#ffff00',
         error: '#ff0000',
-        accent: '#ff00ff'
+        accent: '#ff00ff',
+        successBg: '#e6fffa',
+        successText: '#006644',
+        successBorder: '#b3ffcc',
+        errorBg: '#ffe6e6',
+        errorText: '#cc0000',
+        errorBorder: '#ffb3b3',
+        primaryText: '#ffffff',
+        warningText: '#000000'
       },
       typography: {
         fontFamily: 'Arial, sans-serif',
@@ -83,7 +91,7 @@ describe("ThemeService", () => {
     // Mock for set operation
     storageMock.set.mockResolvedValue(undefined);
     
-    await themeService.addTheme(newTheme);
+    await themeService.addTheme(newTheme as any);
     
     // Verify that the set method was called
     expect(storageMock.set).toHaveBeenCalledTimes(1);
@@ -137,7 +145,15 @@ describe("ThemeService", () => {
         success: '#00ff00',
         warning: '#ffff00',
         error: '#ff0000',
-        accent: '#ff00ff'
+        accent: '#ff00ff',
+        successBg: '#e6fffa',
+        successText: '#006644',
+        successBorder: '#b3ffcc',
+        errorBg: '#ffe6e6',
+        errorText: '#cc0000',
+        errorBorder: '#ffb3b3',
+        primaryText: '#ffffff',
+        warningText: '#000000'
       },
       typography: {
         fontFamily: 'Arial, sans-serif',
@@ -173,7 +189,7 @@ describe("ThemeService", () => {
     storageMock.get.mockResolvedValue({ deep_profile_config: DEFAULT_CONFIG });
     storageMock.set.mockResolvedValue(undefined);
 
-    await themeService.addTheme(newTheme);
+    await themeService.addTheme(newTheme as any);
     
     // Check that the set method was called and the new theme was added
     expect(storageMock.set).toHaveBeenCalledTimes(1);

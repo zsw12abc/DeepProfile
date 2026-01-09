@@ -23,7 +23,6 @@ describe('ZhihuClient', () => {
   describe('fetchUserProfile', () => {
     it('should fetch user profile successfully', async () => {
       // Mock resolveUserToken to return the token itself for simplicity
-      const originalResolveUserToken = ZhihuClient.resolveUserToken;
       vi.spyOn(ZhihuClient, 'resolveUserToken').mockResolvedValue('testuser');
 
       // Mock fetchUserProfile
@@ -65,10 +64,7 @@ describe('ZhihuClient', () => {
   describe('fetchUserContent', () => {
     it('should fetch user content successfully', async () => {
       // Mock resolveUserToken
-      fetchMock.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ url_token: 'testuser' })
-      });
+      vi.spyOn(ZhihuClient, 'resolveUserToken').mockResolvedValue('testuser');
 
       // Mock answers response
       fetchMock.mockResolvedValueOnce({
@@ -129,10 +125,17 @@ describe('ZhihuClient', () => {
         })
       });
       
+      // Mock enhanceContent (fetchDetailContent) calls if any
+      // Since we don't have empty content in mock data, enhanceContent won't fetch details.
+      
       const result = await ZhihuClient.fetchUserContent('testuser');
       
-      expect(result.items).toHaveLength(2); // 2 answers (articles and activities are separate calls)
-      expect(result.totalFetched).toBe(2);
+      // The implementation combines answers, articles and activities.
+      // We mocked 2 answers, 1 article, 0 activities. Total 3 items.
+      expect(result.items).toHaveLength(3); 
+      expect(result.totalFetched).toBe(3);
+      
+      (ZhihuClient.resolveUserToken as any).mockRestore();
     });
   });
 

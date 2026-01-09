@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
 
 // Mock I18nService
@@ -31,6 +31,9 @@ global.chrome = {
   }
 } as any;
 
+// Import the component directly instead of dynamically
+import RedditOverlay from './reddit-overlay';
+
 describe('RedditOverlay', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -44,8 +47,7 @@ describe('RedditOverlay', () => {
     } as any;
   });
 
-  it('should be defined', async () => {
-    const RedditOverlay = (await import('./reddit-overlay')).default;
+  it('should be defined', () => {
     expect(RedditOverlay).toBeDefined();
   });
 });

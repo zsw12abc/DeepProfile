@@ -1,6 +1,4 @@
 import React, { useEffect, useState, useCallback } from "react"
-import React from "react"
-import { useState, useEffect, useCallback } from "react"
 import { ConfigService } from "./services/ConfigService"
 import { HistoryService } from "./services/HistoryService"
 import { TopicService, type MacroCategory } from "./services/TopicService"
@@ -47,6 +45,7 @@ import { ZhihuIcon, RedditIcon, getBaseUrlPlaceholder, shouldShowBaseUrlInput } 
 import { ModelSelector } from "./components/ModelSelector"
 import ThemeSettings from "./components/ThemeSettings";
 import { ThemeService } from "./services/ThemeService";
+import { LabelService } from "./services/LabelService";
 
 // 获取版本信息
 const getVersion = (): string => {

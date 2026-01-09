@@ -137,7 +137,6 @@ export const zhCN: LocaleDict = {
   cannot_delete_builtin_theme: "无法删除内置主题",
   confirm_delete_theme: "确定要删除这个主题吗？此操作不可恢复。",
   edit: "编辑",
-  delete: "删除",
   color_settings: "颜色设置",
   color_primary: "主色调",
   color_secondary: "次要色调",
@@ -151,7 +150,6 @@ export const zhCN: LocaleDict = {
   color_error: "错误色",
   color_accent: "强调色",
   save_changes: "保存更改",
-  cancel: "取消",
   
   // Context Invalidated Error
   extension_context_invalidated: "扩展上下文失效",
@@ -166,13 +164,9 @@ export const zhCN: LocaleDict = {
   
   // Comment Analysis
   comment_summary_btn: "分析评论",
-  analyzing_comments: "正在分析当前页面的评论...",
-  expanding_comments: "正在展开评论区...",
-  extracting_comments: "正在提取评论数据...",
   anonymous_user: "匿名用户",
   not_enough_comments: "评论数量不足以进行分析",
   comment_analysis_instruction: "，请尝试增加显示的评论数量。",
-  ai_reading: "AI 正在阅读大家的观点...",
   comment_analysis_summary: "评论分析总结",
   comment_analysis_ai_generated: "AI 生成",
   sentiment_support: "支持",
@@ -184,7 +178,6 @@ export const zhCN: LocaleDict = {
   logic_fallacy: "检测到逻辑谬误",
   unknown_type: "未知类型",
   example_quote: "示例引用",
-  comment_analysis_failed: "分析失败",
   
   // Reddit Overlay
   deep_profile_analysis: "深度画像分析"

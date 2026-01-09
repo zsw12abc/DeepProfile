@@ -54,7 +54,7 @@ describe('CommentAnalysisService', () => {
         { id: '2', author: 'User2', content: 'Bad post', likes: 5 }
       ];
 
-      const result = await CommentAnalysisService.analyzeComments(comments, 'Test Topic', 'Test Content', 'zhihu');
+      const result = await CommentAnalysisService.analyzeComments(comments as any, 'Test Topic', 'Test Content', 'zhihu');
 
       expect(result).toEqual(mockResult);
       expect(LLMService.generateRawText).toHaveBeenCalled();
@@ -71,7 +71,7 @@ describe('CommentAnalysisService', () => {
 
       const comments = [{ id: '1', author: 'User1', content: 'Content' }];
 
-      await expect(CommentAnalysisService.analyzeComments(comments, 'Test Topic')).rejects.toThrow();
+      await expect(CommentAnalysisService.analyzeComments(comments as any, 'Test Topic')).rejects.toThrow();
     });
     
     it('should handle markdown code block in LLM response', async () => {
@@ -84,7 +84,7 @@ describe('CommentAnalysisService', () => {
       vi.mocked(LLMService.generateRawText).mockResolvedValue(response);
       
       const comments = [{ id: '1', author: 'User1', content: 'Content' }];
-      const result = await CommentAnalysisService.analyzeComments(comments, 'Test Topic');
+      const result = await CommentAnalysisService.analyzeComments(comments as any, 'Test Topic');
       
       expect(result).toEqual(mockResult);
     });

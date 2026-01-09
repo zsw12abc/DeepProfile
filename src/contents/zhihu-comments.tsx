@@ -145,7 +145,7 @@ const CommentAnalysisPanel = ({ contextTitle, containerElement, answerId }: { co
           } else {
             throw new Error(response.error);
           }
-        } catch (e) {
+        } catch (e: any) {
           if (e.message && (e.message.includes('Extension context invalidated') || e.message.includes('extension context invalidated'))) {
             console.error("[DeepProfile] Extension context invalidated, please refresh the page");
             setError(I18nService.t('extension_context_invalidated'));
@@ -153,7 +153,7 @@ const CommentAnalysisPanel = ({ contextTitle, containerElement, answerId }: { co
             throw e;
           }
         }
-      } catch (e) {
+      } catch (e: any) {
         console.error("[DeepProfile] Analysis failed:", e);
         setError(e.message);
       } finally {
@@ -290,7 +290,7 @@ const ZhihuComments = () => {
                 // 优先使用更具体的选择器
                 header = container.querySelector('.css-1onritu') || 
                          container.querySelector('.CommentListV2-header') || 
-                         container.querySelector('.Comments-header');
+                         container.querySelector('.Comments-header') as HTMLElement;
 
                 // 如果找不到，再使用基于内容的通用查找
                 if (!header) {
@@ -341,7 +341,7 @@ const ZhihuComments = () => {
                     panelContainer.className = 'deep-profile-embedded-panel';
                     
                     // 插入位置：Header 之后
-                    if (header.parentNode) {
+                    if (header && header.parentNode) {
                         header.parentNode.insertBefore(panelContainer, header.nextSibling);
                     } else {
                         // 这是一个 fallback，理论上不应该发生
