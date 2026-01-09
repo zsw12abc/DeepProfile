@@ -35,15 +35,29 @@ interface DebugInfo {
 interface ProfileCardProps {
   record: UserHistoryRecord
   platform: SupportedPlatform
+  isLoading?: boolean
+  statusMessage?: string
+  error?: string
   onRefresh?: () => void
-  onDelete?: () => void
+  onClose?: () => void
   onExport?: () => void
 }
 
-const ProfileCard: React.FC<ProfileCardProps> = ({ record, platform, onRefresh, onDelete, onExport }) => {
+const ProfileCard: React.FC<ProfileCardProps> = ({ 
+  record, 
+  platform, 
+  isLoading = false, 
+  statusMessage, 
+  error, 
+  onRefresh, 
+  onClose, 
+  onExport 
+}) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [theme, setTheme] = useState<ThemeConfig>(ZHIHU_WHITE_THEME);
-  const [isLoading, setIsLoading] = useState(false);
+  const [showDebug, setShowDebug] = useState(false);
+  const [expandedEvidence, setExpandedEvidence] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null)
   
   useEffect(() => {

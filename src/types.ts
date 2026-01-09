@@ -134,7 +134,8 @@ export const ZHIHU_WHITE_THEME: ThemeConfig = {
     errorText: '#721c24',
     errorBorder: '#f5c6cb',
     accent: '#0084ff',  // 知乎蓝
-    primaryText: '#ffffff'  // 白色文字用于primary背景上
+    primaryText: '#ffffff',  // 白色文字用于primary背景上
+    warningText: '#ffffff'  // 白色文字用于warning背景上
   },
   typography: {
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
@@ -188,7 +189,8 @@ export const ZHIHU_BLACK_THEME: ThemeConfig = {
     errorText: '#ffffff',
     errorBorder: '#e74c3c',
     accent: '#0084ff',  // 知乎蓝
-    primaryText: '#ffffff'  // 白色文字用于primary背景上
+    primaryText: '#ffffff',  // 白色文字用于primary背景上
+    warningText: '#ffffff'  // 白色文字用于warning背景上
   },
   typography: {
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
@@ -416,10 +418,20 @@ export interface CategoryProfile {
 export interface UserHistoryRecord {
   userId: string;
   platform: SupportedPlatform;
+  nickname?: string; // Added nickname for compatibility
   userInfo?: UserBasicInfo; // Added user info storage
   // A dictionary of profiles, keyed by the macro-category.
-  profiles: Record<string, CategoryProfile>; 
-  lastUpdated: number; // Timestamp of the last update to any category
+  profiles?: Record<string, CategoryProfile>; 
+  lastUpdated?: number; // Timestamp of the last update to any category
+  
+  // Fields for ProfileCard compatibility
+  profileData?: any;
+  items?: any[];
+  userProfile?: any;
+  debugInfo?: any;
+  fromCache?: boolean;
+  cachedAt?: number;
+  cachedContext?: string;
 }
 
 // Re-export ProfileData for convenience

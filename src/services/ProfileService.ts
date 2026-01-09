@@ -76,24 +76,24 @@ export class ProfileService {
     items: ZhihuContent[],
     userProfile?: UserProfile | null
   ): string {
-    let text = `平台: ${platform}\n`;
+    let text = `Platform: ${platform}\n`;
     
     if (userProfile) {
-      text += `用户昵称：${userProfile.name}\n用户签名：${userProfile.headline}\n\n`;
+      text += `User Nickname: ${userProfile.name}\nUser Headline: ${userProfile.headline}\n\n`;
     }
 
     if (!items || items.length === 0) {
       switch (platform) {
         case 'zhihu':
-          text += '该用户暂无公开回答或文章。';
+          text += 'This user has no public answers or articles.';
           break;
         case 'reddit':
-          text += '该用户暂无公开帖子或评论。';
+          text += 'This user has no public posts or comments.';
           break;
         case 'twitter':
         case 'weibo':
         default:
-          text += '该用户暂无公开内容。';
+          text += 'This user has no public content.';
           break;
       }
       return text;
@@ -124,21 +124,27 @@ export class ProfileService {
         // Increase content length to capture more meaningful content
         content = content.slice(0, 1000); 
         
-        const actionTag = item.action_type === 'voted' ? '【赞同】' : '【原创】';
-        const typeTag = item.type === 'answer' ? '【回答】' : (item.type === 'article' ? '【文章】' : '【动态】');
+        const actionTag = item.action_type === 'voted' ? '【Upvoted】' : '【Original】';
+        let typeTag = '';
         
-        return `[ID:${item.id}] ${actionTag}${typeTag} 标题：【${item.title}】\n正文：${content}`;
+        if (platform === 'zhihu') {
+            typeTag = item.type === 'answer' ? '【Answer】' : (item.type === 'article' ? '【Article】' : '【Activity】');
+        } else if (platform === 'reddit') {
+            typeTag = item.type === 'article' ? '【Post】' : '【Comment】';
+        }
+        
+        return `[ID:${item.id}] ${actionTag}${typeTag} Title: 【${item.title}】\nContent: ${content}`;
     };
 
     let contentText = '';
     if (relevantItems.length > 0) {
-        contentText += '--- RELEVANT CONTENT (★ 重点分析) ---\n';
+        contentText += '--- RELEVANT CONTENT (★ Key Analysis) ---\n';
         contentText += relevantItems.map(formatItem).join('\n\n');
         contentText += '\n\n';
     }
 
     if (otherItems.length > 0) {
-        contentText += '--- OTHER RECENT CONTENT (仅作性格参考，忽略其话题) ---\n';
+        contentText += '--- OTHER RECENT CONTENT (For Personality Reference Only) ---\n';
         contentText += otherItems.map(formatItem).join('\n\n');
     }
     

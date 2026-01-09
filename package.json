@@ -41,7 +41,9 @@
       "https://*.zhimg.com/*",
       "https://www.reddit.com/*",
       "https://old.reddit.com/*",
-      "https://reddit.com/*"
+      "https://reddit.com/*",
+      "https://oauth.reddit.com/*",
+      "https://api.reddit.com/*"
     ],
     "permissions": [
       "storage",
