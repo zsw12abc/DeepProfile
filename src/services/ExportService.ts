@@ -1,5 +1,5 @@
 import { TopicService, type MacroCategory } from "./TopicService";
-import { calculateFinalLabel } from "./LabelUtils";
+import { calculateFinalLabel, parseLabelName } from "./LabelUtils";
 import type { ProfileData } from "~types";
 import { I18nService } from "./I18nService";
 
@@ -61,7 +61,12 @@ ${profile.summary}
 
   private static generateProgressBar(percentage: number, score: number): string {
     const blocks = Math.round(percentage / 10);
-    const filled = score > 0 ? '🟦' : '🟥';
-    return filled.repeat(blocks) + '⬜'.repeat(10 - blocks);
+    if (score < 0) {
+      // 负分：左侧填充红色方块
+      return '🟥'.repeat(blocks) + '⬜'.repeat(10 - blocks);
+    } else {
+      // 正分：右侧填充蓝色方块
+      return '⬜'.repeat(10 - blocks) + '🟦'.repeat(blocks);
+    }
   }
 }

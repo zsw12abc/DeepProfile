@@ -47,6 +47,13 @@ vi.mock('../services/ZhihuClient', () => ({
 
 vi.mock('../services/LabelUtils', () => ({
   calculateFinalLabel: (label: string, score: number) => ({ label, percentage: Math.abs(score) * 100 }),
+  parseLabelName: (labelName: string) => {
+    if (labelName.includes('vs')) {
+      const [left, right] = labelName.split('vs').map(s => s.trim());
+      return { left, right };
+    }
+    return { left: '', right: labelName };
+  }
 }));
 
 // Mock html2canvas

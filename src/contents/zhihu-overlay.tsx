@@ -26,6 +26,7 @@ const ZhihuOverlay = () => {
   } | null>(null)
   const [loading, setLoading] = useState(false)
   const [statusMessage, setStatusMessage] = useState(I18nService.t('loading'))
+  const [progressPercentage, setProgressPercentage] = useState<number | undefined>(undefined)
   const [error, setError] = useState<string | undefined>()
   const rootRef = useRef<Root | null>(null)
 
@@ -37,6 +38,12 @@ const ZhihuOverlay = () => {
     const messageListener = (request: any) => {
       if (request.type === "ANALYSIS_PROGRESS") {
         setStatusMessage(request.message)
+        setProgressPercentage(undefined) // Reset progress percentage when receiving general progress
+      } else if (request.type === "ANALYSIS_PROGRESS_ESTIMATE") {
+        setStatusMessage(request.message)
+        if (request.percentage !== undefined) {
+          setProgressPercentage(request.percentage)
+        }
       }
     }
     chrome.runtime.onMessage.addListener(messageListener)
@@ -110,6 +117,7 @@ const ZhihuOverlay = () => {
           platform={'zhihu'}
           isLoading={loading}
           statusMessage={statusMessage}
+          progressPercentage={progressPercentage}
           error={error}
           onRefresh={() => {
             if (targetUser) {

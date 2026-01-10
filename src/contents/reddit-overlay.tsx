@@ -26,6 +26,7 @@ const RedditOverlay = () => {
   } | null>(null)
   const [loading, setLoading] = useState(false)
   const [statusMessage, setStatusMessage] = useState(I18nService.t('loading'))
+  const [progressPercentage, setProgressPercentage] = useState<number | undefined>(undefined)
   const [error, setError] = useState<string | undefined>()
   const rootRef = useRef<Root | null>(null)
 
@@ -37,6 +38,12 @@ const RedditOverlay = () => {
     const messageListener = (request: any) => {
       if (request.type === "ANALYSIS_PROGRESS") {
         setStatusMessage(request.message)
+        setProgressPercentage(undefined) // Reset progress percentage when receiving general progress
+      } else if (request.type === "ANALYSIS_PROGRESS_ESTIMATE") {
+        setStatusMessage(request.message)
+        if (request.percentage !== undefined) {
+          setProgressPercentage(request.percentage)
+        }
       }
     }
     chrome.runtime.onMessage.addListener(messageListener)
@@ -110,6 +117,7 @@ const RedditOverlay = () => {
           platform={'reddit'}
           isLoading={loading}
           statusMessage={statusMessage}
+          progressPercentage={progressPercentage}
           error={error}
           onRefresh={() => {
             if (targetUser) {
@@ -232,7 +240,7 @@ const RedditOverlay = () => {
           // Get post title if available - try multiple selectors
           const postTitleSelectors = [
             'h1[data-test-id="post-title"]',
-            'div[data-adclicklocation="title"] h3',
+            'div[data-adclicklocation="title"]',
             'shreddit-title',
             'h1._eYtD2DCq_3tMHxLg12j', // New Reddit design
             'h1#post-title',

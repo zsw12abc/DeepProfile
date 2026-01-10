@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react"
 import type { ZhihuContent, UserProfile } from "../services/ZhihuClient"
 import { ZhihuClient } from "../services/ZhihuClient"
-import { calculateFinalLabel } from "../services/LabelUtils"
+import { calculateFinalLabel, parseLabelName } from "../services/LabelUtils"
 import { TopicService, type MacroCategory } from "../services/TopicService"
 import { ExportService } from "../services/ExportService"
 import { ThemeService } from "../services/ThemeService"
@@ -42,6 +42,7 @@ interface ProfileCardProps {
   onRefresh?: () => void
   onClose?: () => void
   onExport?: () => void
+  progressPercentage?: number // 添加进度百分比参数
 }
 
 const ProfileCard: React.FC<ProfileCardProps> = ({ 
@@ -52,7 +53,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   error, 
   onRefresh, 
   onClose, 
-  onExport 
+  onExport,
+  progressPercentage
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [theme, setTheme] = useState<ThemeConfig>(ZHIHU_WHITE_THEME);
@@ -160,20 +162,40 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       let valueOrientationHtml = '';
       if (valueOrientation && valueOrientation.length > 0) {
           valueOrientationHtml = valueOrientation.map(item => {
-              const { label: labelName, score } = item;
-              const { label, percentage } = calculateFinalLabel(labelName, score);
-              const intensity = Math.min(100, percentage);
-              const color = score >= 0 
-                ? `hsl(210, 70%, ${70 - intensity * 0.3}%)`
-                : `hsl(0, 70%, ${70 - Math.abs(intensity) * 0.3}%)`;
+              const parsedLabel = parseLabelName(item.label);
+              const leftLabel = parsedLabel.left || 'Left';
+              const rightLabel = parsedLabel.right || 'Right';
+              
+              // 确保分数在-1到1的范围内
+              const normalizedScore = Math.max(-1, Math.min(1, item.score));
+              
+              // 计算百分比（取分数绝对值并转换为百分比）
+              const percentage = Math.abs(normalizedScore) * 100;
+              
+              // 根据分数正负决定哪边高亮
+              const leftIntensity = normalizedScore < 0 ? Math.abs(normalizedScore) * 100 : 0;
+              const rightIntensity = normalizedScore > 0 ? normalizedScore * 100 : 0;
+              
+              // 根据强度计算颜色
+              const leftColor = normalizedScore < 0 
+                ? `hsl(0, 70%, ${70 - leftIntensity * 0.3}%)`
+                : `hsl(0, 70%, ${70 - 0 * 0.3}%)`; // 灰色
+              const rightColor = normalizedScore > 0 
+                ? `hsl(210, 70%, ${70 - rightIntensity * 0.3}%)`
+                : `hsl(210, 70%, ${70 - 0 * 0.3}%)`; // 灰色
               
               return `
                 <div style="display: flex; align-items: center; margin-bottom: 8px; font-size: 12px;">
-                    <span style="width: 100px; font-weight: 500; color: ${theme.colors.text};">${label}</span>
-                    <div style="flex: 1; height: 8px; background-color: ${theme.colors.border}; border-radius: 4px; overflow: hidden;">
-                        <div style="height: 100%; width: ${percentage}%; background-color: ${color}; border-radius: 4px;"></div>
+                    <span style="width: 80px; font-weight: 500; color: ${theme.colors.text};">${leftLabel}</span>
+                    <div style="flex: 1; height: 8px; background-color: ${theme.colors.border}; border-radius: 4px 0 0 4px; overflow: hidden;">
+                        <div style="height: 100%; width: ${leftIntensity}%; background-color: ${leftColor}; border-radius: 4px 0 0 4px;"></div>
                     </div>
-                    <span style="width: 30px; text-align: right; font-size: 11px; color: ${theme.colors.textSecondary};">${Math.round(percentage)}%</span>
+                    <div style="height: 10px; width: 2px; background-color: ${theme.colors.text};"></div>
+                    <div style="flex: 1; height: 8px; background-color: ${theme.colors.border}; border-radius: 0 4px 4px 0; overflow: hidden;">
+                        <div style="height: 100%; width: ${rightIntensity}%; background-color: ${rightColor}; border-radius: 0 4px 4px 0; margin-left: auto;"></div>
+                    </div>
+                    <span style="width: 80px; text-align: right; font-weight: 500; color: ${theme.colors.text};">${rightLabel}</span>
+                    <span style="width: 30px; text-align: right; font-size: 11px; color: ${theme.colors.textSecondary}; margin-left: 8px;">${Math.round(percentage)}%</span>
                 </div>
               `;
           }).join('');
@@ -289,7 +311,27 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         fontSize: theme.typography.fontSizeBase, 
         color: theme.colors.textSecondary 
       }}>
-        {statusMessage}
+        <div style={{ marginBottom: theme.spacing.xs }}>
+          {statusMessage}
+        </div>
+        {!hasLLMResponse && progressPercentage !== undefined && (
+          <div style={{
+            height: "8px",
+            backgroundColor: theme.colors.border,
+            borderRadius: "4px",
+            overflow: "hidden"
+          }}>
+            <div 
+              style={{
+                height: "100%",
+                width: `${progressPercentage}%`,
+                backgroundColor: theme.colors.primary,
+                transition: "width 0.3s ease",
+                borderRadius: "4px"
+              }}
+            />
+          </div>
+        )}
       </div>
     );
   }
@@ -503,19 +545,30 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               <h4 style={{ margin: "0 0 8px 0", fontSize: theme.typography.fontSizeBase, fontWeight: theme.typography.fontWeightBold, color: theme.colors.text }}>{I18nService.t('value_orientation')}</h4>
               <div style={{ display: "flex", flexDirection: "column", gap: theme.spacing.sm }}>
                 {valueOrientation.map((item, index) => {
-                  const { label: labelName, score } = item;
-                  const { label, percentage } = calculateFinalLabel(labelName, score);
+                  const parsedLabel = parseLabelName(item.label);
+                  const leftLabel = parsedLabel.left;
+                  const rightLabel = parsedLabel.right;
                   
-                  const intensity = Math.min(100, percentage);
-                  const color = score >= 0 
-                    ? `hsl(210, 70%, ${70 - intensity * 0.3}%)`
-                    : `hsl(0, 70%, ${70 - Math.abs(intensity) * 0.3}%)`;
-
+                  // 确保分数在-1到1的范围内
+                  const normalizedScore = Math.max(-1, Math.min(1, item.score));
+                  
+                  // 计算百分比（取分数绝对值并转换为百分比）
+                  const percentage = Math.abs(normalizedScore) * 100;
+                  
+                  // 根据分数正负决定哪边高亮
+                  const leftIntensity = normalizedScore < 0 ? Math.abs(normalizedScore) * 100 : 0;
+                  const rightIntensity = normalizedScore > 0 ? normalizedScore * 100 : 0;
+                  
+                  // 根据强度计算颜色
+                  const leftColor = `hsl(0, 70%, ${70 - leftIntensity * 0.3}%)`; // 红色代表负值
+                  const rightColor = `hsl(210, 70%, ${70 - rightIntensity * 0.3}%)`; // 蓝色代表正值
+                  
                   return (
                     <div
                       key={index}
                       style={{
                         display: "flex",
+                        flexDirection: "column",
                         alignItems: "center",
                         padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
                         backgroundColor: theme.colors.background,
@@ -523,38 +576,90 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         fontSize: theme.typography.fontSizeSmall
                       }}
                     >
-                      <span style={{ 
-                        flex: "0 0 auto", 
-                        width: "120px", 
-                        color: theme.colors.text,
-                        backgroundColor: theme.colors.surface,
-                        padding: theme.spacing.xs,
-                        borderRadius: theme.borderRadius.small,
-                        fontSize: theme.typography.fontSizeSmall,
-                        textAlign: "center"
+                      {/* 百分比显示在条形图上方 */}
+                      <div style={{ 
+                        width: "100%", 
+                        textAlign: "center", 
+                        marginBottom: theme.spacing.xs,
+                        fontWeight: theme.typography.fontWeightBold,
+                        color: theme.colors.text
                       }}>
-                        {label}
-                      </span>
-                      <div style={{
-                        flex: "1",
-                        height: "12px",
-                        backgroundColor: theme.colors.border,
-                        borderRadius: theme.borderRadius.small,
-                        marginLeft: theme.spacing.sm,
-                        overflow: "hidden"
-                      }}>
-                        <div 
-                          style={{
-                            height: "100%",
-                            width: `${percentage}%`,
-                            backgroundColor: color,
-                            borderRadius: theme.borderRadius.small
-                          }}
-                        />
-                      </div>
-                      <span style={{ flex: "0 0 auto", width: "40px", textAlign: "right", color: theme.colors.textSecondary, fontSize: theme.typography.fontSizeSmall }}>
                         {Math.round(percentage)}%
-                      </span>
+                      </div>
+                      
+                      <div style={{ 
+                        display: "flex", 
+                        alignItems: "center", 
+                        width: "100%" 
+                      }}>
+                        <div style={{ 
+                          flex: "0 0 auto", 
+                          minWidth: "80px", 
+                          color: theme.colors.text,
+                          textAlign: "right",
+                          marginRight: theme.spacing.sm
+                        }}>
+                          {leftLabel || I18nService.t('unknown_type')}
+                        </div>
+                        
+                        {/* 左侧进度条 */}
+                        <div style={{
+                          flex: "1",
+                          height: "12px",
+                          backgroundColor: theme.colors.border,
+                          borderRadius: "6px 0 0 6px",
+                          overflow: "hidden",
+                          position: "relative"
+                        }}>
+                          <div 
+                            style={{
+                              height: "100%",
+                              width: `${leftIntensity}%`,
+                              backgroundColor: leftColor,
+                              borderRadius: "6px 0 0 6px"
+                            }}
+                          />
+                        </div>
+                        
+                        {/* 中央分割线 */}
+                        <div style={{
+                          height: "16px",
+                          width: "2px",
+                          backgroundColor: theme.colors.text,
+                          position: "relative",
+                          zIndex: 1
+                        }} />
+                        
+                        {/* 右側進度條 */}
+                        <div style={{
+                          flex: "1",
+                          height: "12px",
+                          backgroundColor: theme.colors.border,
+                          borderRadius: "0 6px 6px 0",
+                          overflow: "hidden",
+                          position: "relative"
+                        }}>
+                          <div 
+                            style={{
+                              height: "100%",
+                              width: `${rightIntensity}%`,
+                              backgroundColor: rightColor,
+                              borderRadius: "0 6px 6px 0",
+                              marginLeft: "auto" // 右對齊
+                            }}
+                          />
+                        </div>
+                        
+                        <div style={{ 
+                          flex: "0 0 auto", 
+                          minWidth: "80px", 
+                          color: theme.colors.text,
+                          textAlign: "left",
+                          marginLeft: theme.spacing.sm
+                        }}>
+                          {rightLabel || I18nService.t('unknown_type')}
+                        </div>
+                      </div>
                     </div>
                   );
                 })}
