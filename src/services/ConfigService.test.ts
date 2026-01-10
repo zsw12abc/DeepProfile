@@ -128,7 +128,7 @@ describe('ConfigService', () => {
       themeId: 'zhihu-white',
       themes: DEFAULT_CONFIG.themes
     };
-    await ConfigService.saveConfig(newConfig);
+    await ConfigService.saveConfig(newConfig as any);
     expect(storageMock.set).toHaveBeenCalledWith({ deep_profile_config: newConfig });
   });
 

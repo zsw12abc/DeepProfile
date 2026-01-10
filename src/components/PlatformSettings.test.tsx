@@ -7,8 +7,60 @@ import {
   PROVIDERS,
   LANGUAGES 
 } from './PlatformSettings';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 
+// Mock I18nService
+vi.mock('~services/I18nService', () => ({
+  I18nService: {
+    t: (key: string) => {
+      const map: Record<string, string> = {
+        'settings_general': '通用设置',
+        'plugin_enabled': '插件已启用',
+        'plugin_disabled': '插件已禁用',
+        'plugin_enabled_desc': '插件已启用描述',
+        'plugin_disabled_desc': '插件已禁用描述',
+        'ai_provider': 'AI 服务商',
+        'api_key': 'API Key',
+        'api_base_url': 'API Base URL',
+        'model_select': '模型选择',
+        'test_connection': '测试连接',
+        'connection_success': '连接成功',
+        'connection_failed': '连接失败',
+        'settings_zhihu': '知乎设置',
+        'settings_reddit': 'Reddit设置',
+        'analysis_mode': '分析模式',
+        'mode_fast': '快速',
+        'mode_balanced': '平衡',
+        'mode_deep': '深度',
+        'mode_fast_desc': '快速模式描述',
+        'mode_balanced_desc': '平衡模式描述',
+        'mode_deep_desc': '深度模式描述',
+        'analyze_limit': '分析限制',
+        'settings_debug': '调试设置',
+        'debug_mode': '调试模式',
+        'debug_mode_desc': '调试模式描述'
+      };
+      return map[key] || key;
+    },
+    setLanguage: vi.fn(),
+  }
+}));
 
+// Mock UIComponents
+vi.mock('./UIComponents', () => ({
+  Card: ({ title, children }: { title: string; children: React.ReactNode }) => (
+    <div data-testid="card">
+      <h2>{title}</h2>
+      {children}
+    </div>
+  ),
+  InputGroup: ({ label, children }: { label: string; children: React.ReactNode }) => (
+    <div data-testid="input-group">
+      <label>{label}</label>
+      {children}
+    </div>
+  ),
+}));
 
 // Mock AppConfig type
 type MockAppConfig = {
@@ -59,7 +111,7 @@ describe('PlatformSettings', () => {
 
       expect(screen.getByText('通用设置')).toBeInTheDocument();
       expect(screen.getByText('插件已启用')).toBeInTheDocument();
-      expect(screen.getByRole('checkbox')).toBeInTheDocument();
+      expect(screen.getByLabelText('插件已启用')).toBeInTheDocument();
       expect(screen.getByPlaceholderText('请输入 API Key')).toBeInTheDocument();
     });
 

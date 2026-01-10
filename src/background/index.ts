@@ -1,13 +1,13 @@
-import { LLMService } from "~services/LLMService"
-import { ZhihuClient } from "~services/ZhihuClient"
-import { ConfigService } from "~services/ConfigService"
-import { ProfileService } from "~services/ProfileService"
-import { HistoryService } from "~services/HistoryService"
-import { TopicService } from "~services/TopicService"
-import { CommentAnalysisService } from "~services/CommentAnalysisService"
-import { I18nService } from "~services/I18nService"
-import { LabelService } from "~services/LabelService"
-import type { SupportedPlatform } from "~types"
+import { LLMService } from "../services/LLMService"
+import { ZhihuClient } from "../services/ZhihuClient"
+import { ConfigService } from "../services/ConfigService"
+import { ProfileService } from "../services/ProfileService"
+import { HistoryService } from "../services/HistoryService"
+import { TopicService } from "../services/TopicService"
+import { CommentAnalysisService } from "../services/CommentAnalysisService"
+import { I18nService } from "../services/I18nService"
+import { LabelService } from "../services/LabelService"
+import type { SupportedPlatform } from "../types"
 
 export {}
 
@@ -140,7 +140,7 @@ async function testConnection(provider: string, apiKey: string, baseUrl: string,
         }
 
         return I18nService.t('connection_success');
-    } catch (e) {
+    } catch (e: any) {
         throw e;
     }
 }
@@ -188,7 +188,7 @@ async function listModels(provider: string, apiKey: string, baseUrl: string): Pr
                 .sort();
         }
         return [];
-    } catch (e) {
+    } catch (e: any) {
         console.error("List models error:", e);
         throw e;
     }
@@ -342,7 +342,7 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
         debugInfo: debugInfo,
         fromCache: false
       }
-  } catch (error) {
+  } catch (error: any) {
       let msg = error.message;
       if (msg.includes("402")) msg = I18nService.t('error_402');
       else if (msg.includes("401")) msg = I18nService.t('error_401');

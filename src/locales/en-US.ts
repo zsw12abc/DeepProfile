@@ -14,6 +14,7 @@ export const enUS: LocaleDict = {
   confirm_clear_all: "Are you sure you want to clear all history? This action cannot be undone.",
   export_markdown: "Export as Markdown",
   export_image: "Export as Image",
+  export_image_failed: "Export as Image Failed",
   settings: "Settings Menu",
 
   // Options Page
@@ -40,6 +41,9 @@ export const enUS: LocaleDict = {
   mode_fast: "⚡ Fast",
   mode_balanced: "⚖️ Balanced",
   mode_deep: "🧠 Deep",
+  mode_fast_desc: "Minimal content, fastest analysis",
+  mode_balanced_desc: "Moderate content, balanced speed and quality",
+  mode_deep_desc: "Maximum content, most comprehensive analysis",
   
   // Categories
   category_politics: "🏛️ Politics",
@@ -133,7 +137,6 @@ export const enUS: LocaleDict = {
   cannot_delete_builtin_theme: "Cannot delete built-in themes",
   confirm_delete_theme: "Are you sure you want to delete this theme? This action cannot be undone.",
   edit: "Edit",
-  delete: "Delete",
   color_settings: "Color Settings",
   color_primary: "Primary Color",
   color_secondary: "Secondary Color",
@@ -147,7 +150,6 @@ export const enUS: LocaleDict = {
   color_error: "Error Color",
   color_accent: "Accent Color",
   save_changes: "Save Changes",
-  cancel: "Cancel",
   
   // Context Invalidated Error
   extension_context_invalidated: "Extension context invalidated",
@@ -162,13 +164,9 @@ export const enUS: LocaleDict = {
   
   // Comment Analysis
   comment_summary_btn: "Analyze Comments",
-  analyzing_comments: "Analyzing comments on current page...",
-  expanding_comments: "Expanding comment section...",
-  extracting_comments: "Extracting comment data...",
   anonymous_user: "Anonymous User",
   not_enough_comments: "Not enough comments for analysis",
   comment_analysis_instruction: ", please try increasing the number of comments displayed.",
-  ai_reading: "AI is reading everyone's opinions...",
   comment_analysis_summary: "Comment Analysis Summary",
   comment_analysis_ai_generated: "AI Generated",
   sentiment_support: "Support",
@@ -180,8 +178,93 @@ export const enUS: LocaleDict = {
   logic_fallacy: "Logical Fallacy Detected",
   unknown_type: "Unknown Type",
   example_quote: "Example Quote",
-  comment_analysis_failed: "Analysis failed",
   
   // Reddit Overlay
   deep_profile_analysis: "Deep Profile Analysis"
 };
+
+// DeepProfile Current Version Changelog
+export const enUSChangelog = `# DeepProfile Current Version Changelog
+
+## Current Version: v0.6.2 (Beta)
+
+### ✅ Features Achieved
+
+### Core Feature (v0.6.2) - Theme System
+- ✅ **Theme Customization**: Supports user-defined appearance themes, including color schemes, fonts, and sizes.
+- ✅ **Multiple Built-in Themes**: Provides multiple preset themes, including Zhihu White/Black themes and Reddit White/Black themes.
+- ✅ **Dynamic Theme Switching**: Supports real-time theme switching without page refresh.
+- ✅ **CSS Variable Driven**: Uses CSS variables to implement global theme dynamic application, ensuring all components update synchronously.
+- ✅ **Theme Management**: Supports creating, editing, and deleting custom themes, with import/export functionality.
+`;
+
+// DeepProfile Version History
+export const enUSVersionHistory = `# DeepProfile Version History
+
+### v0.6.1 (2024-01-09) - Real-time Settings Save
+*   **Feature**: Implemented **real-time settings save functionality** on the settings page, all configuration changes are immediately saved to storage automatically.
+*   **Feature**: Removed manual save button, simplifying the settings interface.
+*   **Feature**: Configuration changes take effect immediately without restart or refresh.
+*   **UX**: Improved user experience with a smoother settings workflow.
+
+### v0.6.0 (2024-01-08) - Reddit Platform Multilingual Support Enhancement
+*   **Feature**: Fixed I18nService initialization issue on Reddit platform to ensure multilingual functionality works properly.
+*   **Feature**: Refactored button injection logic on Reddit platform to align with Zhihu platform, resolving the disappearing button issue.
+*   **Feature**: Ensured that Reddit platform analysis buttons and user profile cards support Chinese/English interface switching.
+*   **Feature**: Implemented consistent button injection mechanism aligned with Zhihu platform, including configuration checks, cleanup functions, and orphaned button removal features.
+*   **Feature**: Updated internationalization support for loading, analysis, and error status messages to ensure interface fully follows user language settings.
+*   **Feature**: Fixed useCallback import issue in Reddit overlay, optimizing component performance.
+
+### v0.5.1 (2024-01-10) - Multi-language Support
+*   **Major Feature**: Full support for **Simplified Chinese** and **English** bilingual switching.
+*   **Feature**: AI analysis results automatically adapt to selected language.
+*   **Refactor**: Introduced \`I18nService\` to manage text resources uniformly.
+
+### v0.5.0 (2024-01-09) - Comment Sentiment Summary
+*   **Major Feature**: **Comment Sentiment Summary**, one-click generation of page sentiment profile, including position distribution, core views, and emotion detection.
+*   **Security**: Adopted **zero-risk analysis** strategy, only analyzing loaded DOM text, not calling Zhihu API, completely avoiding risk control.
+
+### v0.4.2 (2024-01-08) - Enhanced Export and UX Optimization
+*   **Feature**: Export images support displaying user avatars and QR codes.
+*   **Feature**: History record management supports image export.
+*   **Fix**: Fixed user nickname display issue in history records.
+*   **Fix**: Optimized Zhihu API request headers, resolving 403 issue.
+*   **UX**: Error prompt copy optimized, more friendly and witty.
+
+### v0.4.1 (2024-01-07) - Performance Optimization
+*   **Optimization**: **Dynamic Prompt Trimming**, based on topic category only loads relevant label definitions, significantly reducing Token consumption and improving response speed.
+*   **Refactor**: Optimized label service and topic service, improving code maintainability.
+
+### v0.4.0 (2024-01-06) - History Records and Intelligent Classification
+*   **Major Feature**: **History Record System**, supporting local cache, second-level response, and visual management.
+*   **Major Feature**: **Eight-dimensional Full Spectrum Classification**, introducing 30+ sub-dimensions in politics, economy, society, technology, etc., making profiles more three-dimensional.
+*   **Feature**: **Hybrid Classification Strategy**, combining keyword matching with LLM intelligent classification, ensuring accurate topic categorization.
+*   **Feature**: **Domain Adaptive Analysis**, LLM automatically judges content relevance, avoiding incorrect analysis due to topic mismatch.
+*   **Optimization**: **Deep Prompt Desensitization**, significantly reducing probability of triggering content security risk control.
+*   **UI**: Added "History Records" panel to settings page, supporting expansion view and fine-grained management.
+
+### v0.3.0 (2024-01-04) - Precise Focus and UX Optimization
+*   **Major Feature**: **Refactored Context-aware Algorithm**, using topic tags for precise matching and adopting dynamic truncation strategy, completely solving topic deviation issues.
+*   **Major Feature**: **Refactored Prompt**, using "value orientation" instead of "political orientation", avoiding domestic model risk control, and requiring AI to explain contradiction points.
+*   **Feature**: **New "Connection Test" Function**, providing friendly Chinese error prompts.
+*   **Feature**: **Dynamic Model List Loading**, upgraded model name input box to dropdown selection box.
+*   **Feature**: Added support for **Qwen (Tongyi Qianwen)** and **Custom OpenAI Compatible Interface**.
+*   **Feature**: Data source adds **user like activity**, and can display source ratio in Debug panel.
+*   **Fix**: Prioritizes extracting and analyzing **complete body** of answers/articles, not brief summaries.
+*   **UI**: Modernized settings page UI, adopting card-based layout.
+
+### v0.2.0 (2024-01-03) - Deep Analysis and Context Awareness
+*   **Feature**: Added context-aware functionality, automatically filtering user's relevant answers based on current browsing question.
+*   **Feature**: Added "Analysis Mode" setting (Fast/Balanced/Deep), Deep mode supports irony identification.
+*   **Feature**: Profile labels added confidence probability display.
+*   **Feature**: Enhanced Debug mode, displaying topic classification and scraping strategy.
+*   **Fix**: Optimized injection logic, precisely positioning to the right of nickname, excluding avatar interference.
+*   **Fix**: Fixed issue where citation links were in API format, unified to web links.
+
+### v0.1.0 (2024-01-02) - MVP Release
+*   **Feature**: Completed basic architecture (Plasmo + React + TypeScript).
+*   **Feature**: Implemented Zhihu API scraping and cleaning.
+*   **Feature**: Connected OpenAI/Gemini/Ollama interfaces.
+*   **Feature**: Implemented basic UI injection and profile display card.
+*   **Feature**: Supports API Key configuration.
+`;

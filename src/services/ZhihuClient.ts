@@ -89,7 +89,7 @@ export class ZhihuClient {
           name: data.name,
           headline: data.headline,
           url_token: data.url_token,
-          avatar_url: data.avatar_url.replace('_l', '') // Get original size avatar
+          avatar_url: data.avatar_url ? data.avatar_url.replace('_l', '') : data.avatar_url // Get original size avatar, handle undefined
         };
       }
     } catch (e) {

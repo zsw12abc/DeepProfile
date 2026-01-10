@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import { Card, InputGroup } from './UIComponents';
+import { describe, it, expect } from 'vitest';
 
 describe('UIComponents', () => {
   describe('Card', () => {

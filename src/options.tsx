@@ -1,28 +1,39 @@
 import React, { useEffect, useState, useCallback } from "react"
-import React from "react"
-import { useState, useEffect, useCallback } from "react"
-import { ConfigService } from "~services/ConfigService"
-import { HistoryService } from "~services/HistoryService"
-import { TopicService, type MacroCategory } from "~services/TopicService"
-import { calculateFinalLabel } from "~services/LabelUtils"
-import { ExportService } from "~services/ExportService"
-import { DEFAULT_CONFIG, type AIProvider, type AppConfig, type AnalysisMode, type SupportedPlatform, type UserHistoryRecord, type ProfileData, type Language } from "~types"
-import icon from "data-base64:../assets/icon.png"
+import { ConfigService } from "./services/ConfigService"
+import { HistoryService } from "./services/HistoryService"
+import { TopicService, type MacroCategory } from "./services/TopicService"
+import { calculateFinalLabel } from "./services/LabelUtils"
+import { ExportService } from "./services/ExportService"
+import { DEFAULT_CONFIG, type AIProvider, type AppConfig, type AnalysisMode, type SupportedPlatform, type UserHistoryRecord, type ProfileData, type Language } from "./types"
+// 动态导入图标以支持测试环境
+let icon: string;
+
+try {
+  // 尝试动态导入实际图标
+  const actualIcon = require('./assets/icon.png');
+  icon = typeof actualIcon === 'string' ? actualIcon : actualIcon.default;
+} catch (e) {
+  // 在测试环境中，使用默认图标
+  icon = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
+}
+
+// 导出最终图标
+const finalIcon = icon;
 import html2canvas from "html2canvas"
-import { ZhihuClient } from "~services/ZhihuClient"
-import { I18nService } from "~services/I18nService"
-import MarkdownRenderer from "~components/MarkdownRenderer"
-import zhCNChangelog from "data-text:./locales/zh-CN/CHANGELOG.md"
-import enUSChangelog from "data-text:./locales/en-US/CHANGELOG.md"
-import { GeneralSettings } from "~components/PlatformSettings"
-import { PlatformSpecificSettings } from "~components/PlatformSettings"
-import { DebugSettings } from "~components/PlatformSettings"
-import { HistorySection } from "~components/HistorySection"
-import { VersionInfo } from "~components/VersionInfo"
-import { ZhihuIcon, RedditIcon, getBaseUrlPlaceholder, shouldShowBaseUrlInput } from "~components/HelperComponents"
-import { ModelSelector } from "~components/ModelSelector"
-import ThemeSettings from "~components/ThemeSettings";
-import { ThemeService } from "~services/ThemeService";
+import { ZhihuClient } from "./services/ZhihuClient"
+import { I18nService } from "./services/I18nService"
+import MarkdownRenderer from "./components/MarkdownRenderer"
+// 动态导入CHANGELOG文件以支持测试环境
+import { zhCNChangelog, zhCNVersionHistory } from './locales/zh-CN';
+import { enUSChangelog, enUSVersionHistory } from './locales/en-US';
+import { GeneralSettings, PlatformSpecificSettings, DebugSettings } from "./components/PlatformSettings"
+import { HistorySection } from "./components/HistorySection"
+import { VersionInfo } from "./components/VersionInfo"
+import { ZhihuIcon, RedditIcon, getBaseUrlPlaceholder, shouldShowBaseUrlInput } from "./components/HelperComponents"
+import { ModelSelector } from "./components/ModelSelector"
+import ThemeSettings from "./components/ThemeSettings";
+import { ThemeService } from "./services/ThemeService";
+import { LabelService } from "./services/LabelService";
 
 // 获取版本信息
 const getVersion = (): string => {
@@ -35,11 +46,11 @@ const getVersion = (): string => {
 };
 
 // 新增函数：获取CHANGELOG内容
-const fetchChangelogContent = async (lang: string): Promise<string> => {
+const fetchChangelogContent = async (lang: string): Promise<{ changelog: string, versionHistory: string }> => {
   if (lang === 'zh-CN') {
-    return zhCNChangelog;
+    return { changelog: zhCNChangelog, versionHistory: zhCNVersionHistory };
   } else {
-    return enUSChangelog;
+    return { changelog: enUSChangelog, versionHistory: enUSVersionHistory };
   }
 };
 
@@ -60,6 +71,7 @@ export default function Options() {
   const [loadingHistory, setLoadingHistory] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const [changelog, setChangelog] = useState("");
+  const [versionHistory, setVersionHistory] = useState("");
 
   // Force re-render when language changes
   const [, setTick] = useState(0);
@@ -81,8 +93,15 @@ export default function Options() {
         if (!config?.language) return;
 
         const lang = config.language;
-        const changelogText = await fetchChangelogContent(lang);
-        setChangelog(changelogText);
+        
+        // 根据语言设置分别设置更新日志和版本历史
+        if (lang === 'zh-CN') {
+          setChangelog(zhCNChangelog);
+          setVersionHistory(zhCNVersionHistory);
+        } else {
+          setChangelog(enUSChangelog);
+          setVersionHistory(enUSVersionHistory);
+        }
     };
 
     if (config) {
@@ -190,7 +209,7 @@ export default function Options() {
           }).join('');
       }
 
-      let avatarSrc = icon;
+      let avatarSrc = finalIcon;
       if (userInfo?.avatar_url) {
         const base64Avatar = await ZhihuClient.fetchImageAsBase64(userInfo.avatar_url);
         if (base64Avatar) {
@@ -341,7 +360,7 @@ export default function Options() {
       labelService.refreshCategories();
       
       // 同样使标签缓存无效
-      const { invalidateLabelCache } = await import('~services/LabelDefinitions');
+      const { invalidateLabelCache } = await import('./services/LabelDefinitions');
       invalidateLabelCache();
       
       forceUpdate();
@@ -485,7 +504,7 @@ export default function Options() {
       case 'debug':
         return <DebugSettings config={config} setConfig={handleConfigChange} />;
       case 'version':
-        return <VersionInfo changelog={changelog} />;
+        return <VersionInfo changelog={changelog} versionHistory={versionHistory} />;
       default:
         return null;
     }

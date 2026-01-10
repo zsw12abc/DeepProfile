@@ -1,137 +1,136 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { LLMService } from './LLMService';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ConfigService } from './ConfigService';
+import { LabelService } from './LabelService';
+import { TopicService } from './TopicService';
+import { I18nService } from './I18nService';
+import { LLMService } from './LLMService';
+import { ChatOpenAI } from '@langchain/openai';
+import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 
-// Mock relative imports
-vi.mock('./ConfigService', () => ({
-  ConfigService: {
-    getConfig: vi.fn(),
-  },
-}));
+// Mock dependencies first
+vi.mock('./ConfigService');
+vi.mock('./I18nService');
+vi.mock('./LabelService');
+vi.mock('./TopicService');
+vi.mock('@langchain/openai');
+vi.mock('@langchain/google-genai');
 
-vi.mock('./I18nService', () => ({
-  I18nService: {
-    t: (key: string) => key,
-    init: vi.fn(),
-    setLanguage: vi.fn(),
-    getLanguage: () => 'zh-CN',
-  }
-}));
+const mockFetch = vi.fn();
+global.fetch = mockFetch;
 
 describe('LLMService', () => {
-  const fetchMock = vi.fn();
-  global.fetch = fetchMock;
-
   beforeEach(() => {
-    fetchMock.mockClear();
     vi.clearAllMocks();
+
+    // Mock I18nService
+    vi.mocked(I18nService).t.mockImplementation((key: string) => key);
+    vi.mocked(I18nService).getLanguage.mockReturnValue('zh-CN');
+
+    // Mock LabelService
+    const mockLabelServiceInstance = {
+      refreshCategories: vi.fn(),
+      getLabelsForCategory: vi.fn(() => 'Mock Labels'),
+    };
+    vi.mocked(LabelService.getInstance).mockReturnValue(mockLabelServiceInstance);
+
+    // Mock TopicService
+    vi.mocked(TopicService.getCategoryName).mockReturnValue('Mock Category');
+
+    // Mock fetch for Ollama
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        response: JSON.stringify({
+          nickname: 'Ollama User',
+          summary: 'Ollama Summary',
+          topic_classification: 'general',
+          value_orientation: [],
+          evidence: []
+        }),
+        prompt_eval_count: 10,
+        eval_count: 20
+      }),
+    });
   });
 
-  it('should call OpenAI API correctly', async () => {
+  const mockConfig = (provider: string, apiKey: string, baseUrl?: string, model?: string) => {
     vi.mocked(ConfigService.getConfig).mockResolvedValue({
-      selectedProvider: 'openai',
-      apiKeys: { openai: 'sk-test' },
-      customBaseUrls: {},
-    });
+      selectedProvider: provider,
+      apiKeys: { [provider]: apiKey },
+      customBaseUrls: { [provider]: baseUrl },
+      customModelNames: { [provider]: model },
+      analysisMode: 'balanced',
+      platformAnalysisModes: {},
+      enableDebug: false
+    } as any);
+  };
 
-    fetchMock.mockResolvedValue({
-      ok: true,
-      json: async () => ({ choices: [{ message: { content: 'Analysis Result' } }] }),
+  it('should call OpenAI API correctly', async () => {
+    mockConfig('openai', 'sk-test', 'http://mock-openai-url', 'gpt-3.5-turbo');
+    const mockInvoke = vi.fn().mockResolvedValue({
+      content: JSON.stringify({ nickname: 'OpenAI User' })
     });
+    vi.mocked(ChatOpenAI).mockImplementation(() => ({ invoke: mockInvoke } as any));
 
     const result = await LLMService.generateProfile('User content', 'general');
 
-    expect(result.content).toBe('Analysis Result');
-    expect(fetchMock).toHaveBeenCalledWith(
-      'https://api.openai.com/v1/chat/completions',
-      expect.objectContaining({
-        method: 'POST',
-        headers: expect.objectContaining({
-          Authorization: 'Bearer sk-test',
-        }),
-        body: expect.stringContaining('"model":"gpt-3.5-turbo"'),
-      })
-    );
+    expect(ChatOpenAI).toHaveBeenCalledWith(expect.objectContaining({
+      openAIApiKey: 'sk-test',
+      configuration: { baseURL: 'http://mock-openai-url' },
+      modelName: 'gpt-3.5-turbo'
+    }));
+    expect(mockInvoke).toHaveBeenCalled();
+    expect(result.content.nickname).toBe('OpenAI User');
   });
 
   it('should call DeepSeek API correctly', async () => {
-    vi.mocked(ConfigService.getConfig).mockResolvedValue({
-      selectedProvider: 'deepseek',
-      apiKeys: { deepseek: 'sk-deepseek' },
-      customBaseUrls: {},
+    mockConfig('deepseek', 'sk-deepseek', 'http://mock-deepseek-url', 'deepseek-chat');
+    const mockInvoke = vi.fn().mockResolvedValue({
+      content: JSON.stringify({ nickname: 'DeepSeek User' })
     });
+    vi.mocked(ChatOpenAI).mockImplementation(() => ({ invoke: mockInvoke } as any));
 
-    fetchMock.mockResolvedValue({
-      ok: true,
-      json: async () => ({ choices: [{ message: { content: 'DeepSeek Result' } }] }),
-    });
+    const result = await LLMService.generateProfile('User content', 'general');
 
-    await LLMService.generateProfile('User content', 'general');
-
-    expect(fetchMock).toHaveBeenCalledWith(
-      'https://api.deepseek.com/v1/chat/completions',
-      expect.objectContaining({
-        body: expect.stringContaining('"model":"deepseek-chat"'),
-      })
-    );
+    expect(ChatOpenAI).toHaveBeenCalledWith(expect.objectContaining({
+      openAIApiKey: 'sk-deepseek',
+      configuration: { baseURL: 'http://mock-deepseek-url' },
+      modelName: 'deepseek-chat'
+    }));
+    expect(mockInvoke).toHaveBeenCalled();
+    expect(result.content.nickname).toBe('DeepSeek User');
   });
 
   it('should call Gemini API correctly', async () => {
-    vi.mocked(ConfigService.getConfig).mockResolvedValue({
-      selectedProvider: 'gemini',
-      apiKeys: { gemini: 'gemini-key' },
-      customBaseUrls: {},
+    mockConfig('gemini', 'gemini-key', undefined, 'gemini-pro');
+    const mockInvoke = vi.fn().mockResolvedValue({
+      content: JSON.stringify({ nickname: 'Gemini User' })
     });
-
-    fetchMock.mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        candidates: [{ content: { parts: [{ text: 'Gemini Result' }] } }],
-      }),
-    });
+    vi.mocked(ChatGoogleGenerativeAI).mockImplementation(() => ({ invoke: mockInvoke } as any));
 
     const result = await LLMService.generateProfile('User content', 'general');
-    expect(result.content).toBe('Gemini Result');
-    expect(fetchMock).toHaveBeenCalledWith(
-      expect.stringContaining('generativelanguage.googleapis.com'),
-      expect.objectContaining({
-        method: 'POST',
-      })
-    );
+
+    expect(ChatGoogleGenerativeAI).toHaveBeenCalledWith(expect.objectContaining({
+      apiKey: 'gemini-key',
+      modelName: 'gemini-pro'
+    }));
+    expect(mockInvoke).toHaveBeenCalled();
+    expect(result.content.nickname).toBe('Gemini User');
   });
 
-  it('should throw error if API Key is missing', async () => {
-    vi.mocked(ConfigService.getConfig).mockResolvedValue({
-      selectedProvider: 'openai',
-      apiKeys: {}, // Missing key
-      customBaseUrls: {},
-    });
+  it('should call Ollama API correctly', async () => {
+    mockConfig('ollama', '', 'http://localhost:11434', 'llama3');
 
-    await expect(LLMService.generateProfile('test', 'general')).rejects.toThrow('API Key is required');
+    const result = await LLMService.generateProfile('User content', 'general');
+
+    expect(mockFetch).toHaveBeenCalledWith('http://localhost:11434/api/generate', expect.any(Object));
+    const fetchBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+    expect(fetchBody.model).toBe('llama3');
+    expect(result.content.nickname).toBe('Ollama User');
   });
-  
-  // 性能测试
-  it('should complete fast mode faster than balanced mode', async () => {
-    vi.mocked(ConfigService.getConfig).mockResolvedValue({
-      selectedProvider: 'openai',
-      apiKeys: { openai: 'sk-test' },
-      customBaseUrls: {},
-      analysisMode: 'fast'
-    });
 
-    fetchMock.mockResolvedValue({
-      ok: true,
-      json: async () => ({ choices: [{ message: { content: '{"nickname":"test","topic_classification":"tech","value_orientation":[{"label":"tech","score":0.8}],"summary":"test"}' } }] }),
-    });
-
-    // 测试快速模式
-    const fastStartTime = Date.now();
-    const fastResult = await LLMService.generateProfile('User content', 'technology');
-    const fastDuration = fastResult.durationMs || (Date.now() - fastStartTime);
-    
-    // 验证快速模式使用了简化的提示词
-    expect(fetchMock).toHaveBeenCalled();
-    
-    console.log(`Fast mode duration: ${fastDuration}ms`);
+  it('should throw error for missing API Key when required', async () => {
+    mockConfig('openai', '', 'https://api.openai.com/v1'); // No key, not localhost
+    await expect(LLMService.generateProfile('test', 'general')).rejects.toThrow("API Key is required");
   });
 });

@@ -2,8 +2,8 @@ import React from "react";
 import { Card } from "./UIComponents";
 import { I18nService } from "~services/I18nService";
 import MarkdownRenderer from "~components/MarkdownRenderer";
-import zhCNChangelog from "data-text:../locales/zh-CN/CHANGELOG.md";
-import enUSChangelog from "data-text:../locales/en-US/CHANGELOG.md";
+import { zhCNChangelog, zhCNVersionHistory } from "../locales/zh-CN";  // Updated path to use JS module
+import { enUSChangelog, enUSVersionHistory } from "../locales/en-US";  // Updated path to use JS module
 
 // 获取版本信息
 export const getVersion = (): string => {
@@ -16,19 +16,26 @@ export const getVersion = (): string => {
 };
 
 // 获取CHANGELOG内容
-export const fetchChangelogContent = async (lang: string): Promise<string> => {
+export const fetchChangelogContent = async (lang: string): Promise<{ changelog: string, versionHistory: string }> => {
   if (lang === 'zh-CN') {
-    return zhCNChangelog;
+    return { 
+      changelog: zhCNChangelog,
+      versionHistory: zhCNVersionHistory
+    };
   } else {
-    return enUSChangelog;
+    return { 
+      changelog: enUSChangelog,
+      versionHistory: enUSVersionHistory
+    };
   }
 };
 
 interface VersionInfoProps {
   changelog: string;
+  versionHistory: string;
 }
 
-export const VersionInfo: React.FC<VersionInfoProps> = ({ changelog }) => {
+export const VersionInfo: React.FC<VersionInfoProps> = ({ changelog, versionHistory }) => {
   return (
     <Card title={I18nService.t('version_info')} icon={<span style={{ fontSize: "24px" }}>ℹ️</span>}>
       <div style={{ marginBottom: "20px" }}>
@@ -70,7 +77,7 @@ export const VersionInfo: React.FC<VersionInfoProps> = ({ changelog }) => {
           lineHeight: "1.6",
           color: "var(--theme-text, #4a5568)"
         }}>
-          <MarkdownRenderer content={changelog} />
+          <MarkdownRenderer content={versionHistory} />
         </div>
       </div>
     </Card>

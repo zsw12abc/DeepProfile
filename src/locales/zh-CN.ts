@@ -137,7 +137,6 @@ export const zhCN: LocaleDict = {
   cannot_delete_builtin_theme: "无法删除内置主题",
   confirm_delete_theme: "确定要删除这个主题吗？此操作不可恢复。",
   edit: "编辑",
-  delete: "删除",
   color_settings: "颜色设置",
   color_primary: "主色调",
   color_secondary: "次要色调",
@@ -151,7 +150,6 @@ export const zhCN: LocaleDict = {
   color_error: "错误色",
   color_accent: "强调色",
   save_changes: "保存更改",
-  cancel: "取消",
   
   // Context Invalidated Error
   extension_context_invalidated: "扩展上下文失效",
@@ -166,13 +164,9 @@ export const zhCN: LocaleDict = {
   
   // Comment Analysis
   comment_summary_btn: "分析评论",
-  analyzing_comments: "正在分析当前页面的评论...",
-  expanding_comments: "正在展开评论区...",
-  extracting_comments: "正在提取评论数据...",
   anonymous_user: "匿名用户",
   not_enough_comments: "评论数量不足以进行分析",
   comment_analysis_instruction: "，请尝试增加显示的评论数量。",
-  ai_reading: "AI 正在阅读大家的观点...",
   comment_analysis_summary: "评论分析总结",
   comment_analysis_ai_generated: "AI 生成",
   sentiment_support: "支持",
@@ -184,8 +178,93 @@ export const zhCN: LocaleDict = {
   logic_fallacy: "检测到逻辑谬误",
   unknown_type: "未知类型",
   example_quote: "示例引用",
-  comment_analysis_failed: "分析失败",
   
   // Reddit Overlay
   deep_profile_analysis: "深度画像分析"
 };
+
+// DeepProfile 当前版本更新日志
+export const zhCNChangelog = `# DeepProfile 当前版本更新日志
+
+## 当前版本: v0.6.2 (Beta)
+
+### ✅ 已达成功能
+
+### 核心功能 (v0.6.2) - 主题系统
+- ✅ **主题定制**: 支持用户自定义外观主题，包括颜色方案、字体、尺寸等。
+- ✅ **多套内置主题**: 提供多套预设主题，包括知乎白/黑主题、Reddit白/黑主题。
+- ✅ **动态主题切换**: 支持实时切换主题，无需刷新页面。
+- ✅ **CSS变量驱动**: 使用CSS变量实现全局主题动态应用，确保所有组件同步更新。
+- ✅ **主题管理**: 支持创建、编辑、删除自定义主题，并提供主题导入导出功能。
+`;
+
+// DeepProfile 版本历史记录
+export const zhCNVersionHistory = `# DeepProfile 版本历史
+
+### v0.6.1 (2024-01-09) - 实时保存设置
+*   **Feature**: 实现了设置页面的**实时保存功能**，所有配置更改立即自动保存到存储。
+*   **Feature**: 移除了手动保存按钮，简化设置界面。
+*   **Feature**: 配置更改后立即生效，无需重启或刷新。
+*   **UX**: 提升用户体验，提供更流畅的设置流程。
+
+### v0.6.0 (2024-01-08) - Reddit 平台多语言支持增强
+*   **Feature**: 修复 Reddit 平台的 I18nService 初始化问题，确保多语言功能正常工作。
+*   **Feature**: 重构 Reddit 平台的按钮注入逻辑，使其与 Zhihu 平台保持一致，解决按钮消失的问题。
+*   **Feature**: 确保 Reddit 平台的分析按钮和用户画像卡片支持中英文界面切换。
+*   **Feature**: 实现了与 Zhihu 平台一致的按钮注入机制，包括配置检查、清理函数和孤儿按钮清理等功能。
+*   **Feature**: 更新了加载、分析和错误状态消息的国际化支持，确保界面完全遵循用户语言设置。
+*   **Feature**: 修复了 Reddit overlay 中的 useCallback 导入问题，优化了组件性能。
+
+### v0.5.1 (2024-01-10) - 多语言支持
+*   **Major Feature**: 全面支持 **简体中文** 和 **English** 双语切换。
+*   **Feature**: AI 分析结果自动适配所选语言。
+*   **Refactor**: 引入 \`I18nService\` 统一管理文本资源。
+
+### v0.5.0 (2024-01-09) - 评论区舆情总结
+*   **Major Feature**: **评论区舆情总结**，一键生成当前页面的舆论画像，包括立场分布、核心观点和情绪检测。
+*   **Security**: 采用**零风险分析**策略，仅分析已加载的 DOM 文本，不调用知乎 API，彻底规避风控。
+
+### v0.4.2 (2024-01-08) - 导出增强与体验优化
+*   **Feature**: 导出图片支持显示用户头像和二维码。
+*   **Feature**: 历史记录管理支持图片导出。
+*   **Fix**: 修复历史记录中用户昵称显示问题。
+*   **Fix**: 优化知乎 API 请求头，解决 403 问题。
+*   **UX**: 错误提示文案优化，更加友好俏皮。
+
+### v0.4.1 (2024-01-07) - 性能优化
+*   **Optimization**: **Prompt 动态剪裁**，根据话题分类仅加载相关标签定义，大幅减少 Token 消耗并提升响应速度。
+*   **Refactor**: 优化标签服务与话题服务，提升代码可维护性。
+
+### v0.4.0 (2024-01-06) - 历史记录与智能分类
+*   **Major Feature**: **历史记录系统**，支持本地缓存、秒级响应和可视化管理。
+*   **Major Feature**: **八大维度全谱系分类**，引入政治、经济、社会、科技等 30+ 个细分维度，画像更立体。
+*   **Feature**: **混合分类策略**，结合关键词匹配与 LLM 智能分类，确保话题归类准确无误。
+*   **Feature**: **领域自适应分析**，LLM 自动判断内容相关性，避免"张冠李戴"的错误分析。
+*   **Optimization**: **Prompt 深度降敏**，大幅降低触发内容安全风控的概率。
+*   **UI**: 设置页面新增"历史记录"面板，支持展开查看和精细化管理。
+
+### v0.3.0 (2024-01-04) - 精准聚焦与体验优化
+*   **Major Feature**: **重构上下文感知算法**，使用话题标签进行精准匹配，并采用动态截断策略，彻底解决话题跑偏问题。
+*   **Major Feature**: **重构 Prompt**，使用"价值取向"代替"政治倾向"，规避国产模型风控，并要求 AI 解释矛盾点。
+*   **Feature**: **新增"连接测试"功能**，提供友好的中文错误提示。
+*   **Feature**: **动态加载模型列表**，将模型名称输入框升级为下拉选择框。
+*   **Feature**: 新增对**通义千问 (Qwen)** 和**自定义 OpenAI 兼容接口**的支持。
+*   **Feature**: 数据源增加**用户点赞动态**，并能在 Debug 面板中展示来源比例。
+*   **Fix**: 优先提取并分析回答/文章的**完整正文**，而非简短摘要。
+*   **UI**: 设置页面 UI 现代化，采用卡片式布局。
+
+### v0.2.0 (2024-01-03) - 深度分析与上下文感知
+*   **Feature**: 新增上下文感知功能，根据当前浏览的问题自动筛选用户相关回答。
+*   **Feature**: 新增"分析模式"设置 (极速/平衡/深度)，深度模式支持识别反讽。
+*   **Feature**: 画像标签新增置信度概率展示。
+*   **Feature**: Debug 模式增强，显示话题分类和抓取策略。
+*   **Fix**: 优化注入逻辑，精准定位昵称右侧，排除头像干扰。
+*   **Fix**: 修复引用链接为 API 格式的问题，统一为网页链接。
+
+### v0.1.0 (2024-01-02) - MVP 发布
+*   **Feature**: 完成基础架构 (Plasmo + React + TypeScript)。
+*   **Feature**: 实现知乎 API 抓取与清洗。
+*   **Feature**: 对接 OpenAI/Gemini/Ollama 接口。
+*   **Feature**: 实现基础 UI 注入与画像展示卡片。
+*   **Feature**: 支持 API Key 配置。
+`;

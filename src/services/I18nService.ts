@@ -1,7 +1,7 @@
-﻿import { zhCN } from "~locales/zh-CN";
-import { enUS } from "~locales/en-US";
-import type { LocaleKey, LocaleDict } from "~locales/index";
-import type { Language } from "~types";
+import { zhCN } from "../locales/zh-CN";
+import { enUS } from "../locales/en-US";
+import type { LocaleKey, LocaleDict } from "../locales/index";
+import type { Language } from "../types";
 import { ConfigService } from "./ConfigService";
 
 export class I18nService {

@@ -220,7 +220,7 @@ class LangChainProvider implements LLMProvider {
           modelName: this.model,
           temperature: temperature,
           timeout: timeout,
-          response_format: { type: "json_object" }
+          modelKwargs: { response_format: { type: "json_object" } }
         });
         this.rawLlm = new ChatOpenAI({
           openAIApiKey: this.apiKey,
@@ -235,7 +235,7 @@ class LangChainProvider implements LLMProvider {
           apiKey: this.apiKey,
           modelName: this.model,
           temperature: temperature,
-          responseMimeType: "application/json"
+          // responseMimeType: "application/json" // This can cause issues, relying on prompt instead
         });
         this.rawLlm = new ChatGoogleGenerativeAI({
           apiKey: this.apiKey,
@@ -263,8 +263,6 @@ class LangChainProvider implements LLMProvider {
     const startTime = Date.now();
     
     try {
-      // 设置一个非常长的超时时间（10分钟），作为最后的兜底
-      // 用户反馈不希望因为超时而浪费Token，因此给予足够的时间
       const timeout = 600000; // 10 minutes
       
       const messages = [
@@ -272,7 +270,6 @@ class LangChainProvider implements LLMProvider {
         new HumanMessage(text)
       ];
       
-      // 直接调用LLM，避免额外的链式调用开销
       const result = await Promise.race([
         this.llm.invoke(messages),
         new Promise((_, reject) => 
@@ -282,15 +279,14 @@ class LangChainProvider implements LLMProvider {
       
       const durationMs = Date.now() - startTime;
 
-      // 如果返回的是对象而不是字符串，需要提取内容
       let resultContent = result;
-      if (typeof result === 'object' && result.content) {
-        resultContent = result.content;
-      } else if (typeof result === 'object' && result.text) {
-        resultContent = result.text;
+      if (typeof result === 'object' && (result as any).content) {
+        resultContent = (result as any).content;
+      } else if (typeof result === 'object' && (result as any).text) {
+        resultContent = (result as any).text;
       }
       
-      const validatedContent = this.validateAndFixResponse(resultContent);
+      const validatedContent = this.validateAndFixResponse(resultContent as string);
       const parsedContent = JSON.parse(validatedContent);
       
       const debugConfig = await ConfigService.getConfig();
@@ -302,44 +298,43 @@ class LangChainProvider implements LLMProvider {
           content: parsedContent,
           usage: undefined,
           durationMs,
-          model: this.model
+          model: this.model || "unknown"
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("LangChain API Error:", error);
       if (error.message && (error.message.includes('inappropriate content') || error.message.includes('data_inspection_failed'))) {
-        const defaultResponse = JSON.stringify({
+        const defaultResponse = {
           nickname: "",
           topic_classification: "Content Analysis",
           value_orientation: [],
           summary: "Content Safety Review Failed: The content may involve sensitive topics and was blocked by the AI provider. Please try switching to DeepSeek or OpenAI models.",
           evidence: []
-        }, null, 2);
+        };
         
         const durationMs = Date.now() - startTime;
         return {
           content: defaultResponse,
           usage: undefined,
           durationMs,
-          model: this.model
+          model: this.model || "unknown"
         };
       }
       
-      // 优化 400 错误提示
       if (error.message && error.message.includes('400') && error.message.includes('Output data may contain inappropriate content')) {
-          const defaultResponse = JSON.stringify({
+          const defaultResponse = {
             nickname: "",
             topic_classification: "Content Analysis",
             value_orientation: [],
             summary: "Content Safety Review Failed: The content may involve sensitive topics and was blocked by the AI provider. Please try switching to DeepSeek or OpenAI models.",
             evidence: []
-          }, null, 2);
+          };
           
           const durationMs = Date.now() - startTime;
           return {
             content: defaultResponse,
             usage: undefined,
             durationMs,
-            model: this.model
+            model: this.model || "unknown"
           };
       }
 
@@ -373,7 +368,7 @@ class LangChainProvider implements LLMProvider {
       delete parsed.political_leaning;
       
       if (Array.isArray(parsed.value_orientation)) {
-        parsed.value_orientation = parsed.value_orientation.map(item => {
+        parsed.value_orientation = parsed.value_orientation.map((item: any) => {
           if (typeof item === 'string') {
             return { label: item.trim(), score: 0.5 };
           } else if (typeof item === 'object' && item.label) {
@@ -433,7 +428,6 @@ class OllamaProvider implements LLMProvider {
       console.log("【LANGCHAIN REQUEST】Sending to LLM:", prompt);
     }
     
-    // 设置一个非常长的超时时间（10分钟），作为最后的兜底
     const timeout = 600000; // 10 minutes
     
     const controller = new AbortController();
@@ -444,7 +438,7 @@ class OllamaProvider implements LLMProvider {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "Connection": "keep-alive" // 保持连接，提高重复请求性能
+          "Connection": "keep-alive"
         },
         body: JSON.stringify({
           model: this.model,
@@ -452,8 +446,8 @@ class OllamaProvider implements LLMProvider {
           format: "json", 
           stream: false,
           options: {
-            temperature: mode === 'fast' ? 0.3 : 0.5, // 快速模式使用更低的温度，更快收敛
-            num_predict: mode === 'fast' ? 512 : 1024  // 快速模式预测更少token
+            temperature: mode === 'fast' ? 0.3 : 0.5,
+            num_predict: mode === 'fast' ? 512 : 1024
           }
         }),
         signal: controller.signal
@@ -466,13 +460,13 @@ class OllamaProvider implements LLMProvider {
         console.error(`Ollama API Error: ${response.status}`, errorText);
         
         if (errorText.includes('inappropriate') || errorText.includes('data_inspection_failed')) {
-          const defaultResponse = JSON.stringify({
+          const defaultResponse = {
             nickname: "",
             topic_classification: "Content Analysis",
             value_orientation: [],
             summary: "Content Safety Review Failed: The content may involve sensitive topics and was blocked by the AI provider. Please try switching to DeepSeek or OpenAI models.",
             evidence: []
-          }, null, 2);
+          };
           
           const durationMs = Date.now() - startTime;
           return {
@@ -513,7 +507,7 @@ class OllamaProvider implements LLMProvider {
           durationMs,
           model: this.model
       }
-    } catch (error) {
+    } catch (error: any) {
       clearTimeout(timeoutId);
       if (error.name === 'AbortError') {
         throw new Error('Ollama request timeout');
@@ -544,7 +538,7 @@ class OllamaProvider implements LLMProvider {
       delete parsed.political_leaning;
       
       if (Array.isArray(parsed.value_orientation)) {
-        parsed.value_orientation = parsed.value_orientation.map(item => {
+        parsed.value_orientation = parsed.value_orientation.map((item: any) => {
           if (typeof item === 'string') {
             return { label: item.trim(), score: 0.5 };
           } else if (typeof item === 'object' && item.label) {
