@@ -81,11 +81,11 @@ vi.mock('./assets/icon.png', () => ({
 }));
 
 // Mock locales
-vi.mock('./locales/zh-CN/CHANGELOG.md', () => ({
-  default: 'Chinese Changelog'
+vi.mock('./locales/zh-CN', () => ({
+  zhCNChangelog: 'Chinese Changelog'
 }));
-vi.mock('./locales/en-US/CHANGELOG.md', () => ({
-  default: 'English Changelog'
+vi.mock('./locales/en-US', () => ({
+  enUSChangelog: 'English Changelog'
 }));
 
 describe('Options Page', () => {

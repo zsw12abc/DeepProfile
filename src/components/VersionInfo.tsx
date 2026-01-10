@@ -2,8 +2,8 @@ import React from "react";
 import { Card } from "./UIComponents";
 import { I18nService } from "~services/I18nService";
 import MarkdownRenderer from "~components/MarkdownRenderer";
-import { zhCNChangelog } from "../locales/zh-CN/CHANGELOG";  // Updated path to use JS module
-import { enUSChangelog } from "../locales/en-US/CHANGELOG";  // Updated path to use JS module
+import { zhCNChangelog } from "../locales/zh-CN";  // Updated path to use JS module
+import { enUSChangelog } from "../locales/en-US";  // Updated path to use JS module
 
 // 获取版本信息
 export const getVersion = (): string => {

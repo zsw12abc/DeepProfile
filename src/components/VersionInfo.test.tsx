@@ -34,10 +34,10 @@ vi.mock('~components/MarkdownRenderer', () => ({
 }));
 
 // Mock changelog content - Updated to reflect new import paths
-vi.mock('../locales/zh-CN/CHANGELOG', () => ({
+vi.mock('../locales/zh-CN', () => ({
   zhCNChangelog: 'Chinese Changelog Content'
 }));
-vi.mock('../locales/en-US/CHANGELOG', () => ({
+vi.mock('../locales/en-US', () => ({
   enUSChangelog: 'English Changelog Content'
 }));
 

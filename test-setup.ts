@@ -23,8 +23,8 @@ vi.mock('data-base64:../assets/icon.png', () => ({
 }));
 
 // Mock data-text imports
-vi.mock('data-text:./locales/zh-CN/CHANGELOG.md', () => 'Chinese Changelog Content');
-vi.mock('data-text:./locales/en-US/CHANGELOG.md', () => 'English Changelog Content');
+vi.mock('data-text:./locales/zh-CN/CHANGELOG.ts', () => 'Chinese Changelog Content');
+vi.mock('data-text:./locales/en-US/CHANGELOG.ts', () => 'English Changelog Content');
 
 // Mock I18nService
 vi.mock('~services/I18nService', () => ({

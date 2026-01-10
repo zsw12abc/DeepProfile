@@ -24,20 +24,8 @@ import { ZhihuClient } from "./services/ZhihuClient"
 import { I18nService } from "./services/I18nService"
 import MarkdownRenderer from "./components/MarkdownRenderer"
 // 动态导入CHANGELOG文件以支持测试环境
-let zhCNChangelog: string;
-let enUSChangelog: string;
-
-try {
-  const zhModule = require('./locales/zh-CN/CHANGELOG.md');
-  zhCNChangelog = typeof zhModule === 'string' ? zhModule : (zhModule.default || zhModule);
-  
-  const enModule = require('./locales/en-US/CHANGELOG.md');
-  enUSChangelog = typeof enModule === 'string' ? enModule : (enModule.default || enModule);
-} catch (e) {
-  // 在测试环境中，使用默认内容
-  zhCNChangelog = 'Default Chinese Changelog Content';
-  enUSChangelog = 'Default English Changelog Content';
-}
+import { zhCNChangelog } from './locales/zh-CN';
+import { enUSChangelog } from './locales/en-US';
 import { GeneralSettings, PlatformSpecificSettings, DebugSettings } from "./components/PlatformSettings"
 import { HistorySection } from "./components/HistorySection"
 import { VersionInfo } from "./components/VersionInfo"
