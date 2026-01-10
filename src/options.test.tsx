@@ -82,10 +82,12 @@ vi.mock('./assets/icon.png', () => ({
 
 // Mock locales
 vi.mock('./locales/zh-CN', () => ({
-  zhCNChangelog: 'Chinese Changelog'
+  zhCNChangelog: '# DeepProfile 当前版本更新日志\n\n## 当前版本: v0.6.2 (Beta)',
+  zhCNVersionHistory: '# DeepProfile 版本历史\n\n### v0.6.1 (2024-01-09) - 实时保存设置\n\n### v0.6.0 (2024-01-08) - Reddit 平台多语言支持增强\n\n### v0.5.1 (2024-01-10) - 多语言支持\n\n### v0.5.0 (2024-01-09) - 评论区舆情总结\n\n### v0.4.2 (2024-01-08) - 导出增强与体验优化\n\n### v0.4.1 (2024-01-07) - 性能优化\n\n### v0.4.0 (2024-01-06) - 历史记录与智能分类\n\n### v0.3.0 (2024-01-04) - 精准聚焦与体验优化\n\n### v0.2.0 (2024-01-03) - 深度分析与上下文感知\n\n### v0.1.0 (2024-01-02) - MVP 发布'
 }));
 vi.mock('./locales/en-US', () => ({
-  enUSChangelog: 'English Changelog'
+  enUSChangelog: '# DeepProfile Current Version Changelog\n\n## Current Version: v0.6.2 (Beta)',
+  enUSVersionHistory: '# DeepProfile Version History\n\n### v0.6.1 (2024-01-09) - Real-time Settings Save\n\n### v0.6.0 (2024-01-08) - Reddit Platform Multilingual Support Enhancement\n\n### v0.5.1 (2024-01-10) - Multi-language Support\n\n### v0.5.0 (2024-01-09) - Comment Sentiment Summary\n\n### v0.4.2 (2024-01-08) - Enhanced Export and UX Optimization\n\n### v0.4.1 (2024-01-07) - Performance Optimization\n\n### v0.4.0 (2024-01-06) - History Records and Intelligent Classification\n\n### v0.3.0 (2024-01-04) - Precise Focus and UX Optimization\n\n### v0.2.0 (2024-01-03) - Deep Analysis and Context Awareness\n\n### v0.1.0 (2024-01-02) - MVP Release'
 }));
 
 describe('Options Page', () => {

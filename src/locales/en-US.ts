@@ -183,120 +183,23 @@ export const enUS: LocaleDict = {
   deep_profile_analysis: "Deep Profile Analysis"
 };
 
-// DeepProfile Development Progress and Changelog
-export const enUSChangelog = `# DeepProfile Development Progress and Changelog
+// DeepProfile Current Version Changelog
+export const enUSChangelog = `# DeepProfile Current Version Changelog
 
-## Current Version: v0.6.1 (Beta)
+## Current Version: v0.6.2 (Beta)
 
 ### ✅ Features Achieved
 
-### Core Feature (v0.6.1) - Real-time Settings Save
-- ✅ **Real-time Save**: All settings changes (language, API keys, analysis modes, etc.) are **immediately saved automatically**, no save button required.
-- ✅ **Instant Application**: Configuration changes take effect immediately in the extension functionality, no restart or refresh needed.
-- ✅ **UX Optimization**: Removed manual save button, simplifying the settings workflow for a smoother user experience.
+### Core Feature (v0.6.2) - Theme System
+- ✅ **Theme Customization**: Supports user-defined appearance themes, including color schemes, fonts, and sizes.
+- ✅ **Multiple Built-in Themes**: Provides multiple preset themes, including Zhihu White/Black themes and Reddit White/Black themes.
+- ✅ **Dynamic Theme Switching**: Supports real-time theme switching without page refresh.
+- ✅ **CSS Variable Driven**: Uses CSS variables to implement global theme dynamic application, ensuring all components update synchronously.
+- ✅ **Theme Management**: Supports creating, editing, and deleting custom themes, with import/export functionality.
+`;
 
-### Core Feature (v0.5.1) - Multi-language Support (i18n)
-- ✅ **Internationalization Architecture**: Introduced a lightweight \`I18nService\` for dynamic language switching.
-- ✅ **Bilingual Interface**: Full support for **Simplified Chinese (zh-CN)** and **English (en-US)**.
-    - Options Page
-    - Profile Card Overlay
-    - Error messages and status feedback
-- ✅ **Bilingual AI Analysis**: 
-    - Optimized prompt engineering to force AI output in the selected language.
-    - The label system supports bilingual display (e.g., "左派 vs 右派" / "Left vs Right").
-- ✅ **Dynamic Switching**: The interface updates instantly after changing the language in the settings, no restart required.
-
-### Core Feature (v0.5.0) - Comment Sentiment Summary
-- ✅ **Sentiment Overview**: Added a "📊 Summarize Page Views" button at the top of Zhihu comments section to generate an overview of current page's sentiment with one click.
-- ✅ **Zero-risk Analysis**: Only analyzes loaded comment text on current page, **does not call Zhihu API**, completely avoiding risk control and account blocking.
-- ✅ **Position Distribution**: Automatically calculates the proportion of supporters, opponents, and neutral observers, displaying with visual progress bars.
-- ✅ **Core Points Extraction**: Intelligently summarizes 3-5 recurring core arguments in the comments section, with typical comment excerpts attached.
-- ✅ **Emotion Detection**: Automatically determines the comment section atmosphere (positive/negative/highly controversial).
-
-### Core Feature (v0.4.2) - Enhanced Export Functionality and UX Optimization
-- ✅ **Image Export Upgrade**:
-    - **Personalized Avatar**: Exported profile cards now display the user's **Zhihu avatar**, not the default plugin logo.
-    - **QR Code Sharing**: Added QR code pointing to Chrome Web Store at the bottom of card for easy sharing and distribution.
-    - **Technical Breakthrough**: Solved \`html2canvas\` cross-origin image rendering issues, ensuring stable avatar display.
-- ✅ **Enhanced History Records**:
-    - **Full Function Export**: Added "📸 Export as Image" button to each record in the background history management.
-    - **Display Fix**: Fixed the issue where user nicknames were displayed as IDs in history records, now prioritizing display of user nicknames.
-- ✅ **Error Prompt Optimization**:
-    - **Plain Language Translation**: Replaced boring HTTP error codes (401, 402, 429, etc.) with witty, easy-to-understand Chinese prompts (such as "Wallet Empty", "Wrong Password").
-    - **403 Guidance**: Added friendly prompts guiding users to refresh the page or log in for Zhihu API 403 errors.
-- ✅ **UI Details**:
-    - Added user avatar display to the header of the analysis result overlay card.
-
-### Core Feature (v0.4.1) - Performance Optimization and Prompt Simplification
-- ✅ **Dynamic Prompt Trimming**: 
-    - **On-demand Loading**: Based on current topic category (e.g. "Technology"), only send relevant label definitions under that category to LLM, instead of sending all labels.
-    - **Token Savings**: System Prompt length reduced by approximately 60%, significantly reducing Token consumption and improving response speed.
-    - **Improved Focus**: Reduces interference from irrelevant labels, allowing LLM to focus more on current domain analysis.
-- ✅ **Label System Optimization**:
-    - Refactored \`LabelService\` to support fetching label definitions by category.
-    - Optimized \`TopicService\` to improve keyword matching accuracy.
-
-### Core Feature (v0.4.0) - History Record and Cache System
-- ✅ **Local Cache Mechanism**: 
-    - Automatically stores generated user profiles locally (\`chrome.storage.local\`).
-    - Uses **"User Aggregation + Domain Layering"** storage structure, ensuring that a user's profiles in different domains (e.g. politics, entertainment) do not interfere with each other.
-    - Default cache validity is 24 hours, expiring automatically.
-- ✅ **Smart Cache Hit**: 
-    - **Second-level Response**: When revisiting an analyzed user, directly load results from cache without waiting for API requests.
-    - **Zero Token Consumption**: Does not call LLM interface when cache hits, saving costs.
-    - **Domain Adaptation**: Automatically recognizes current topic domain, prioritizing loading of historical profiles in that domain.
-- ✅ **History Record Management**:
-    - Added "History Records" panel to settings page.
-    - Supports viewing list of all analyzed users (sorted by time).
-    - Supports expanding to view detailed domain profiles for each user (politics, economy, entertainment, etc.).
-    - Supports fine-grained deletion (single profile, single user) or one-click clearing.
-- ✅ **Force Refresh**:
-    - Added "Re-analyze" button to analysis result card, allowing users to ignore cache and force update.
-
-### Core Feature (v0.3.0)
-- ✅ **Multi-platform Architecture**: Reserved extension interfaces for multi-platform support such as Reddit.
-- ✅ **Multi-model Support**:
-    - Added **Qwen (Tongyi Qianwen)** and **Custom (OpenAI Compatible)** service providers.
-    - Supports **dynamic loading of model list**, avoiding manual input errors.
-- ✅ **Zhihu Data Scraping**: 
-    - Automatically parses user Hash ID to URL Token.
-    - **Hybrid Data Sources**: Parallel scraping of user's **original content (answers/articles)** and **endorsement activities**.
-    - Supports scraping quantity configuration (10-50 items).
-- ✅ **Context-aware**:
-    - **Precise Extraction**: Automatically extracts current page's question title and **official Zhihu topic tags**.
-    - **Intelligent Classification**: Introduced **TopicService**, automatically classifying topics into eight major macro domains such as "politics", "economy", "technology", etc.
-    - **Hybrid Classification Strategy**: Prioritizes keyword matching, automatically degrading to LLM intelligent classification when matching fails.
-- ✅ **Deep Profile Generation**:
-    - **Content First**: Prioritizes extraction and analysis of **answer/article body**, not brief summaries.
-    - **Risk Control**: Changed "political orientation" to "value orientation", conducting neutral analysis from multiple dimensions such as "economics", "culture", "international perspective", etc.
-    - **Contradiction Analysis**: Requires LLM to explain contradictions in user opinions in the summary.
-    - **Evidence Citation**: Provides clickable original citation links, supporting navigation to specific answers/articles.
-
-### User Experience (UI/UX)
-- ✅ **Seamless Injection**: Only displays "🔍" icon to the right of user nickname, automatically filtering avatars and duplicate links.
-- ✅ **Real-time Feedback**: 
-    - Click to display user nickname.
-    - Detailed progress prompts (fetching information -> scraping dynamics -> AI analysis).
-- ✅ **Result Display**:
-    - **Multi-dimensional Value Map**: Uses progress bars to display value orientations across different dimensions.
-    - Collapsible evidence panel, maintaining interface tidiness.
-- ✅ **Connection Test**: Provides "Test Connection" function on settings page, returning **friendly Chinese error prompts** (such as insufficient balance, invalid key).
-
-### Advanced Settings
-- ✅ **Custom Configuration**:
-    - **Model Dropdown Selection**: Automatically acquires and displays available model list.
-    - Custom API Base URL (supports proxy).
-- ✅ **Analysis Mode**:
-    - **⚡ Fast**: Quick overview.
-    - **⚖️ Balanced**: Standard analysis.
-    - **🧠 Deep**: Enables Chain of Thought (CoT), deep identification of irony and metaphor.
-- ✅ **Developer Debug (Debug Mode)**:
-    - **Transparency**: Added \`Source\` field, clearly showing "how many fetched -> how many found relevant -> how many finally analyzed".
-    - **Data Tracing**: Added \`Breakdown\` field, showing original content vs endorsement content ratio.
-
----
-
-## Version History
+// DeepProfile Version History
+export const enUSVersionHistory = `# DeepProfile Version History
 
 ### v0.6.1 (2024-01-09) - Real-time Settings Save
 *   **Feature**: Implemented **real-time settings save functionality** on the settings page, all configuration changes are immediately saved to storage automatically.
@@ -364,11 +267,4 @@ export const enUSChangelog = `# DeepProfile Development Progress and Changelog
 *   **Feature**: Connected OpenAI/Gemini/Ollama interfaces.
 *   **Feature**: Implemented basic UI injection and profile display card.
 *   **Feature**: Supports API Key configuration.
-
----
-
-## 📅 Roadmap
-
-- ✅ **v0.6.2 Theme Feature**: Implement customizable overlay styling, allowing users to customize appearance themes including color schemes, fonts, sizes, etc. (Completed)
-- [ ] **More Platforms**: Explore support for Reddit, Bilibili, Weibo, and other platforms.
 `;

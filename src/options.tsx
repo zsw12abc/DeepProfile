@@ -24,8 +24,8 @@ import { ZhihuClient } from "./services/ZhihuClient"
 import { I18nService } from "./services/I18nService"
 import MarkdownRenderer from "./components/MarkdownRenderer"
 // 动态导入CHANGELOG文件以支持测试环境
-import { zhCNChangelog } from './locales/zh-CN';
-import { enUSChangelog } from './locales/en-US';
+import { zhCNChangelog, zhCNVersionHistory } from './locales/zh-CN';
+import { enUSChangelog, enUSVersionHistory } from './locales/en-US';
 import { GeneralSettings, PlatformSpecificSettings, DebugSettings } from "./components/PlatformSettings"
 import { HistorySection } from "./components/HistorySection"
 import { VersionInfo } from "./components/VersionInfo"
@@ -46,11 +46,11 @@ const getVersion = (): string => {
 };
 
 // 新增函数：获取CHANGELOG内容
-const fetchChangelogContent = async (lang: string): Promise<string> => {
+const fetchChangelogContent = async (lang: string): Promise<{ changelog: string, versionHistory: string }> => {
   if (lang === 'zh-CN') {
-    return zhCNChangelog;
+    return { changelog: zhCNChangelog, versionHistory: zhCNVersionHistory };
   } else {
-    return enUSChangelog;
+    return { changelog: enUSChangelog, versionHistory: enUSVersionHistory };
   }
 };
 
@@ -71,6 +71,7 @@ export default function Options() {
   const [loadingHistory, setLoadingHistory] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const [changelog, setChangelog] = useState("");
+  const [versionHistory, setVersionHistory] = useState("");
 
   // Force re-render when language changes
   const [, setTick] = useState(0);
@@ -92,8 +93,15 @@ export default function Options() {
         if (!config?.language) return;
 
         const lang = config.language;
-        const changelogText = await fetchChangelogContent(lang);
-        setChangelog(changelogText);
+        
+        // 根据语言设置分别设置更新日志和版本历史
+        if (lang === 'zh-CN') {
+          setChangelog(zhCNChangelog);
+          setVersionHistory(zhCNVersionHistory);
+        } else {
+          setChangelog(enUSChangelog);
+          setVersionHistory(enUSVersionHistory);
+        }
     };
 
     if (config) {
@@ -496,7 +504,7 @@ export default function Options() {
       case 'debug':
         return <DebugSettings config={config} setConfig={handleConfigChange} />;
       case 'version':
-        return <VersionInfo changelog={changelog} />;
+        return <VersionInfo changelog={changelog} versionHistory={versionHistory} />;
       default:
         return null;
     }

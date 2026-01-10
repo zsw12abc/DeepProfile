@@ -35,10 +35,12 @@ vi.mock('~components/MarkdownRenderer', () => ({
 
 // Mock changelog content - Updated to reflect new import paths
 vi.mock('../locales/zh-CN', () => ({
-  zhCNChangelog: 'Chinese Changelog Content'
+  zhCNChangelog: '# DeepProfile 当前版本更新日志\n\n## 当前版本: v0.6.2 (Beta)',
+  zhCNVersionHistory: '# DeepProfile 版本历史\n\n### v0.6.1 (2024-01-09) - 实时保存设置'
 }));
 vi.mock('../locales/en-US', () => ({
-  enUSChangelog: 'English Changelog Content'
+  enUSChangelog: '# DeepProfile Current Version Changelog\n\n## Current Version: v0.6.2 (Beta)',
+  enUSVersionHistory: '# DeepProfile Version History\n\n### v0.6.1 (2024-01-09) - Real-time Settings Save'
 }));
 
 // Mock chrome runtime
@@ -51,7 +53,7 @@ global.chrome = {
 
 describe('VersionInfo', () => {
   it('renders version info section', () => {
-    render(<VersionInfo changelog="Test changelog content" />);
+    render(<VersionInfo changelog="Test changelog content" versionHistory="Test version history content" />);
 
     expect(screen.getByText('版本信息')).toBeInTheDocument();
     expect(screen.getByText(/当前版本/)).toBeInTheDocument();
@@ -60,9 +62,10 @@ describe('VersionInfo', () => {
 
   it('renders changelog content', () => {
     const testChangelog = 'This is test changelog content';
-    render(<VersionInfo changelog={testChangelog} />);
+    const testVersionHistory = 'This is test version history content';
+    render(<VersionInfo changelog={testChangelog} versionHistory={testVersionHistory} />);
 
-    expect(screen.getAllByText(testChangelog)).toHaveLength(2); // Two instances in the component
+    expect(screen.getByText(testChangelog)).toBeInTheDocument();
   });
 
   describe('getVersion', () => {
@@ -89,24 +92,27 @@ describe('VersionInfo', () => {
   });
 
   describe('fetchChangelogContent', () => {
-    it('returns Chinese changelog content when language is zh-CN', async () => {
+    it('returns Chinese changelog and version history content when language is zh-CN', async () => {
       const content = await fetchChangelogContent('zh-CN');
-      expect(content).toBe('Chinese Changelog Content');
+      expect(content.changelog).toBe('# DeepProfile 当前版本更新日志\n\n## 当前版本: v0.6.2 (Beta)');
+      expect(content.versionHistory).toBe('# DeepProfile 版本历史\n\n### v0.6.1 (2024-01-09) - 实时保存设置');
     });
 
-    it('returns English changelog content when language is en-US', async () => {
+    it('returns English changelog and version history content when language is en-US', async () => {
       const content = await fetchChangelogContent('en-US');
-      expect(content).toBe('English Changelog Content');
+      expect(content.changelog).toBe('# DeepProfile Current Version Changelog\n\n## Current Version: v0.6.2 (Beta)');
+      expect(content.versionHistory).toBe('# DeepProfile Version History\n\n### v0.6.1 (2024-01-09) - Real-time Settings Save');
     });
 
-    it('returns English changelog content for unknown language', async () => {
+    it('returns English changelog and version history content for unknown language', async () => {
       const content = await fetchChangelogContent('fr-FR');
-      expect(content).toBe('English Changelog Content');
+      expect(content.changelog).toBe('# DeepProfile Current Version Changelog\n\n## Current Version: v0.6.2 (Beta)');
+      expect(content.versionHistory).toBe('# DeepProfile Version History\n\n### v0.6.1 (2024-01-09) - Real-time Settings Save');
     });
   });
 
   it('renders multiple sections', () => {
-    render(<VersionInfo changelog="Test changelog content" />);
+    render(<VersionInfo changelog="Test changelog content" versionHistory="Test version history content" />);
 
     expect(screen.getByText('更新日志')).toBeInTheDocument();
     expect(screen.getByText('版本历史')).toBeInTheDocument();
