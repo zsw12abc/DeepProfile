@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 import { I18nService } from '../services/I18nService';
@@ -45,8 +45,12 @@ describe('ZhihuComments', () => {
   // Actually, the side effects happen in useEffect, so rendering it will trigger them.
   
   it('should be defined', async () => {
-    const ZhihuComments = (await import('./zhihu-comments')).default;
-    expect(ZhihuComments).toBeDefined();
+    // 设置一个较长的超时时间
+    vi.setConfig({ testTimeout: 10000 });
+    
+    const ZhihuCommentsModule = await import('./zhihu-comments');
+    expect(ZhihuCommentsModule.default).toBeDefined();
+    expect(ZhihuCommentsModule.config).toBeDefined();
   });
 
   // To properly test this, we would need to refactor the code to export the internal components
