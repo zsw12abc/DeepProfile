@@ -1,4 +1,6 @@
-# DeepProfile Development Progress and Changelog
+// DeepProfile Development Progress and Changelog
+
+export const enUSChangelog = `# DeepProfile Development Progress and Changelog
 
 ## Current Version: v0.6.1 (Beta)
 
@@ -10,7 +12,7 @@
 - ✅ **UX Optimization**: Removed manual save button, simplifying the settings workflow for a smoother user experience.
 
 ### Core Feature (v0.5.1) - Multi-language Support (i18n)
-- ✅ **Internationalization Architecture**: Introduced a lightweight `I18nService` for dynamic language switching.
+- ✅ **Internationalization Architecture**: Introduced a lightweight \`I18nService\` for dynamic language switching.
 - ✅ **Bilingual Interface**: Full support for **Simplified Chinese (zh-CN)** and **English (en-US)**.
     - Options Page
     - Profile Card Overlay
@@ -31,7 +33,7 @@
 - ✅ **Image Export Upgrade**:
     - **Personalized Avatar**: Exported profile cards now display the user's **Zhihu avatar**, not the default plugin logo.
     - **QR Code Sharing**: Added QR code pointing to Chrome Web Store at the bottom of card for easy sharing and distribution.
-    - **Technical Breakthrough**: Solved `html2canvas` cross-origin image rendering issues, ensuring stable avatar display.
+    - **Technical Breakthrough**: Solved \`html2canvas\` cross-origin image rendering issues, ensuring stable avatar display.
 - ✅ **Enhanced History Records**:
     - **Full Function Export**: Added "📸 Export as Image" button to each record in the background history management.
     - **Display Fix**: Fixed the issue where user nicknames were displayed as IDs in history records, now prioritizing display of user nicknames.
@@ -47,12 +49,12 @@
     - **Token Savings**: System Prompt length reduced by approximately 60%, significantly reducing Token consumption and improving response speed.
     - **Improved Focus**: Reduces interference from irrelevant labels, allowing LLM to focus more on current domain analysis.
 - ✅ **Label System Optimization**:
-    - Refactored `LabelService` to support fetching label definitions by category.
-    - Optimized `TopicService` to improve keyword matching accuracy.
+    - Refactored \`LabelService\` to support fetching label definitions by category.
+    - Optimized \`TopicService\` to improve keyword matching accuracy.
 
 ### Core Feature (v0.4.0) - History Record and Cache System
 - ✅ **Local Cache Mechanism**: 
-    - Automatically stores generated user profiles locally (`chrome.storage.local`).
+    - Automatically stores generated user profiles locally (\`chrome.storage.local\`).
     - Uses **"User Aggregation + Domain Layering"** storage structure, ensuring that a user's profiles in different domains (e.g. politics, entertainment) do not interfere with each other.
     - Default cache validity is 24 hours, expiring automatically.
 - ✅ **Smart Cache Hit**: 
@@ -105,8 +107,8 @@
     - **⚖️ Balanced**: Standard analysis.
     - **🧠 Deep**: Enables Chain of Thought (CoT), deep identification of irony and metaphor.
 - ✅ **Developer Debug (Debug Mode)**:
-    - **Transparency**: Added `Source` field, clearly showing "how many fetched -> how many found relevant -> how many finally analyzed".
-    - **Data Tracing**: Added `Breakdown` field, showing original content vs endorsement content ratio.
+    - **Transparency**: Added \`Source\` field, clearly showing "how many fetched -> how many found relevant -> how many finally analyzed".
+    - **Data Tracing**: Added \`Breakdown\` field, showing original content vs endorsement content ratio.
 
 ---
 
@@ -119,7 +121,7 @@
 *   **UX**: Improved user experience with a smoother settings workflow.
 
 ### v0.6.0 (2024-01-08) - Reddit Platform Multilingual Support Enhancement
-*   **Feature**: Fixed [I18nService](file:///E:/Repo/DeepProfile/DeepProfile/src/services/I18nService.ts#L10-L13) initialization issue on Reddit platform to ensure multilingual functionality works properly.
+*   **Feature**: Fixed I18nService initialization issue on Reddit platform to ensure multilingual functionality works properly.
 *   **Feature**: Refactored button injection logic on Reddit platform to align with Zhihu platform, resolving the disappearing button issue.
 *   **Feature**: Ensured that Reddit platform analysis buttons and user profile cards support Chinese/English interface switching.
 *   **Feature**: Implemented consistent button injection mechanism aligned with Zhihu platform, including configuration checks, cleanup functions, and orphaned button removal features.
@@ -129,7 +131,7 @@
 ### v0.5.1 (2024-01-10) - Multi-language Support
 *   **Major Feature**: Full support for **Simplified Chinese** and **English** bilingual switching.
 *   **Feature**: AI analysis results automatically adapt to selected language.
-*   **Refactor**: Introduced `I18nService` to manage text resources uniformly.
+*   **Refactor**: Introduced \`I18nService\` to manage text resources uniformly.
 
 ### v0.5.0 (2024-01-09) - Comment Sentiment Summary
 *   **Major Feature**: **Comment Sentiment Summary**, one-click generation of page sentiment profile, including position distribution, core views, and emotion detection.
@@ -185,3 +187,4 @@
 
 - ✅ **v0.6.2 Theme Feature**: Implement customizable overlay styling, allowing users to customize appearance themes including color schemes, fonts, sizes, etc. (Completed)
 - [ ] **More Platforms**: Explore support for Reddit, Bilibili, Weibo, and other platforms.
+`;

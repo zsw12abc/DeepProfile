@@ -33,12 +33,12 @@ vi.mock('~components/MarkdownRenderer', () => ({
   default: ({ content }: { content: string }) => <div data-testid="markdown-renderer">{content}</div>,
 }));
 
-// Mock changelog content
-vi.mock('data-text:../locales/zh-CN/CHANGELOG.md', () => ({
-  default: 'Chinese Changelog Content'
+// Mock changelog content - Updated to reflect new import paths
+vi.mock('../locales/zh-CN/CHANGELOG', () => ({
+  zhCNChangelog: 'Chinese Changelog Content'
 }));
-vi.mock('data-text:../locales/en-US/CHANGELOG.md', () => ({
-  default: 'English Changelog Content'
+vi.mock('../locales/en-US/CHANGELOG', () => ({
+  enUSChangelog: 'English Changelog Content'
 }));
 
 // Mock chrome runtime
