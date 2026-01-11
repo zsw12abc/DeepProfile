@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { LLMService } from '../services/LLMService';
 import { ZhihuClient } from '../services/ZhihuClient';
 import { ConfigService } from '../services/ConfigService';
@@ -25,6 +25,7 @@ const mockSendMessage = vi.fn();
 const mockAddListener = vi.fn();
 const mockRemoveListener = vi.fn();
 const mockOpenOptionsPage = vi.fn();
+const mockGetManifest = vi.fn();
 
 global.chrome = {
   runtime: {
@@ -36,7 +37,8 @@ global.chrome = {
     onInstalled: {
       addListener: mockAddListener
     },
-    openOptionsPage: mockOpenOptionsPage
+    openOptionsPage: mockOpenOptionsPage,
+    getManifest: mockGetManifest
   },
   action: {
     onClicked: {
@@ -54,6 +56,7 @@ global.chrome = {
   }
 } as any;
 
+// Mock the actual background service logic to test the message handlers
 // Since background/index.ts executes code on import (console.log, addListener),
 // we need to be careful. However, in a test environment, we can just import it
 // and test the side effects or export functions if any.
@@ -78,6 +81,7 @@ describe('Background Service', () => {
     } as any);
     
     vi.mocked(I18nService.t).mockImplementation((key) => key);
+    vi.mocked(I18nService.init).mockResolvedValue(undefined);
 
     // Capture the message listener
     mockAddListener.mockImplementation((callback) => {
@@ -128,7 +132,7 @@ describe('Background Service', () => {
           resolve(undefined);
         }
       } else {
-        // If listener not captured, try to find it from calls
+        // If listener not cached, try to find it from calls
         const calls = (global.chrome.runtime.onMessage.addListener as any).mock.calls;
         if (calls.length > 0) {
           const cb = calls[0][0];
@@ -146,7 +150,12 @@ describe('Background Service', () => {
     vi.mocked(TopicService.classify).mockReturnValue('technology');
     vi.mocked(TopicService.getCategoryName).mockReturnValue('Technology');
     vi.mocked(HistoryService.getProfile).mockResolvedValue(null); // No cache
-    vi.mocked(ProfileService.fetchUserProfile).mockResolvedValue({ name: 'Test User' } as any);
+    vi.mocked(ProfileService.fetchUserProfile).mockResolvedValue({
+      name: 'Test User',
+      headline: 'Test Headline',
+      avatar_url: 'http://example.com/avatar.jpg',
+      url_token: 'test-user'
+    } as any);
     vi.mocked(ProfileService.fetchUserContent).mockResolvedValue({ items: [{ id: '1' }], totalFetched: 1, totalRelevant: 1 } as any);
     vi.mocked(ProfileService.cleanContentData).mockReturnValue('Cleaned content');
     vi.mocked(LLMService.generateProfileForPlatform).mockResolvedValue({

@@ -25,14 +25,25 @@ const RedditOverlay = () => {
     cachedContext?: string
   } | null>(null)
   const [loading, setLoading] = useState(false)
-  const [statusMessage, setStatusMessage] = useState(I18nService.t('loading'))
+  const [statusMessage, setStatusMessage] = useState(() => {
+    try {
+      return I18nService.t('loading');
+    } catch (e) {
+      console.warn("Failed to get translation, extension context may be invalidated:", e);
+      return 'Loading...';
+    }
+  })
   const [progressPercentage, setProgressPercentage] = useState<number | undefined>(undefined)
   const [error, setError] = useState<string | undefined>()
   const rootRef = useRef<Root | null>(null)
 
   useEffect(() => {
     // Initialize I18n
-    I18nService.init();
+    try {
+      I18nService.init();
+    } catch (e) {
+      console.warn("Failed to initialize I18n, extension context may be invalidated:", e);
+    }
 
     // Listen for progress messages from background
     const messageListener = (request: any) => {
@@ -46,7 +57,13 @@ const RedditOverlay = () => {
         }
       }
     }
-    chrome.runtime.onMessage.addListener(messageListener)
+    
+    // 安全地添加消息监听器
+    try {
+      chrome.runtime.onMessage.addListener(messageListener)
+    } catch (e) {
+      console.warn("Failed to add message listener, extension context may be invalidated:", e)
+    }
     
     // 安全地清理事件监听器
     return () => {
@@ -61,6 +78,12 @@ const RedditOverlay = () => {
 
   // 创建独立的overlay容器
   const createOverlayContainer = useCallback(() => {
+    // Check if document is available
+    if (typeof document === 'undefined' || !document.body) {
+      console.warn('Document not available for overlay container creation');
+      return null;
+    }
+    
     let container = document.getElementById('deep-profile-overlay-container');
     
     if (!container) {
@@ -75,6 +98,12 @@ const RedditOverlay = () => {
 
   // 移除overlay容器
   const removeOverlayContainer = useCallback(() => {
+    // Check if document is available
+    if (typeof document === 'undefined') {
+      console.warn('Document not available for overlay container removal');
+      return;
+    }
+    
     const container = document.getElementById('deep-profile-overlay-container');
     if (container) {
       // 如果存在React root，先卸载它
@@ -90,6 +119,12 @@ const RedditOverlay = () => {
   useEffect(() => {
     if (targetUser) {
       const container = createOverlayContainer();
+      
+      // 检查容器是否存在
+      if (!container) {
+        console.warn('Failed to create overlay container');
+        return;
+      }
       
       // 如果还没有创建root，就创建一个新的
       if (!rootRef.current) {
@@ -111,23 +146,27 @@ const RedditOverlay = () => {
       };
       
       // 无论何时，只要状态改变就重新渲染
-      rootRef.current.render(
-        <ProfileCard
-          record={recordData}
-          platform={'reddit'}
-          isLoading={loading}
-          statusMessage={statusMessage}
-          progressPercentage={progressPercentage}
-          error={error}
-          onRefresh={() => {
-            if (targetUser) {
-              handleAnalyze(targetUser, initialNickname, currentContext, true);
-            }
-          }}
-          onClose={() => setTargetUser(null)}
-          onExport={undefined}
-        />
-      );
+      try {
+        rootRef.current.render(
+          <ProfileCard
+            record={recordData}
+            platform={'reddit'}
+            isLoading={loading}
+            statusMessage={statusMessage}
+            progressPercentage={progressPercentage}
+            error={error}
+            onRefresh={() => {
+              if (targetUser) {
+                handleAnalyze(targetUser, initialNickname, currentContext, true);
+              }
+            }}
+            onClose={() => setTargetUser(null)}
+            onExport={undefined}
+          />
+        );
+      } catch (e) {
+        console.error('Failed to render ProfileCard:', e);
+      }
       
       // 添加点击外部区域关闭overlay的功能
       const handleClickOutside = (event: MouseEvent) => {
@@ -174,27 +213,43 @@ const RedditOverlay = () => {
 
     // 注入逻辑
     const injectButtons = () => {
-      if (!isEnabled) return;
+      if (!isEnabled || typeof document === 'undefined') return;
 
       // 1. 清理孤儿按钮
-      document.querySelectorAll('.deep-profile-btn').forEach(btn => {
-          const prev = btn.previousElementSibling as HTMLAnchorElement | null;
-          if (!prev || prev.tagName !== 'A' || !prev.href.includes('/user/')) {
-              btn.remove();
-          }
-      });
+      try {
+        document.querySelectorAll('.deep-profile-btn').forEach(btn => {
+            const prev = btn.previousElementSibling as HTMLAnchorElement | null;
+            if (!prev || prev.tagName !== 'A' || !prev.href.includes('/user/')) {
+                btn.remove();
+            }
+        });
+      } catch (e) {
+        console.warn('Failed to clean orphaned buttons, document may not be available:', e);
+        return; // Exit early if document operations fail
+      }
 
       // 2. 检查并重置状态
-      const injectedLinks = document.querySelectorAll('a[data-deep-profile-injected="true"]');
-      injectedLinks.forEach(link => {
-          const next = link.nextElementSibling;
-          if (!next || !next.classList.contains('deep-profile-btn')) {
-              link.removeAttribute('data-deep-profile-injected');
-          }
-      });
+      try {
+        const injectedLinks = document.querySelectorAll('a[data-deep-profile-injected="true"]');
+        injectedLinks.forEach(link => {
+            const next = link.nextElementSibling;
+            if (!next || !next.classList.contains('deep-profile-btn')) {
+                link.removeAttribute('data-deep-profile-injected');
+            }
+        });
+      } catch (e) {
+        console.warn('Failed to reset button states, document may not be available:', e);
+        return; // Exit early if document operations fail
+      }
 
       // 3. 注入新按钮
-      const links = document.querySelectorAll('a[href*="/user/"]')
+      let links;
+      try {
+        links = document.querySelectorAll('a[href*="/user/"]');
+      } catch (e) {
+        console.warn('Failed to query user links, document may not be available:', e);
+        return; // Exit early if document operations fail
+      }
       
       links.forEach((element) => {
         const link = element as HTMLAnchorElement
@@ -219,7 +274,12 @@ const RedditOverlay = () => {
         btn.style.color = "#8590a6"
         btn.style.verticalAlign = "middle"
         btn.style.display = "inline-block"
-        btn.title = I18nService.t('deep_profile_analysis')
+        try {
+          btn.title = I18nService.t('deep_profile_analysis')
+        } catch (e) {
+          btn.title = 'Deep Profile Analysis';
+          console.warn("Failed to get translation, extension context may be invalidated:", e);
+        }
         btn.className = "deep-profile-btn"
         
         btn.onmouseover = () => { btn.style.color = "#0084ff" }
@@ -331,37 +391,60 @@ const RedditOverlay = () => {
     };
 
     const checkConfig = async () => {
-      const config = await ConfigService.getConfig();
-      const newEnabled = config.globalEnabled;
-      
-      // console.log("Checking config. Enabled:", newEnabled);
+      try {
+        const config = await ConfigService.getConfig();
+        const newEnabled = config.globalEnabled;
+        
+        // console.log("Checking config. Enabled:", newEnabled);
 
-      if (newEnabled !== isEnabled) {
-        isEnabled = newEnabled;
-        if (isEnabled) {
-          startInjection();
-        } else {
-          cleanup();
+        if (newEnabled !== isEnabled) {
+          isEnabled = newEnabled;
+          if (isEnabled) {
+            startInjection();
+          } else {
+            cleanup();
+          }
+        } else if (isEnabled && !observer) {
+            // If enabled but observer died for some reason
+            startInjection();
         }
-      } else if (isEnabled && !observer) {
-          // If enabled but observer died for some reason
-          startInjection();
+      } catch (e) {
+        console.warn("Failed to get config, extension context may be invalidated:", e);
       }
     };
 
     // Initial check
-    checkConfig();
+    try {
+      checkConfig();
+    } catch (e) {
+      console.warn("Failed initial config check, extension context may be invalidated:", e);
+    }
 
     // Listen for storage changes to react immediately to options changes
     const storageListener = (changes: any, area: string) => {
       if (area === 'local' && changes['deep_profile_config']) {
-        checkConfig();
+        try {
+          checkConfig();
+        } catch (e) {
+          console.warn("Failed to check config in storage listener, extension context may be invalidated:", e);
+        }
       }
     };
-    chrome.storage.onChanged.addListener(storageListener);
+    
+    // Safely add storage listener
+    try {
+      chrome.storage.onChanged.addListener(storageListener);
+    } catch (e) {
+      console.warn("Failed to add storage listener, extension context may be invalidated:", e);
+    }
 
     return () => {
-      chrome.storage.onChanged.removeListener(storageListener);
+      try {
+        chrome.storage.onChanged.removeListener(storageListener);
+      } catch (e) {
+        // 忽略上下文失效错误
+        console.debug("Extension context may have been invalidated, ignoring storage listener removal error:", e);
+      }
       cleanup();
     };
   }, [])
@@ -369,28 +452,51 @@ const RedditOverlay = () => {
   const handleAnalyze = async (userId: string, nickname?: string, context?: string, forceRefresh: boolean = false) => {
     // Don't reset the UI state here since we want to keep the overlay visible
     setLoading(true)
-    setStatusMessage(forceRefresh ? I18nService.t('reanalyze') + "..." : I18nService.t('analyzing') + "...")
+    try {
+      setStatusMessage(forceRefresh ? I18nService.t('reanalyze') + "..." : I18nService.t('analyzing') + "...")
+    } catch (e) {
+      setStatusMessage(forceRefresh ? 'Re-analyzing...' : 'Analyzing...');
+      console.warn("Failed to get translation, extension context may be invalidated:", e);
+    }
     setError(undefined)
     if (forceRefresh) {
         setProfileData(null)
     }
 
     try {
-      const response = await chrome.runtime.sendMessage({
-        type: "ANALYZE_PROFILE",
-        userId,
-        context, // Send rich context to background
-        platform: 'reddit', // Specify platform
-        forceRefresh
-      })
+      // Safe API call with context validation
+      if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+        const response = await chrome.runtime.sendMessage({
+          type: "ANALYZE_PROFILE",
+          userId,
+          context, // Send rich context to background
+          platform: 'reddit', // Specify platform
+          forceRefresh
+        })
 
-      if (response.success) {
-        setProfileData(response.data)
+        if (response.success) {
+          setProfileData(response.data)
+        } else {
+          setError(response.error)
+        }
       } else {
-        setError(response.error)
+        setError(I18nService.t('error_extension_context'));
       }
     } catch (err) {
-      setError(I18nService.t('error_network'))
+      // Check if the error is due to context invalidation
+      if (err instanceof Error && err.message.includes('Extension context invalidated')) {
+        try {
+          setError(I18nService.t('error_extension_context'));
+        } catch (translationErr) {
+          setError('Extension context invalidated. Please refresh the page to retry.');
+        }
+      } else {
+        try {
+          setError(I18nService.t('error_network'));
+        } catch (translationErr) {
+          setError('Network error. Please check your connection.');
+        }
+      }
     } finally {
       setLoading(false)
     }

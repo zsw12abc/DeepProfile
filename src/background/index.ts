@@ -210,12 +210,12 @@ async function sendProgress(tabId: number | undefined, message: string) {
 function estimateAnalysisTime(mode: string): number {
   switch(mode) {
     case 'fast':
-      return 10000; // 10 seconds for fast mode
+      return 15000; // 15 seconds for fast mode
     case 'deep':
-      return 30000; // 30 seconds for deep mode
+      return 45000; // 45 seconds for deep mode
     case 'balanced':
     default:
-      return 20000; // 20 seconds for balanced mode
+      return 25000; // 25 seconds for balanced mode
   }
 }
 
@@ -304,25 +304,7 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
   }
   
   try {
-      // Pass macroCategory (ID) to generateProfile for optimized prompting
-      // Calculate expected time based on analysis mode
-      const estimatedTime = estimateAnalysisTime(config.analysisMode || 'balanced');
-      const progressInterval = setInterval(() => {
-        const elapsed = Date.now() - startTime;
-        const remaining = Math.max(0, estimatedTime - elapsed);
-        const percentage = Math.min(100, Math.floor((elapsed / estimatedTime) * 100));
-        if (tabId) {
-          chrome.tabs.sendMessage(tabId, {
-            type: "ANALYSIS_PROGRESS_ESTIMATE",
-            message: I18nService.t('analyzing') + `... (${Math.ceil(remaining / 1000)}s)`,
-            percentage: percentage
-          }).catch(() => {}); // Ignore errors if tab is closed
-        }
-      }, 1000); // Update every second
-      
       const llmResponse = await LLMService.generateProfileForPlatform(cleanText, macroCategory, platform)
-      
-      clearInterval(progressInterval); // Stop sending progress updates
       
       const totalDuration = Date.now() - startTime;
 

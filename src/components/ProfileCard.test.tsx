@@ -57,11 +57,21 @@ vi.mock('../services/LabelUtils', () => ({
 }));
 
 // Mock html2canvas
-vi.mock('html2canvas', () => ({
-  default: vi.fn().mockResolvedValue({
+vi.mock('html2canvas', () => {
+  const mockHtml2Canvas = vi.fn().mockResolvedValue({
     toDataURL: () => 'data:image/png;base64,fakeimage',
-  }),
-}));
+  });
+  
+  // Add the mock property to the mock function
+  mockHtml2Canvas.Canvas = class {
+    constructor() {}
+    toDataURL() { return 'data:image/png;base64,fakeimage'; }
+  };
+  
+  return {
+    default: mockHtml2Canvas,
+  };
+});
 
 // Mock URL.createObjectURL and revokeObjectURL
 global.URL.createObjectURL = vi.fn(() => 'blob:url');

@@ -13,8 +13,13 @@ try {
   const actualIcon = require('./assets/icon.png');
   icon = typeof actualIcon === 'string' ? actualIcon : actualIcon.default;
 } catch (e) {
-  // 在测试环境中，使用默认图标
-  icon = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
+  // 在生产环境中，使用runtime获取图标路径
+  if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.getURL) {
+    icon = chrome.runtime.getURL('assets/icon.png');
+  } else {
+    // 如果在测试环境中，chrome API 不可用，使用默认路径
+    icon = '/assets/icon.png';
+  }
 }
 
 // 导出最终图标
@@ -37,11 +42,15 @@ import { LabelService } from "./services/LabelService";
 
 // 获取版本信息
 const getVersion = (): string => {
-  try {
-    const manifest = chrome.runtime.getManifest();
-    return manifest.version;
-  } catch (e) {
-    return "0.5.1"; // Fallback
+  if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.getManifest) {
+    try {
+      const manifest = chrome.runtime.getManifest();
+      return manifest.version;
+    } catch (e) {
+      return "0.6.3"; // Fallback
+    }
+  } else {
+    return "0.6.3"; // Fallback
   }
 };
 

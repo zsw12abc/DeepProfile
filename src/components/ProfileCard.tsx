@@ -176,13 +176,13 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               const leftIntensity = normalizedScore < 0 ? Math.abs(normalizedScore) * 100 : 0;
               const rightIntensity = normalizedScore > 0 ? normalizedScore * 100 : 0;
               
-              // 根据强度计算颜色
+              // 根据强度计算颜色，从中心向外着色
               const leftColor = normalizedScore < 0 
-                ? `hsl(0, 70%, ${70 - leftIntensity * 0.3}%)`
-                : `hsl(0, 70%, ${70 - 0 * 0.3}%)`; // 灰色
+                ? `hsl(0, 70%, ${70 - Math.abs(normalizedScore) * 70}%)`  // 红色代表负值
+                : `hsl(210, 70%, 80%)`; // 浅蓝色代表正值时的左侧
               const rightColor = normalizedScore > 0 
-                ? `hsl(210, 70%, ${70 - rightIntensity * 0.3}%)`
-                : `hsl(210, 70%, ${70 - 0 * 0.3}%)`; // 灰色
+                ? `hsl(210, 70%, ${70 - normalizedScore * 70}%)`  // 蓝色代表正值
+                : `hsl(0, 70%, 80%)`; // 浅红色代表负值时的右侧
               
               return `
                 <div style="display: flex; align-items: center; margin-bottom: 8px; font-size: 12px;">
@@ -319,15 +319,31 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             height: "8px",
             backgroundColor: theme.colors.border,
             borderRadius: "4px",
-            overflow: "hidden"
+            overflow: "hidden",
+            position: "relative"
           }}>
+            {/* 左侧进度条 */}
             <div 
               style={{
                 height: "100%",
-                width: `${progressPercentage}%`,
+                width: `${progressPercentage / 2}%`,
                 backgroundColor: theme.colors.primary,
                 transition: "width 0.3s ease",
-                borderRadius: "4px"
+                borderRadius: "4px 0 0 4px",
+                position: "absolute",
+                left: 0
+              }}
+            />
+            {/* 右侧进度条 */}
+            <div 
+              style={{
+                height: "100%",
+                width: `${progressPercentage / 2}%`,
+                backgroundColor: theme.colors.primary,
+                transition: "width 0.3s ease",
+                borderRadius: "0 4px 4px 0",
+                position: "absolute",
+                right: 0
               }}
             />
           </div>
@@ -536,7 +552,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       {isLoading ? (
         <div style={{ textAlign: "center", padding: `${parseInt(theme.spacing.lg) * 1.25}px 0` }}>
           <div style={{ fontSize: theme.typography.fontSizeMedium, marginBottom: theme.spacing.sm, color: theme.colors.primary }}>{I18nService.t('analyzing')}...</div>
-          <div style={{ fontSize: theme.typography.fontSizeSmall, color: theme.colors.textSecondary }}>{I18nService.t('wait_moment')}</div>
+          {/* 移除重复的“请稍等片刻...”文本 */}
         </div>
       ) : record.profileData ? (
         <div>

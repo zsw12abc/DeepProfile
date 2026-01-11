@@ -88,6 +88,7 @@ export const enUS: LocaleDict = {
   error_network: "Network Error 🌐: Please check your internet connection or proxy settings.",
   error_zhihu_403: "Access Denied by Zhihu (403) 🚧. Please try refreshing the page or logging in.",
   error_user_not_found: "User data not found 🕵️‍♂️. The account might be banned or set to private.",
+  error_extension_context: "Extension context invalidated. Please refresh the page to retry.",
 
   // Export
   click_jump: "Click to Jump",
