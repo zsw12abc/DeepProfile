@@ -173,8 +173,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               const percentage = Math.abs(normalizedScore) * 100;
               
               // 根据分数正负决定哪边高亮
-              const leftIntensity = normalizedScore < 0 ? Math.abs(normalizedScore) * 100 : 0;
-              const rightIntensity = normalizedScore > 0 ? normalizedScore * 100 : 0;
+              const leftIntensity = normalizedScore < 0 ? Math.abs(normalizedScore) * 50 : 0;
+              const rightIntensity = normalizedScore > 0 ? normalizedScore * 50 : 0;
               
               // 根据强度计算颜色，从中心向外着色
               const leftColor = normalizedScore < 0 
@@ -188,11 +188,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 <div style="display: flex; align-items: center; margin-bottom: 8px; font-size: 12px;">
                     <span style="width: 80px; font-weight: 500; color: ${theme.colors.text};">${leftLabel}</span>
                     <div style="flex: 1; height: 8px; background-color: ${theme.colors.border}; border-radius: 4px 0 0 4px; overflow: hidden;">
-                        <div style="height: 100%; width: ${leftIntensity}%; background-color: ${leftColor}; border-radius: 4px 0 0 4px;"></div>
+                        <div style="height: 100%; width: ${leftIntensity}%; background-color: ${leftColor}; border-radius: 4px 0 0 4px; margin-left: auto;"></div>
                     </div>
                     <div style="height: 10px; width: 2px; background-color: ${theme.colors.text};"></div>
                     <div style="flex: 1; height: 8px; background-color: ${theme.colors.border}; border-radius: 0 4px 4px 0; overflow: hidden;">
-                        <div style="height: 100%; width: ${rightIntensity}%; background-color: ${rightColor}; border-radius: 0 4px 4px 0; margin-left: auto;"></div>
+                        <div style="height: 100%; width: ${rightIntensity}%; background-color: ${rightColor}; border-radius: 0 4px 4px 0;"></div>
                     </div>
                     <span style="width: 80px; text-align: right; font-weight: 500; color: ${theme.colors.text};">${rightLabel}</span>
                     <span style="width: 30px; text-align: right; font-size: 11px; color: ${theme.colors.textSecondary}; margin-left: 8px;">${Math.round(percentage)}%</span>
@@ -576,8 +576,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   const percentage = Math.abs(normalizedScore) * 100;
                   
                   // 计算左侧和右侧的填充百分比
-                  const leftFillPercentage = normalizedScore < 0 ? Math.abs(normalizedScore) * 100 : 0;
-                  const rightFillPercentage = normalizedScore > 0 ? normalizedScore * 100 : 0;
+                  // 负数（左侧）：从中间向左填充，宽度为绝对值 * 50%
+                  // 正数（右侧）：从中间向右填充，宽度为绝对值 * 50%
+                  const leftFillPercentage = normalizedScore < 0 ? Math.abs(normalizedScore) * 50 : 0;
+                  const rightFillPercentage = normalizedScore > 0 ? normalizedScore * 50 : 0;
                   
                   // 计算颜色强度 - 红色代表负值，蓝色代表正值
                   const colorIntensity = Math.abs(normalizedScore) * 100;
@@ -640,7 +642,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                               backgroundColor: leftColor,
                               position: "absolute",
                               right: "50%",
-                              transform: "translateX(100%)" // 从中间向左填充
+                              transform: "translateX(0)" // 从中间向左填充
                             }}
                           />
                           
