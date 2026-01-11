@@ -37,12 +37,6 @@
     "vitest": "1.2.1"
   },
   "manifest": {
-    "icons": {
-      "16": "assets/icon.png",
-      "32": "assets/icon.png",
-      "48": "assets/icon.png",
-      "128": "assets/icon.png"
-    },
     "host_permissions": [
       "https://www.zhihu.com/*",
       "https://*.zhimg.com/*",
