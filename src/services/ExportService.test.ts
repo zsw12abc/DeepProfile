@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ExportService } from './ExportService';
 import { TopicService } from './TopicService';
 import { I18nService } from './I18nService';
-import { calculateFinalLabel } from './LabelUtils';
+import { calculateFinalLabel, parseLabelName } from './LabelUtils';
 
 // Mock dependencies
 vi.mock('./TopicService', () => ({
@@ -26,6 +26,13 @@ vi.mock('./LabelUtils', async (importOriginal) => {
     calculateFinalLabel: (label: string, score: number) => {
       return { label, percentage: Math.abs(score) * 100 };
     },
+    parseLabelName: (labelName: string) => {
+      if (labelName.includes('vs')) {
+        const [left, right] = labelName.split('vs').map(s => s.trim());
+        return { left, right };
+      }
+      return { left: '', right: labelName };
+    }
   };
 });
 
@@ -55,6 +62,24 @@ describe('ExportService', () => {
       expect(markdown).toContain('innovation');
       expect(markdown).toContain('Test quote');
       expect(markdown).toContain('Test analysis');
+      // Check for progress bar characters
+      expect(markdown).toContain('🟦'); 
+    });
+
+    it('should handle negative scores correctly', () => {
+      const profile = {
+        nickname: 'Test User',
+        summary: 'Test summary',
+        value_orientation: [
+          { label: 'innovation', score: -0.8 }
+        ],
+        evidence: []
+      };
+      
+      const markdown = ExportService.toMarkdown(profile as any, 'technology', 'http://example.com', Date.now());
+      
+      // Check for red progress bar characters
+      expect(markdown).toContain('🟥');
     });
 
     it('should handle empty value orientation', () => {
