@@ -144,7 +144,10 @@ describe('ProfileCard', () => {
       />
     );
 
-    expect(screen.getByText('analyzing...')).toBeInTheDocument();
+    // The status message is rendered directly
+    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    // The "analyzing" text is part of the header when loading
+    expect(screen.getByText(/analyzing/)).toBeInTheDocument();
   });
 
   it('handles export markdown', async () => {
