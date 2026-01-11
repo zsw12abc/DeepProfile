@@ -181,7 +181,12 @@ export const enUS: LocaleDict = {
   example_quote: "Example Quote",
   
   // Reddit Overlay
-  deep_profile_analysis: "Deep Profile Analysis"
+  deep_profile_analysis: "Deep Profile Analysis",
+
+  // Progress Messages
+  reading_user_profile: "Reading user profile",
+  reading_content: "Reading user content",
+  ai_analyzing: "AI is analyzing"
 };
 
 // DeepProfile Current Version Changelog

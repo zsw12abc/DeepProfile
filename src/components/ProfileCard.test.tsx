@@ -144,7 +144,7 @@ describe('ProfileCard', () => {
       />
     );
 
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    expect(screen.getByText('analyzing...')).toBeInTheDocument();
   });
 
   it('handles export markdown', async () => {

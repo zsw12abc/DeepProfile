@@ -181,7 +181,12 @@ export const zhCN: LocaleDict = {
   example_quote: "示例引用",
   
   // Reddit Overlay
-  deep_profile_analysis: "深度画像分析"
+  deep_profile_analysis: "深度画像分析",
+
+  // Progress Messages
+  reading_user_profile: "正在读取用户资料",
+  reading_content: "正在读取用户内容",
+  ai_analyzing: "AI 正在分析中"
 };
 
 // DeepProfile 当前版本更新日志
@@ -273,5 +278,5 @@ export const zhCNVersionHistory = `# DeepProfile 版本历史
 *   **Feature**: 实现知乎 API 抓取与清洗。
 *   **Feature**: 对接 OpenAI/Gemini/Ollama 接口。
 *   **Feature**: 实现基础 UI 注入与画像展示卡片。
-*   **Feature**: 支持 API Key 配置。
+*   **Feature**: Supports API Key configuration.
 `;

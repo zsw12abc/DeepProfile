@@ -194,13 +194,18 @@ async function listModels(provider: string, apiKey: string, baseUrl: string): Pr
     }
 }
 
-async function sendProgress(tabId: number | undefined, message: string) {
+async function sendProgress(tabId: number | undefined, message: string, percentage?: number) {
   if (tabId) {
     try {
-      await chrome.tabs.sendMessage(tabId, {
+      const messageObj: any = {
         type: "ANALYSIS_PROGRESS",
         message
-      })
+      };
+      if (percentage !== undefined) {
+        messageObj.type = "ANALYSIS_PROGRESS_ESTIMATE";
+        messageObj.percentage = percentage;
+      }
+      await chrome.tabs.sendMessage(tabId, messageObj)
     } catch (e) {
       // Ignore if tab is closed or message fails
     }
@@ -210,13 +215,39 @@ async function sendProgress(tabId: number | undefined, message: string) {
 function estimateAnalysisTime(mode: string): number {
   switch(mode) {
     case 'fast':
-      return 15000; // 15 seconds for fast mode
+      return 30000; // 15 + 15 seconds for fast mode
     case 'deep':
-      return 45000; // 45 seconds for deep mode
+      return 60000; // 45 + 15 seconds for deep mode
     case 'balanced':
     default:
-      return 25000; // 25 seconds for balanced mode
+      return 40000; // 25 + 15 seconds for balanced mode
   }
+}
+
+// Function to send periodic progress updates
+async function sendPeriodicProgress(tabId: number | undefined, startTime: number, estimatedTime: number, initialMessage: string) {
+  if (!tabId) return;
+  
+  const interval = setInterval(async () => {
+    const elapsed = Date.now() - startTime;
+    const progress = Math.min(95, Math.floor((elapsed / estimatedTime) * 100)); // Cap at 95% until actual completion
+    
+    const remainingSeconds = Math.ceil((estimatedTime - elapsed) / 1000);
+    const formattedMessage = `${initialMessage}`;
+    
+    await sendProgress(tabId, formattedMessage, progress);
+    
+    if (elapsed >= estimatedTime) {
+      clearInterval(interval);
+    }
+  }, 1000); // Update every second
+  
+  // Clear interval after estimated time
+  setTimeout(() => {
+    clearInterval(interval);
+  }, estimatedTime);
+  
+  return interval;
 }
 
 async function handleAnalysis(userId: string, context?: string, tabId?: number, platform: SupportedPlatform = 'zhihu', forceRefresh: boolean = false) {
@@ -229,6 +260,11 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
   
   console.log(`Analyzing user: ${userId}, Platform: ${platform}, Context: ${context}, ForceRefresh: ${forceRefresh}`)
   const startTime = Date.now();
+  
+  // Get analysis mode to estimate time
+  const config = await ConfigService.getConfig();
+  const analysisMode = platform ? (config.platformAnalysisModes?.[platform] || config.analysisMode || 'balanced') : config.analysisMode || 'balanced';
+  const estimatedTime = estimateAnalysisTime(analysisMode);
   
   // 1. Classify the context into a macro category
   let macroCategory = TopicService.classify(context || "");
@@ -247,8 +283,8 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
     const userRecord = await HistoryService.getUserRecord(userId, platform);
     
     if (cachedProfile) {
-      console.log(`Cache hit for user ${userId} in category ${macroCategory}`);
-      await sendProgress(tabId, `${I18nService.t('history_record')} (${categoryName})`);
+      console.log(`Cache hit for user ${userId} in category ${macroCategory}`)
+      await sendProgress(tabId, `${I18nService.t('history_record')} (${categoryName})`)
       
       return {
         profile: cachedProfile.profileData,
@@ -261,98 +297,126 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
     }
   }
 
-  const config = await ConfigService.getConfig()
   const limit = config.analyzeLimit || 15
 
+  // Initial progress message
   await sendProgress(tabId, `${I18nService.t('analyzing')}...`)
   
-  const userProfile = await ProfileService.fetchUserProfile(platform, userId)
+  // Start periodic progress updates
+  // We will update the message dynamically in the steps below
+  let currentMessage = I18nService.t('analyzing');
   
-  if (userProfile) {
-      await sendProgress(tabId, `${I18nService.t('analyzing')} ${userProfile.name}...`)
-  } else {
-      await sendProgress(tabId, `${I18nService.t('analyzing')}...`)
-  }
-
-  const fetchResult = await ProfileService.fetchUserContent(platform, userId, limit, context)
-  const items = fetchResult.items;
-  
-  if (!items || items.length === 0) {
-    if (!userProfile) {
-        throw new Error(I18nService.t('error_user_not_found'))
+  // Custom periodic progress function that uses the current message variable
+  const progressInterval = setInterval(async () => {
+    const elapsed = Date.now() - startTime;
+    const progress = Math.min(95, Math.floor((elapsed / estimatedTime) * 100)); // Cap at 95%
+    
+    // Send current message with progress
+    await sendProgress(tabId, currentMessage, progress);
+    
+    if (elapsed >= estimatedTime) {
+      clearInterval(progressInterval);
     }
-  }
-
-  await sendProgress(tabId, I18nService.t('wait_moment'))
-
-  // --- Structured Context for LLM ---
-  let contextForLLM = '';
-  if (context) {
-      const parts = context.split('|').map(s => s.trim());
-      const title = parts[0];
-      const tags = parts.slice(1);
-      contextForLLM += `【Question】: ${title}\n`;
-      if (tags.length > 0) {
-          contextForLLM += `【Topics】: ${tags.join(', ')}\n\n`;
-      }
-  }
-
-  let cleanText = ProfileService.cleanContentData(platform, items, userProfile)
+  }, 1000);
   
-  if (contextForLLM) {
-      cleanText = contextForLLM + cleanText;
-  }
+  // Clear interval after estimated time + buffer
+  setTimeout(() => {
+    clearInterval(progressInterval);
+  }, estimatedTime + 5000);
   
   try {
-      const llmResponse = await LLMService.generateProfileForPlatform(cleanText, macroCategory, platform)
-      
-      const totalDuration = Date.now() - startTime;
+    const userProfile = await ProfileService.fetchUserProfile(platform, userId)
+    
+    if (userProfile) {
+        // Update message to show we are reading user profile
+        currentMessage = `${I18nService.t('reading_user_profile')}: ${userProfile.name}`;
+        await sendProgress(tabId, currentMessage);
+    }
 
-      // 3. Save to History using macroCategory
-      await HistoryService.saveProfile(
-        userId,
-        platform,
-        macroCategory, // Store macroCategory as the key
-        llmResponse.content,
-        context || "", // Store original context for reference
-        llmResponse.model,
-        userProfile ? {
-            name: userProfile.name,
-            headline: userProfile.headline,
-            avatar_url: userProfile.avatar_url,
-            url_token: userProfile.url_token
-        } : undefined
-      );
-
-      let debugInfo = undefined;
-      if (config.enableDebug) {
-          const createdCount = items.filter(i => i.action_type === 'created').length;
-          const votedCount = items.filter(i => i.action_type === 'voted').length;
-          
-          const sourceInfo = `Top ${items.length} of ${fetchResult.totalFetched} (Found ${fetchResult.totalRelevant} relevant)`;
-
-          debugInfo = {
-              totalDurationMs: totalDuration,
-              llmDurationMs: llmResponse.durationMs,
-              itemsCount: items.length,
-              itemsBreakdown: `Created: ${createdCount}, Voted: ${votedCount}`,
-              sourceInfo: sourceInfo,
-              model: llmResponse.model,
-              tokens: llmResponse.usage,
-              context: context || "None",
-              fetchStrategy: context ? `Context-Aware (Limit: ${limit})` : `Chronological (Limit: ${limit})`,
-              platform: platform,
-              llmInput: config.enableDebug ? cleanText : undefined // 只在调试模式下保存输入
-          };
+    const fetchResult = await ProfileService.fetchUserContent(platform, userId, limit, context)
+    const items = fetchResult.items;
+    
+    if (!items || items.length === 0) {
+      if (!userProfile) {
+          throw new Error(I18nService.t('error_user_not_found'))
       }
+    }
 
-      return {
-        profile: llmResponse.content,
-        items: items,
-        userProfile: userProfile,
-        debugInfo: debugInfo,
-        fromCache: false
-      }
+    // Update message to show we are reading content
+    currentMessage = `${I18nService.t('reading_content')} (${items.length} items)`;
+    await sendProgress(tabId, currentMessage);
+
+    // --- Structured Context for LLM ---
+    let contextForLLM = '';
+    if (context) {
+        const parts = context.split('|').map(s => s.trim());
+        const title = parts[0];
+        const tags = parts.slice(1);
+        contextForLLM += `【Question】: ${title}\n`;
+        if (tags.length > 0) {
+            contextForLLM += `【Topics】: ${tags.join(', ')}\n\n`;
+        }
+    }
+
+    let cleanText = ProfileService.cleanContentData(platform, items, userProfile)
+    
+    if (contextForLLM) {
+        cleanText = contextForLLM + cleanText;
+    }
+    
+    // Update message to show AI is analyzing
+    currentMessage = I18nService.t('ai_analyzing');
+    await sendProgress(tabId, currentMessage);
+    
+    const llmResponse = await LLMService.generateProfileForPlatform(cleanText, macroCategory, platform)
+    
+    const totalDuration = Date.now() - startTime;
+
+    // 3. Save to History using macroCategory
+    await HistoryService.saveProfile(
+      userId,
+      platform,
+      macroCategory, // Store macroCategory as the key
+      llmResponse.content,
+      context || "", // Store original context for reference
+      llmResponse.model,
+      userProfile ? {
+          name: userProfile.name,
+          headline: userProfile.headline,
+          avatar_url: userProfile.avatar_url,
+          url_token: userProfile.url_token
+      } : undefined
+    );
+
+    let debugInfo = undefined;
+    if (config.enableDebug) {
+        const createdCount = items.filter(i => i.action_type === 'created').length;
+        const votedCount = items.filter(i => i.action_type === 'voted').length;
+        
+        const sourceInfo = `Top ${items.length} of ${fetchResult.totalFetched} (Found ${fetchResult.totalRelevant} relevant)`;
+
+        debugInfo = {
+            totalDurationMs: totalDuration,
+            llmDurationMs: llmResponse.durationMs,
+            itemsCount: items.length,
+            itemsBreakdown: `Created: ${createdCount}, Voted: ${votedCount}`,
+            sourceInfo: sourceInfo,
+            model: llmResponse.model,
+            tokens: llmResponse.usage,
+            context: context || "None",
+            fetchStrategy: context ? `Context-Aware (Limit: ${limit})` : `Chronological (Limit: ${limit})`,
+            platform: platform,
+            llmInput: config.enableDebug ? cleanText : undefined // 只在调试模式下保存输入
+        };
+    }
+
+    return {
+      profile: llmResponse.content,
+      items: items,
+      userProfile: userProfile,
+      debugInfo: debugInfo,
+      fromCache: false
+    }
   } catch (error: any) {
       let msg = error.message;
       if (msg.includes("402")) msg = I18nService.t('error_402');
@@ -363,5 +427,9 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
       else if (msg.includes("Failed to fetch")) msg = I18nService.t('error_network');
       
       throw new Error(msg);
+  } finally {
+    if (progressInterval) {
+      clearInterval(progressInterval);
+    }
   }
 }

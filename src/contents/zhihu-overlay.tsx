@@ -38,7 +38,8 @@ const ZhihuOverlay = () => {
     const messageListener = (request: any) => {
       if (request.type === "ANALYSIS_PROGRESS") {
         setStatusMessage(request.message)
-        setProgressPercentage(undefined) // Reset progress percentage when receiving general progress
+        // Do not reset progress percentage to avoid flickering
+        // setProgressPercentage(undefined) 
       } else if (request.type === "ANALYSIS_PROGRESS_ESTIMATE") {
         setStatusMessage(request.message)
         if (request.percentage !== undefined) {
@@ -156,7 +157,7 @@ const ZhihuOverlay = () => {
       // 当没有目标用户时，移除容器
       removeOverlayContainer();
     }
-  }, [targetUser, profileData, loading, statusMessage, error, initialNickname, currentContext]);
+  }, [targetUser, profileData, loading, statusMessage, error, initialNickname, currentContext, progressPercentage]);
 
   useEffect(() => {
     let observer: MutationObserver | null = null;
@@ -318,9 +319,10 @@ const ZhihuOverlay = () => {
     setLoading(true)
     setStatusMessage(forceRefresh ? I18nService.t('reanalyze') + "..." : I18nService.t('analyzing') + "...")
     setError(undefined)
-    if (forceRefresh) {
-        setProfileData(null)
-    }
+    // Always clear profile data to ensure loading state is shown for new searches
+    setProfileData(null)
+    // Initialize progress to 0 to show the bar immediately
+    setProgressPercentage(0)
 
     try {
       const response = await chrome.runtime.sendMessage({

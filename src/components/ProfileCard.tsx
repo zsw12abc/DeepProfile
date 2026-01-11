@@ -299,11 +299,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
   // 计算进度条
   const renderProgressBar = () => {
-    if (!isLoading && !statusMessage) return null;
+    // 显示进度条的条件：要么正在加载，要么有状态消息但还没有LLM响应
+    const hasLLMResponse = record.profileData !== null && record.profileData !== undefined;
     
-    const hasLLMResponse = record.profileData !== null;
-    
+    // 如果已经有LLM响应，则不显示进度条和状态消息
     if (hasLLMResponse) return null;
+    
+    // 如果既没有加载状态也没有状态消息，则不显示
+    if (!isLoading && !statusMessage) return null;
     
     return (
       <div style={{ 
@@ -311,39 +314,40 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         fontSize: theme.typography.fontSizeBase, 
         color: theme.colors.textSecondary 
       }}>
-        <div style={{ marginBottom: theme.spacing.xs }}>
-          {statusMessage}
+        {/* 左上角状态消息 - 告诉用户当前在做什么 */}
+        <div style={{
+          marginBottom: theme.spacing.sm,
+          fontWeight: theme.typography.fontWeightBold,
+          color: theme.colors.primary,
+          fontSize: '16px'  // 设置字体大小，符合您提到的样式
+        }}>
+          {statusMessage || I18nService.t('analyzing')}
+          {progressPercentage !== undefined && progressPercentage < 100 && (
+            <span> ({Math.max(1, Math.ceil((100 - progressPercentage) * 0.25))}s)</span>
+          )}
         </div>
-        {!hasLLMResponse && progressPercentage !== undefined && (
+        
+        {/* 中间进度条 - 占据最大部分，根据分析模式调整速度 */}
+        {progressPercentage !== undefined && progressPercentage < 100 && (
           <div style={{
             height: "8px",
             backgroundColor: theme.colors.border,
             borderRadius: "4px",
             overflow: "hidden",
-            position: "relative"
+            position: "relative",
+            margin: `${theme.spacing.sm} 0`
           }}>
-            {/* 左侧进度条 */}
+            {/* 进度条：从左到右填充 */}
             <div 
               style={{
                 height: "100%",
-                width: `${progressPercentage / 2}%`,
+                width: `${progressPercentage}%`,
                 backgroundColor: theme.colors.primary,
                 transition: "width 0.3s ease",
-                borderRadius: "4px 0 0 4px",
+                borderRadius: "4px",
                 position: "absolute",
-                left: 0
-              }}
-            />
-            {/* 右侧进度条 */}
-            <div 
-              style={{
-                height: "100%",
-                width: `${progressPercentage / 2}%`,
-                backgroundColor: theme.colors.primary,
-                transition: "width 0.3s ease",
-                borderRadius: "0 4px 4px 0",
-                position: "absolute",
-                right: 0
+                left: 0,
+                top: 0
               }}
             />
           </div>
@@ -551,8 +555,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
       {isLoading ? (
         <div style={{ textAlign: "center", padding: `${parseInt(theme.spacing.lg) * 1.25}px 0` }}>
-          <div style={{ fontSize: theme.typography.fontSizeMedium, marginBottom: theme.spacing.sm, color: theme.colors.primary }}>{I18nService.t('analyzing')}...</div>
-          {/* 移除重复的“请稍等片刻...”文本 */}
+          {/* 这里不再显示单独的分析文本，因为 renderProgressBar 已经处理了 */}
+          {/* 移除重复的“正在分析...”文本 */}
         </div>
       ) : record.profileData ? (
         <div>
@@ -571,13 +575,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   // 计算百分比（取分数绝对值并转换为百分比）
                   const percentage = Math.abs(normalizedScore) * 100;
                   
-                  // 根据分数正负决定哪边高亮
-                  const leftIntensity = normalizedScore < 0 ? Math.abs(normalizedScore) * 100 : 0;
-                  const rightIntensity = normalizedScore > 0 ? normalizedScore * 100 : 0;
+                  // 计算左侧和右侧的填充百分比
+                  const leftFillPercentage = normalizedScore < 0 ? Math.abs(normalizedScore) * 100 : 0;
+                  const rightFillPercentage = normalizedScore > 0 ? normalizedScore * 100 : 0;
                   
-                  // 根据强度计算颜色
-                  const leftColor = `hsl(0, 70%, ${70 - leftIntensity * 0.3}%)`; // 红色代表负值
-                  const rightColor = `hsl(210, 70%, ${70 - rightIntensity * 0.3}%)`; // 蓝色代表正值
+                  // 计算颜色强度 - 红色代表负值，蓝色代表正值
+                  const colorIntensity = Math.abs(normalizedScore) * 100;
+                  const leftColor = normalizedScore < 0 ? `hsl(0, 70%, ${70 - colorIntensity * 0.3}%)` : theme.colors.background; // 红色代表负值
+                  const rightColor = normalizedScore > 0 ? `hsl(210, 70%, ${70 - colorIntensity * 0.3}%)` : theme.colors.background; // 蓝色代表正值
                   
                   return (
                     <div
@@ -618,50 +623,48 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                           {leftLabel || I18nService.t('unknown_type')}
                         </div>
                         
-                        {/* 左侧进度条 */}
+                        {/* 双向发散条形图 - 从中间往左是红色(负值)，从中间往右是蓝色(正值) */}
                         <div style={{
                           flex: "1",
                           height: "12px",
                           backgroundColor: theme.colors.border,
-                          borderRadius: "6px 0 0 6px",
+                          borderRadius: "6px",
                           overflow: "hidden",
                           position: "relative"
                         }}>
+                          {/* 左侧进度条 (负值，红色) - 从中间向左填充，填充比例等于数值绝对值 */}
                           <div 
                             style={{
                               height: "100%",
-                              width: `${leftIntensity}%`,
+                              width: `${leftFillPercentage}%`,
                               backgroundColor: leftColor,
-                              borderRadius: "6px 0 0 6px"
+                              position: "absolute",
+                              right: "50%",
+                              transform: "translateX(100%)" // 从中间向左填充
                             }}
                           />
-                        </div>
-                        
-                        {/* 中央分割线 */}
-                        <div style={{
-                          height: "16px",
-                          width: "2px",
-                          backgroundColor: theme.colors.text,
-                          position: "relative",
-                          zIndex: 1
-                        }} />
-                        
-                        {/* 右側進度條 */}
-                        <div style={{
-                          flex: "1",
-                          height: "12px",
-                          backgroundColor: theme.colors.border,
-                          borderRadius: "0 6px 6px 0",
-                          overflow: "hidden",
-                          position: "relative"
-                        }}>
+                          
+                          {/* 中央分割线 */}
+                          <div style={{
+                            position: "absolute",
+                            left: "50%",
+                            top: 0,
+                            height: "100%",
+                            width: "2px",
+                            backgroundColor: theme.colors.text,
+                            transform: "translateX(-1px)",
+                            zIndex: 1
+                          }} />
+                          
+                          {/* 右側進度條 (正值，蓝色) - 从中间向右填充，填充比例等于数值 */}
                           <div 
                             style={{
                               height: "100%",
-                              width: `${rightIntensity}%`,
+                              width: `${rightFillPercentage}%`,
                               backgroundColor: rightColor,
-                              borderRadius: "0 6px 6px 0",
-                              marginLeft: "auto" // 右對齊
+                              position: "absolute",
+                              left: "50%",
+                              transform: "translateX(0)" // 从中间向右填充
                             }}
                           />
                         </div>
