@@ -2,7 +2,7 @@
   "name": "deep-profile",
   "displayName": "DeepProfile",
   "version": "0.6.3",
-  "description": "A Chrome extension to analyze Zhihu user profiles using AI.",
+  "description": "A Chrome extension to analyze social media user profiles using AI.",
   "author": "DeepProfile Team",
   "scripts": {
     "dev": "plasmo dev",
@@ -37,6 +37,12 @@
     "vitest": "1.2.1"
   },
   "manifest": {
+    "icons": {
+      "16": "assets/icon.png",
+      "32": "assets/icon.png",
+      "48": "assets/icon.png",
+      "128": "assets/icon.png"
+    },
     "host_permissions": [
       "https://www.zhihu.com/*",
       "https://*.zhimg.com/*",
