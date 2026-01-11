@@ -6,6 +6,7 @@ import { ConfigService } from "../services/ConfigService"
 import { I18nService } from "../services/I18nService"
 import type { ZhihuContent, UserProfile, UserHistoryRecord, SupportedPlatform } from "../services/ZhihuClient"
 import type { ProfileData } from "../types"
+import { DEFAULT_CONFIG } from "../types"
 
 export const config: PlasmoCSConfig = {
   matches: ["https://www.zhihu.com/*"]
@@ -278,7 +279,8 @@ const ZhihuOverlay = () => {
 
     const checkConfig = async () => {
       const config = await ConfigService.getConfig();
-      const newEnabled = config.globalEnabled;
+      // 添加安全检查，防止config或config.globalEnabled为undefined
+      const newEnabled = config?.globalEnabled ?? DEFAULT_CONFIG.globalEnabled;
       
       // console.log("Checking config. Enabled:", newEnabled);
 
