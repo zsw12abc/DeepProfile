@@ -1,5 +1,5 @@
 import { TopicService, type MacroCategory } from "./TopicService";
-import { calculateFinalLabel } from "./LabelUtils";
+import { calculateFinalLabel, parseLabelName } from "./LabelUtils";
 import type { ProfileData } from "~types";
 import { I18nService } from "./I18nService";
 
@@ -33,9 +33,13 @@ ${profile.summary}
       md += `| :--- | :--- | :--- |\n`;
       
       profile.value_orientation.forEach(item => {
-        const { label, percentage } = calculateFinalLabel(item.label, item.score);
+        const parsedLabel = parseLabelName(item.label);
+        const leftLabel = parsedLabel.left || 'Left';
+        const rightLabel = parsedLabel.right || 'Right';
+        const percentage = Math.abs(item.score) * 100;
+        
         const bar = this.generateProgressBar(percentage, item.score);
-        md += `| ${label} | ${bar} | ${percentage}% |\n`;
+        md += `| ${leftLabel} vs ${rightLabel} | ${bar} | ${Math.round(percentage)}% |\n`;
       });
       md += `\n`;
     } else {
@@ -60,8 +64,30 @@ ${profile.summary}
   }
 
   private static generateProgressBar(percentage: number, score: number): string {
-    const blocks = Math.round(percentage / 10);
-    const filled = score > 0 ? '🟦' : '🟥';
-    return filled.repeat(blocks) + '⬜'.repeat(10 - blocks);
+    // 10 blocks total, 5 for left, 5 for right
+    // Center is between block 5 and 6
+    
+    const totalBlocks = 10;
+    const halfBlocks = 5;
+    
+    // Calculate how many blocks to fill from center
+    // percentage is 0-100, so we map 0-100 to 0-5 blocks
+    const fillBlocks = Math.round((percentage / 100) * halfBlocks);
+    
+    let bar = '';
+    
+    if (score < 0) {
+      // Negative score: fill left side from center
+      // Empty left blocks + Filled left blocks + Center + Empty right blocks
+      const emptyLeft = halfBlocks - fillBlocks;
+      bar = '⬜'.repeat(emptyLeft) + '🟥'.repeat(fillBlocks) + '|' + '⬜'.repeat(halfBlocks);
+    } else {
+      // Positive score: fill right side from center
+      // Empty left blocks + Center + Filled right blocks + Empty right blocks
+      const emptyRight = halfBlocks - fillBlocks;
+      bar = '⬜'.repeat(halfBlocks) + '|' + '🟦'.repeat(fillBlocks) + '⬜'.repeat(emptyRight);
+    }
+    
+    return bar;
   }
 }

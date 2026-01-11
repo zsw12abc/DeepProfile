@@ -59,13 +59,13 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({
         alignItems: "center", 
         padding: "16px",
         backgroundColor: config.globalEnabled 
-          ? "var(--theme-success, #f0fff4)" 
-          : "var(--theme-error, #fff5f5)",
+          ? "var(--theme-success-bg, #f0fff4)" 
+          : "var(--theme-error-bg, #fff5f5)",
         borderRadius: "var(--theme-border-radius-medium, 10px)",
         marginBottom: "24px",
         border: `1px solid ${config.globalEnabled 
-          ? "var(--theme-success, #c6f6d5)" 
-          : "var(--theme-error, #feb2b2)"}`
+          ? "var(--theme-success-border, #c6f6d5)" 
+          : "var(--theme-error-border, #feb2b2)"}`
       }}>
         <div style={{ flex: 1 }}>
           <label htmlFor="globalEnabled" style={{ 
@@ -73,16 +73,16 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({
             cursor: "pointer", 
             fontSize: "16px",
             color: config.globalEnabled 
-              ? "var(--theme-text, #22543d)" 
-              : "var(--theme-text, #742a2a)",
+              ? "var(--theme-success-text, #22543d)" 
+              : "var(--theme-error-text, #742a2a)",
             display: "block"
           }}>
               {config.globalEnabled ? I18nService.t('plugin_enabled') : I18nService.t('plugin_disabled')}
           </label>
           <div style={{ fontSize: "13px", 
             color: config.globalEnabled 
-              ? "var(--theme-success, #2f855a)" 
-              : "var(--theme-error, #9b2c2c)", 
+              ? "var(--theme-success-text, #2f855a)" 
+              : "var(--theme-error-text, #9b2c2c)", 
             marginTop: "4px" }}>
             {config.globalEnabled ? I18nService.t('plugin_enabled_desc') : I18nService.t('plugin_disabled_desc')}
           </div>
@@ -288,16 +288,16 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({
                   padding: "16px 20px", 
                   borderRadius: "var(--theme-border-radius-medium, 10px)", 
                   backgroundColor: testResult.success 
-                    ? "var(--theme-success, #e6ffed)" 
-                    : "var(--theme-error, #ffeef0)",
+                    ? "var(--theme-success-bg, #e6ffed)" 
+                    : "var(--theme-error-bg, #ffeef0)",
                   color: testResult.success 
-                    ? "var(--theme-success, #22543d)" 
-                    : "var(--theme-error, #742a2a)",
+                    ? "var(--theme-success-text, #22543d)" 
+                    : "var(--theme-error-text, #742a2a)",
                   fontSize: "14px",
                   lineHeight: "1.6",
                   border: `2px solid ${testResult.success 
-                    ? "var(--theme-success, #c6f6d5)" 
-                    : "var(--theme-error, #feb2b2)"}`  // 修复引号问题
+                    ? "var(--theme-success-border, #c6f6d5)" 
+                    : "var(--theme-error-border, #feb2b2)"}`
               }}>
                   <strong style={{ display: "block", marginBottom: "6px", fontSize: "15px" }}>
                     {testResult.success ? I18nService.t('connection_success') : I18nService.t('connection_failed')}

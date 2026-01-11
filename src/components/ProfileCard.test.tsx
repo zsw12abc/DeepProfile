@@ -47,14 +47,31 @@ vi.mock('../services/ZhihuClient', () => ({
 
 vi.mock('../services/LabelUtils', () => ({
   calculateFinalLabel: (label: string, score: number) => ({ label, percentage: Math.abs(score) * 100 }),
+  parseLabelName: (labelName: string) => {
+    if (labelName.includes('vs')) {
+      const [left, right] = labelName.split('vs').map(s => s.trim());
+      return { left, right };
+    }
+    return { left: '', right: labelName };
+  }
 }));
 
 // Mock html2canvas
-vi.mock('html2canvas', () => ({
-  default: vi.fn().mockResolvedValue({
+vi.mock('html2canvas', () => {
+  const mockHtml2Canvas = vi.fn().mockResolvedValue({
     toDataURL: () => 'data:image/png;base64,fakeimage',
-  }),
-}));
+  });
+  
+  // Add the mock property to the mock function
+  mockHtml2Canvas.Canvas = class {
+    constructor() {}
+    toDataURL() { return 'data:image/png;base64,fakeimage'; }
+  };
+  
+  return {
+    default: mockHtml2Canvas,
+  };
+});
 
 // Mock URL.createObjectURL and revokeObjectURL
 global.URL.createObjectURL = vi.fn(() => 'blob:url');
@@ -127,7 +144,10 @@ describe('ProfileCard', () => {
       />
     );
 
+    // The status message is rendered directly
     expect(screen.getByText('Loading...')).toBeInTheDocument();
+    // The "analyzing" text is part of the header when loading
+    expect(screen.getByText(/analyzing/)).toBeInTheDocument();
   });
 
   it('handles export markdown', async () => {

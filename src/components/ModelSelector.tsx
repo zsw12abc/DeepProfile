@@ -1,5 +1,5 @@
 import React from "react";
-import { I18nService } from "~services/I18nService";
+import { I18nService } from "../services/I18nService";
 
 interface ModelSelectorProps {
   isLoadingModels: boolean;

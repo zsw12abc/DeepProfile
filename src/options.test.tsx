@@ -8,6 +8,44 @@ import { ThemeService } from './services/ThemeService';
 import { DEFAULT_CONFIG } from './types';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
+// Mock chrome API
+const mockRuntimeGetURL = vi.fn().mockReturnValue('/assets/icon.png');
+const mockRuntimeSendMessage = vi.fn();
+const mockRuntimeOnMessageAddListener = vi.fn();
+const mockRuntimeOnMessageRemoveListener = vi.fn();
+const mockTabsSendMessage = vi.fn();
+const mockRuntimeOpenOptionsPage = vi.fn();
+
+Object.defineProperty(global, 'chrome', {
+  value: {
+    runtime: {
+      getURL: mockRuntimeGetURL,
+      sendMessage: mockRuntimeSendMessage,
+      onMessage: {
+        addListener: mockRuntimeOnMessageAddListener,
+        removeListener: mockRuntimeOnMessageRemoveListener
+      },
+      getManifest: vi.fn().mockReturnValue({ version: '0.6.3' }),
+      openOptionsPage: mockRuntimeOpenOptionsPage
+    },
+    tabs: {
+      sendMessage: mockTabsSendMessage
+    },
+    action: {
+      onClicked: {
+        addListener: vi.fn()
+      }
+    },
+    storage: {
+      local: {
+        get: vi.fn(),
+        set: vi.fn()
+      }
+    }
+  },
+  writable: true
+});
+
 // Mock dependencies
 vi.mock('./services/ConfigService', () => ({
   ConfigService: {

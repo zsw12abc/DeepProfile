@@ -13,6 +13,22 @@ vi.mock('~services/TopicService', () => ({
   },
 }));
 
+// Mock LabelUtils
+vi.mock('~services/LabelUtils', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    calculateFinalLabel: (label: string, score: number) => ({ label, percentage: Math.abs(score) * 100 }),
+    parseLabelName: (labelName: string) => {
+      if (labelName.includes('vs')) {
+        const [left, right] = labelName.split('vs').map(s => s.trim());
+        return { left, right };
+      }
+      return { left: '', right: labelName };
+    }
+  };
+});
+
 // Mock components
 vi.mock('./UIComponents', () => ({
   Card: ({ title, children }: { title: string; children: React.ReactNode }) => (

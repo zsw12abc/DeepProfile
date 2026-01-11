@@ -1,7 +1,7 @@
 {
   "name": "deep-profile",
   "displayName": "DeepProfile",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "A Chrome extension to analyze Zhihu user profiles using AI.",
   "author": "DeepProfile Team",
   "scripts": {

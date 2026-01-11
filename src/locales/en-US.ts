@@ -88,6 +88,7 @@ export const enUS: LocaleDict = {
   error_network: "Network Error 🌐: Please check your internet connection or proxy settings.",
   error_zhihu_403: "Access Denied by Zhihu (403) 🚧. Please try refreshing the page or logging in.",
   error_user_not_found: "User data not found 🕵️‍♂️. The account might be banned or set to private.",
+  error_extension_context: "Extension context invalidated. Please refresh the page to retry.",
 
   // Export
   click_jump: "Click to Jump",
@@ -180,26 +181,38 @@ export const enUS: LocaleDict = {
   example_quote: "Example Quote",
   
   // Reddit Overlay
-  deep_profile_analysis: "Deep Profile Analysis"
+  deep_profile_analysis: "Deep Profile Analysis",
+
+  // Progress Messages
+  reading_user_profile: "Reading user profile",
+  reading_content: "Reading user content",
+  ai_analyzing: "AI is analyzing"
 };
 
 // DeepProfile Current Version Changelog
 export const enUSChangelog = `# DeepProfile Current Version Changelog
 
-## Current Version: v0.6.2 (Beta)
+## Current Version: v0.6.3 (Beta)
 
 ### ✅ Features Achieved
 
-### Core Feature (v0.6.2) - Theme System
-- ✅ **Theme Customization**: Supports user-defined appearance themes, including color schemes, fonts, and sizes.
-- ✅ **Multiple Built-in Themes**: Provides multiple preset themes, including Zhihu White/Black themes and Reddit White/Black themes.
-- ✅ **Dynamic Theme Switching**: Supports real-time theme switching without page refresh.
-- ✅ **CSS Variable Driven**: Uses CSS variables to implement global theme dynamic application, ensuring all components update synchronously.
-- ✅ **Theme Management**: Supports creating, editing, and deleting custom themes, with import/export functionality.
+### Core Feature (v0.6.3) - Analysis Progress Visualization & Label Display Optimization
+- ✅ **Progress Estimation**: Display estimated remaining time based on analysis mode (e.g., "Analyzing... (15s)")
+- ✅ **Progress Bar Animation**: Show dynamic progress bar reflecting analysis progress.
+- ✅ **Mode Differentiation**: Different analysis modes (Fast/Balanced/Deep) display different estimated times.
+- ✅ **Bidirectional Divergent Bar Chart Optimization**: Value labels are aligned left and right, with percentage displayed above the bidirectional divergent bar.
+
 `;
 
 // DeepProfile Version History
 export const enUSVersionHistory = `# DeepProfile Version History
+
+### v0.6.2 (2024-01-09) - Theme System
+*   **Feature**: **Theme Customization**, supports user-defined appearance themes, including color schemes, fonts, and sizes.
+*   **Feature**: **Multiple Built-in Themes**, provides multiple preset themes, including Zhihu White/Black themes and Reddit White/Black themes.
+*   **Feature**: **Dynamic Theme Switching**, supports real-time theme switching without page refresh.
+*   **Feature**: **CSS Variable Driven**, uses CSS variables to implement global theme dynamic application, ensuring all components update synchronously.
+*   **Feature**: **Theme Management**, supports creating, editing, and deleting custom themes, with import/export functionality.
 
 ### v0.6.1 (2024-01-09) - Real-time Settings Save
 *   **Feature**: Implemented **real-time settings save functionality** on the settings page, all configuration changes are immediately saved to storage automatically.

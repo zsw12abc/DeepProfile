@@ -88,6 +88,7 @@ export const zhCN: LocaleDict = {
   error_network: "网络开小差了 🌐，请检查网络连接或代理设置。",
   error_zhihu_403: "哎呀，被知乎拦截了 (403) 🚧。请试着刷新一下知乎页面，或者确认是否登录了哦～",
   error_user_not_found: "哎呀，找不到这个用户的数据 🕵️‍♂️，可能是账号被封禁或设置了隐私保护。",
+  error_extension_context: "扩展上下文已失效，请刷新页面重试。",
 
   // Export
   click_jump: "点击跳转",
@@ -180,26 +181,37 @@ export const zhCN: LocaleDict = {
   example_quote: "示例引用",
   
   // Reddit Overlay
-  deep_profile_analysis: "深度画像分析"
+  deep_profile_analysis: "深度画像分析",
+
+  // Progress Messages
+  reading_user_profile: "正在读取用户资料",
+  reading_content: "正在读取用户内容",
+  ai_analyzing: "AI 正在分析中"
 };
 
 // DeepProfile 当前版本更新日志
 export const zhCNChangelog = `# DeepProfile 当前版本更新日志
 
-## 当前版本: v0.6.2 (Beta)
+## 当前版本: v0.6.3 (Beta)
 
 ### ✅ 已达成功能
 
-### 核心功能 (v0.6.2) - 主题系统
-- ✅ **主题定制**: 支持用户自定义外观主题，包括颜色方案、字体、尺寸等。
-- ✅ **多套内置主题**: 提供多套预设主题，包括知乎白/黑主题、Reddit白/黑主题。
-- ✅ **动态主题切换**: 支持实时切换主题，无需刷新页面。
-- ✅ **CSS变量驱动**: 使用CSS变量实现全局主题动态应用，确保所有组件同步更新。
-- ✅ **主题管理**: 支持创建、编辑、删除自定义主题，并提供主题导入导出功能。
+### 核心功能 (v0.6.3) - 分析进度可视化与标签显示优化
+- ✅ **进度预估**: 根据分析模式显示预估剩余时间 (例如: "正在分析... (15s)")
+- ✅ **进度条动画**: 显示动态进度条，直观反映分析进度。
+- ✅ **模式差异化**: 不同分析模式 (极速/平衡/深度) 显示不同的预估时间。
+- ✅ **双向发散条形图优化**: 价值标签左右对齐，百分比显示在双向发散条上方。
 `;
 
 // DeepProfile 版本历史记录
 export const zhCNVersionHistory = `# DeepProfile 版本历史
+
+### v0.6.2 (2024-01-09) - 主题系统
+*   **Feature**: **主题定制**，支持用户自定义外观主题，包括颜色方案、字体、尺寸等。
+*   **Feature**: **多套内置主题**，提供多套预设主题，包括知乎白/黑主题、Reddit白/黑主题。
+*   **Feature**: **动态主题切换**，支持实时切换主题，无需刷新页面。
+*   **Feature**: **CSS变量驱动**，使用CSS变量实现全局主题动态应用，确保所有组件同步更新。
+*   **Feature**: **主题管理**，支持创建、编辑、删除自定义主题，并提供主题导入导出功能。
 
 ### v0.6.1 (2024-01-09) - 实时保存设置
 *   **Feature**: 实现了设置页面的**实时保存功能**，所有配置更改立即自动保存到存储。
@@ -266,5 +278,5 @@ export const zhCNVersionHistory = `# DeepProfile 版本历史
 *   **Feature**: 实现知乎 API 抓取与清洗。
 *   **Feature**: 对接 OpenAI/Gemini/Ollama 接口。
 *   **Feature**: 实现基础 UI 注入与画像展示卡片。
-*   **Feature**: 支持 API Key 配置。
+*   **Feature**: Supports API Key configuration.
 `;

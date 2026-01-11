@@ -10,11 +10,16 @@ let icon: string;
 
 try {
   // 尝试动态导入实际图标
-  const actualIcon = require('./assets/icon.png');
+  const actualIcon = require('../assets/icon.png');
   icon = typeof actualIcon === 'string' ? actualIcon : actualIcon.default;
 } catch (e) {
-  // 在测试环境中，使用默认图标
-  icon = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
+  // 在生产环境中，使用runtime获取图标路径
+  if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.getURL) {
+    icon = chrome.runtime.getURL('assets/icon.png');
+  } else {
+    // 如果在测试环境中，chrome API 不可用，使用默认路径
+    icon = '/assets/icon.png';
+  }
 }
 
 // 导出最终图标
@@ -37,11 +42,15 @@ import { LabelService } from "./services/LabelService";
 
 // 获取版本信息
 const getVersion = (): string => {
-  try {
-    const manifest = chrome.runtime.getManifest();
-    return manifest.version;
-  } catch (e) {
-    return "0.5.1"; // Fallback
+  if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.getManifest) {
+    try {
+      const manifest = chrome.runtime.getManifest();
+      return manifest.version;
+    } catch (e) {
+      return "0.6.3"; // Fallback
+    }
+  } else {
+    return "0.6.3"; // Fallback
   }
 };
 
@@ -192,18 +201,34 @@ export default function Options() {
           valueOrientationHtml = valueOrientation.map(item => {
               const { label: labelName, score } = item;
               const { label, percentage } = calculateFinalLabel(labelName, score);
-              const intensity = Math.min(100, percentage);
-              const color = score >= 0 
-                ? `hsl(210, 70%, ${70 - intensity * 0.3}%)`
-                : `hsl(0, 70%, ${70 - Math.abs(intensity) * 0.3}%)`;
+              
+              // 确保分数在-1到1的范围内
+              const normalizedScore = Math.max(-1, Math.min(1, score));
+              
+              // 计算百分比（取分数绝对值并转换为百分比）
+              const absPercentage = Math.abs(normalizedScore) * 100;
+              
+              // 计算左侧和右侧的填充百分比
+              const leftFillPercentage = normalizedScore < 0 ? Math.abs(normalizedScore) * 50 : 0;
+              const rightFillPercentage = normalizedScore > 0 ? normalizedScore * 50 : 0;
+              
+              // 计算颜色强度 - 红色代表负值，蓝色代表正值
+              const colorIntensity = Math.abs(normalizedScore) * 100;
+              const leftColor = normalizedScore < 0 ? `hsl(0, 70%, ${70 - colorIntensity * 0.3}%)` : '#f0f2f5'; // 红色代表负值
+              const rightColor = normalizedScore > 0 ? `hsl(210, 70%, ${70 - colorIntensity * 0.3}%)` : '#f0f2f5'; // 蓝色代表正值
               
               return `
-                <div style="display: flex; align-items: center; margin-bottom: 8px; font-size: 12px;">
-                    <span style="width: 100px; font-weight: 500; color: #333;">${label}</span>
-                    <div style="flex: 1; height: 8px; background-color: #e0e0e0; border-radius: 4px; overflow: hidden;">
-                        <div style="height: 100%; width: ${percentage}%; background-color: ${color}; border-radius: 4px;"></div>
+                <div style="display: flex; flex-direction: column; align-items: center; padding: 4px 8px; background-color: #f9fafb; border-radius: 8px; font-size: 12px; margin-bottom: 8px;">
+                    <div style="width: 100%; text-align: center; margin-bottom: 4px; font-weight: 600; color: #333;">${Math.round(absPercentage)}%</div>
+                    <div style="display: flex; align-items: center; width: 100%;">
+                        <span style="flex: 0 0 auto; min-width: 80px; color: #333; text-align: right; margin-right: 8px;">${label.split(' vs ')[0] || 'Left'}</span>
+                        <div style="flex: 1; height: 12px; background-color: #e0e0e0; border-radius: 6px; overflow: hidden; position: relative;">
+                            <div style="height: 100%; width: ${leftFillPercentage}%; background-color: ${leftColor}; position: absolute; right: 50%; transform: translateX(0);"></div>
+                            <div style="position: absolute; left: 50%; top: 0; height: 100%; width: 2px; background-color: #333; transform: translateX(-1px); z-index: 1;"></div>
+                            <div style="height: 100%; width: ${rightFillPercentage}%; background-color: ${rightColor}; position: absolute; left: 50%; transform: translateX(0);"></div>
+                        </div>
+                        <span style="flex: 0 0 auto; min-width: 80px; color: #333; text-align: left; margin-left: 8px;">${label.split(' vs ')[1] || 'Right'}</span>
                     </div>
-                    <span style="width: 30px; text-align: right; font-size: 11px; color: #666;">${Math.round(percentage)}%</span>
                 </div>
               `;
           }).join('');
@@ -253,7 +278,9 @@ export default function Options() {
                 ${valueOrientationHtml ? `
                 <div style="margin-bottom: 20px;">
                     <div style="font-size: 12px; color: #8590a6; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">${I18nService.t('value_orientation')}</div>
-                    ${valueOrientationHtml}
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        ${valueOrientationHtml}
+                    </div>
                 </div>
                 ` : ''}
                 

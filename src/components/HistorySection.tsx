@@ -2,7 +2,7 @@ import React from "react";
 import { Card } from "./UIComponents";
 import { HistoryService } from "~services/HistoryService";
 import { ExportService } from "~services/ExportService";
-import { calculateFinalLabel } from "~services/LabelUtils";
+import { calculateFinalLabel, parseLabelName } from "~services/LabelUtils";
 import { TopicService, type MacroCategory } from "~services/TopicService";
 import { ZhihuClient } from "~services/ZhihuClient";
 import { I18nService } from "~services/I18nService";
@@ -207,14 +207,59 @@ export const HistorySection: React.FC<HistorySectionProps> = ({
                         <p style={{ margin: "0 0 10px 0", fontStyle: "italic" }}>"{summary}"</p>
                         <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                           {labels.map((item: { label: string; score: number }, index: number) => {
-                            const { label, percentage } = calculateFinalLabel(item.label, item.score);
+                            const parsedLabel = parseLabelName(item.label);
+                            const leftLabel = parsedLabel.left;
+                            const rightLabel = parsedLabel.right;
+                            
+                            // 确保分数在-1到1的范围内
+                            const normalizedScore = Math.max(-1, Math.min(1, item.score));
+                            
+                            // 计算百分比（取分数绝对值并转换为百分比）
+                            const percentage = Math.abs(normalizedScore) * 100;
+                            
+                            // 根据分数正负决定哪边高亮
+                            const leftIntensity = normalizedScore < 0 ? Math.abs(normalizedScore) * 100 : 0;
+                            const rightIntensity = normalizedScore > 0 ? normalizedScore * 100 : 0;
+                            
+                            // 根据强度计算颜色
+                            const leftColor = item.score < 0 ? "var(--theme-error, #e74c3c)" : "var(--theme-border, #e0e0e0)";
+                            const rightColor = item.score > 0 ? "var(--theme-primary, #3498db)" : "var(--theme-border, #e0e0e0)";
+
                             return (
-                              <div key={index} style={{ display: "flex", alignItems: "center", fontSize: "12px" }}>
-                                <span style={{ width: "80px", fontWeight: "500", color: "var(--theme-text, #4a5568)" }}>{label}</span>
-                                <div style={{ flex: 1, height: "8px", backgroundColor: "var(--theme-border, #e0e0e0)", borderRadius: "4px", overflow: "hidden" }}>
-                                  <div style={{ height: "100%", width: `${percentage}%`, backgroundColor: item.score > 0 ? "var(--theme-primary, #3498db)" : "var(--theme-error, #e74c3c)", borderRadius: "4px" }} />
+                              <div key={index} style={{ display: "flex", flexDirection: "column", alignItems: "center", fontSize: "12px" }}>
+                                {/* 百分比显示在条形图上方 */}
+                                <div style={{ 
+                                  width: "100%", 
+                                  textAlign: "center", 
+                                  marginBottom: "4px",
+                                  fontWeight: "bold",
+                                  color: "var(--theme-text, #4a5568)"
+                                }}>
+                                  {percentage}%
                                 </div>
-                                <span style={{ width: "30px", textAlign: "right", fontSize: "11px", color: "var(--theme-text, #4a5568)" }}>{percentage}%</span>
+                                
+                                <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
+                                  <span style={{ width: "80px", fontWeight: "500", color: "var(--theme-text, #4a5568)", textAlign: "right", marginRight: "8px" }}>
+                                    {leftLabel || I18nService.t('unknown_type')}
+                                  </span>
+                                  
+                                  {/* 左侧进度条 */}
+                                  <div style={{ flex: 1, height: "8px", backgroundColor: "var(--theme-border, #e0e0e0)", borderRadius: "4px 0 0 4px", overflow: "hidden" }}>
+                                    <div style={{ height: "100%", width: `${leftIntensity}%`, backgroundColor: leftColor, borderRadius: "4px 0 0 4px" }} />
+                                  </div>
+                                  
+                                  {/* 中央分割线 */}
+                                  <div style={{ height: "10px", width: "2px", backgroundColor: "var(--theme-text, #4a5568)", position: "relative", zIndex: 1 }} />
+                                  
+                                  {/* 右侧进度条 */}
+                                  <div style={{ flex: 1, height: "8px", backgroundColor: "var(--theme-border, #e0e0e0)", borderRadius: "0 4px 4px 0", overflow: "hidden" }}>
+                                    <div style={{ height: "100%", width: `${rightIntensity}%`, backgroundColor: rightColor, borderRadius: "0 4px 4px 0", marginLeft: "auto" }} />
+                                  </div>
+                                  
+                                  <span style={{ width: "80px", fontWeight: "500", textAlign: "left", color: "var(--theme-text, #4a5568)", marginLeft: "8px" }}>
+                                    {rightLabel || I18nService.t('unknown_type')}
+                                  </span>
+                                </div>
                               </div>
                             );
                           })}

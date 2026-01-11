@@ -5,6 +5,12 @@ export class ConfigService {
 
   static async getConfig(): Promise<ExtendedAppConfig> {
     try {
+      // Check if chrome APIs are available
+      if (typeof chrome === 'undefined' || !chrome.storage || !chrome.storage.local) {
+        console.warn('Chrome API not available, using default config');
+        return DEFAULT_CONFIG as ExtendedAppConfig;
+      }
+      
       const result = await chrome.storage.local.get(this.STORAGE_KEY)
       const storedConfig = result[this.STORAGE_KEY] as Partial<ExtendedAppConfig> || {}
       

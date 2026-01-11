@@ -9,8 +9,14 @@ export class I18nService {
   private static dict: LocaleDict = zhCN;
 
   static async init() {
-    const config = await ConfigService.getConfig();
-    this.setLanguage(config.language);
+    try {
+      const config = await ConfigService.getConfig();
+      this.setLanguage(config.language);
+    } catch (e) {
+      // 如果无法获取配置，使用默认语言
+      this.setLanguage('zh-CN');
+      console.warn('Failed to get language config, using default:', e);
+    }
   }
 
   static setLanguage(lang: Language) {
