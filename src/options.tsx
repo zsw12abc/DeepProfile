@@ -10,7 +10,7 @@ let icon: string;
 
 try {
   // 尝试动态导入实际图标
-  const actualIcon = require('./assets/icon.png');
+  const actualIcon = require('../assets/icon.png');
   icon = typeof actualIcon === 'string' ? actualIcon : actualIcon.default;
 } catch (e) {
   // 在生产环境中，使用runtime获取图标路径
