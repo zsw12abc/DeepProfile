@@ -173,8 +173,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               const percentage = Math.abs(normalizedScore) * 100;
               
               // 根据分数正负决定哪边高亮
-              const leftIntensity = normalizedScore < 0 ? Math.abs(normalizedScore) * 50 : 0;
-              const rightIntensity = normalizedScore > 0 ? normalizedScore * 50 : 0;
+              const leftIntensity = normalizedScore < 0 ? Math.abs(normalizedScore) * 100 : 0;
+              const rightIntensity = normalizedScore > 0 ? normalizedScore * 100 : 0;
               
               // 根据强度计算颜色，从中心向外着色
               const leftColor = normalizedScore < 0 
