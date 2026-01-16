@@ -8,6 +8,7 @@ import { StringOutputParser } from "@langchain/core/output_parsers"
 import { RunnableSequence } from "@langchain/core/runnables"
 import { TopicService } from "./TopicService"
 import { I18nService } from "./I18nService"
+import { ConsistencyService } from "./ConsistencyService"
 
 export interface LLMResponse {
   content: any;
@@ -59,6 +60,7 @@ Please strictly return the result in the following JSON format (do not include M
 5. Scoring Standard: 1.0 represents a strong tendency towards the right-side description of the label, -1.0 represents a strong tendency towards the left-side description.
 6. Output Language: ${isEn ? 'English' : 'Simplified Chinese'}.
 7. Content Safety: If the input content contains sensitive information, please analyze the user's value orientation based on their expression style, language habits, and topic preferences, without directly repeating sensitive content.
+8. CRITICAL CONSISTENCY RULE: The summary must accurately reflect the value_orientation scores. If a label has a high positive score (e.g., >0.7), the summary should reflect the right-side description of that label. If a label has a high negative score (e.g., <-0.7), the summary should reflect the left-side description of that label. The summary must be consistent with the numerical scores in value_orientation.
 
 【Standard Label Library】
 ${standardLabels}
@@ -94,6 +96,7 @@ Please strictly return the result in the following JSON format (do not include M
 5. 【Scoring Standard】 1.0 represents a strong tendency towards the right-side description of the label, -1.0 represents a strong tendency towards the left-side description.
 6. 【Output Language】 The output content (summary, analysis, etc.) MUST be in ${isEn ? 'English' : 'Simplified Chinese'}.
 7. 【Content Safety】 If the input content contains sensitive information, please analyze the user's value orientation based on their expression style, language habits, and topic preferences, without directly repeating sensitive content.
+8. 【CRITICAL CONSISTENCY RULE】 The summary and evidence must accurately reflect the value_orientation scores. If a label has a high positive score (e.g., >0.7), the summary should reflect the right-side description of that label. If a label has a high negative score (e.g., <-0.7), the summary should reflect the left-side description of that label. The summary must be consistent with the numerical scores in value_orientation. For example, if individualism_vs_collectivism has a score of 0.8, the summary should reflect individualistic tendencies; if it has a score of -0.8, the summary should reflect collectivistic tendencies.
 
 【Standard Label Library】
 ${standardLabels}
@@ -289,13 +292,17 @@ class LangChainProvider implements LLMProvider {
       const validatedContent = this.validateAndFixResponse(resultContent as string);
       const parsedContent = JSON.parse(validatedContent);
       
+      // Apply consistency check to ensure summary aligns with value orientation scores
+      const consistentProfile = ConsistencyService.validateAndFixFullConsistency(parsedContent);
+      
       const debugConfig = await ConfigService.getConfig();
       if (debugConfig.enableDebug) {
-        console.log("【LANGCHAIN LABEL SCORES】LLM Scores：", parsedContent.value_orientation);
+        console.log("【LANGCHAIN LABEL SCORES】LLM Scores：", consistentProfile.value_orientation);
+        console.log("【CONSISTENCY REPORT】", ConsistencyService.generateConsistencyReport(consistentProfile));
       }
       
       return {
-          content: parsedContent,
+          content: consistentProfile,
           usage: undefined,
           durationMs,
           model: this.model || "unknown"
@@ -496,13 +503,17 @@ class OllamaProvider implements LLMProvider {
       const validatedContent = this.validateAndFixResponse(content);
       const parsedContent = JSON.parse(validatedContent);
       
+      // Apply consistency check to ensure summary aligns with value orientation scores
+      const consistentProfile = ConsistencyService.validateAndFixFullConsistency(parsedContent);
+      
       const debugConfig = await ConfigService.getConfig();
       if (debugConfig.enableDebug) {
-        console.log("【LANGCHAIN LABEL SCORES】LLM Scores:", parsedContent.value_orientation);
+        console.log("【LANGCHAIN LABEL SCORES】LLM Scores:", consistentProfile.value_orientation);
+        console.log("【CONSISTENCY REPORT】", ConsistencyService.generateConsistencyReport(consistentProfile));
       }
       
       return {
-          content: parsedContent,
+          content: consistentProfile,
           usage,
           durationMs,
           model: this.model

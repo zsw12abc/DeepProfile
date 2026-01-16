@@ -1,6 +1,6 @@
 # DeepProfile - 知乎用户画像分析插件
 
-DeepProfile 是一个 Chrome 浏览器插件，利用 AI 技术（OpenAI, Gemini, DeepSeek, Ollama, Qwen）分析知乎用户的近期动态，生成多维度的性格与领域偏好画像，辅助理性交流。
+DeepProfile 是一个 Chrome 浏览器插件，利用 AI 技术（OpenAI, Gemini, DeepSeek, Ollama, Qwen）分析社交媒体用户的近期动态，生成多维度的性格与领域偏好画像，辅助理性交流。最新版本 v0.7.0 重点优化了用户画像分析的准确度，并确保AI摘要与标签分数保持一致性。
 
 ## 🚀 核心功能
 

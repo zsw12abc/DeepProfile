@@ -141,7 +141,7 @@ export class LabelService {
       if (contentLower.includes('传统') || contentLower.includes('家庭') || contentLower.includes('宗教')) {
         return -0.8; // 倾向保守
       } else if (contentLower.includes('自由') || contentLower.includes('选择') || contentLower.includes('多元')) {
-        return 0.8; // 倾向自由
+        return 0.8; // 倾向进步
       }
     } else if (label.id === 'radicalism') {
       if (contentLower.includes('激进') || contentLower.includes('革命') || contentLower.includes('彻底')) {
@@ -167,11 +167,29 @@ export class LabelService {
       } else if (contentLower.includes('集体') || contentLower.includes('社区') || contentLower.includes('国家')) {
         return -0.8; // 倾向集体主义
       }
-    } else if (label.id === 'change') { // Note: 'change' was used for 'traditional-progressive' logic in previous code but ID was 'traditional-progressive' there. Here 'change' is 'Progressive vs Traditional'.
-      if (contentLower.includes('传统') || contentLower.includes('古老') || contentLower.includes('历史')) {
-        return -0.8; // 倾向传统 (negative score for Traditional based on description "Progressive vs Traditional")
-      } else if (contentLower.includes('进步') || contentLower.includes('现代') || contentLower.includes('革新')) {
-        return 0.8; // 倾向进步
+    } else if (label.id === 'elite_vs_grassroots') {
+      if (contentLower.includes('奋斗') || contentLower.includes('努力') || contentLower.includes('竞争')) {
+        return 0.8; // 倾向精英/奋斗
+      } else if (contentLower.includes('躺平') || contentLower.includes('摆烂') || contentLower.includes('反卷')) {
+        return -0.8; // 倾向草根/躺平
+      }
+    } else if (label.id === 'feminism_vs_patriarchy') {
+      if (contentLower.includes('平权') || contentLower.includes('女权') || contentLower.includes('性别平等')) {
+        return 0.8; // 倾向女权
+      } else if (contentLower.includes('传统') || contentLower.includes('家庭') || contentLower.includes('红药')) {
+        return -0.8; // 倾向父权
+      }
+    } else if (label.id === 'urban_vs_rural') {
+      if (contentLower.includes('城市') || contentLower.includes('一线') || contentLower.includes('都市')) {
+        return 0.8; // 倾向城市
+      } else if (contentLower.includes('乡村') || contentLower.includes('小镇') || contentLower.includes('乡土')) {
+        return -0.8; // 倾向乡土
+      }
+    } else if (label.id === 'generational_conflict') {
+      if (contentLower.includes('整顿') || contentLower.includes('z世代') || contentLower.includes('后浪')) {
+        return 0.8; // 倾向z世代
+      } else if (contentLower.includes('吃苦') || contentLower.includes('老一辈') || contentLower.includes('奋斗')) {
+        return -0.8; // 倾向老一辈
       }
     } else if (label.id === 'innovation_vs_security') {
       if (contentLower.includes('创新') || contentLower.includes('发展') || contentLower.includes('新技术')) {
@@ -192,27 +210,16 @@ export class LabelService {
         return -0.8; // 倾向全球化
       }
     } else if (label.id === 'spiritual_vs_material') {
-      if (contentLower.includes('物质') || contentLower.includes('经济') || contentLower.includes('消费')) {
-        return -0.8; // 倾向物质 (Material is negative in Spiritual vs Material?) Wait, description says "Spiritual vs Material". Usually first is positive, second is negative or vice versa. Let's check LabelDefinitions.ts.
-        // LabelDefinitions.ts: { id: "spiritual_vs_material", name: "Spiritual vs Material", description: "Idealism/Philosophy vs Realism/Consumerism", ... }
-        // Usually range [-1, 1]. If name is A vs B. Often A is -1 and B is 1 or vice versa.
-        // Let's assume -1 is Spiritual and 1 is Material? Or vice versa?
-        // In previous code:
-        // if (contentLower.includes('物质')...) return 0.8; // 倾向物质
-        // if (contentLower.includes('精神')...) return -0.8; // 倾向精神
-        // Let's keep it consistent with previous logic if possible, but IDs changed.
-        // Previous ID: material-spiritual. New ID: spiritual_vs_material.
-        // Let's assume 1 is Spiritual, -1 is Material for now? Or just return a value.
-        // Actually, let's just return values that make sense.
-        return -0.8; 
-      } else if (contentLower.includes('精神') || contentLower.includes('心灵') || contentLower.includes('文化')) {
-        return 0.8; 
+      if (contentLower.includes('精神') || contentLower.includes('心灵') || contentLower.includes('文化')) {
+        return 0.8; // 倾向精神
+      } else if (contentLower.includes('物质') || contentLower.includes('经济') || contentLower.includes('消费')) {
+        return -0.8; // 倾向物质
       }
     } else if (label.id === 'protection_vs_development') {
-      if (contentLower.includes('发展') || contentLower.includes('经济') || contentLower.includes('增长')) {
-        return -0.8; // 倾向发展
-      } else if (contentLower.includes('保护') || contentLower.includes('环保') || contentLower.includes('生态')) {
+      if (contentLower.includes('保护') || contentLower.includes('环保') || contentLower.includes('生态')) {
         return 0.8; // 倾向保护
+      } else if (contentLower.includes('发展') || contentLower.includes('经济') || contentLower.includes('增长')) {
+        return -0.8; // 倾向发展
       }
     }
     
