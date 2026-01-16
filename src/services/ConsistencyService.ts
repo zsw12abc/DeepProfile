@@ -53,14 +53,9 @@ export class ConsistencyService {
         if (!this.containsKeyword(fixedSummary, expectedDirection) && 
             !this.containsKeyword(fixedSummary, labelInfo.id) &&
             !this.containsKeyword(fixedSummary, labelInfo.name)) {
-          // 如果摘要中没有体现高分标签，添加说明
-          const finalLabel = calculateFinalLabel(labelInfo.id, score);
-          const additionalInfo = `该用户在${labelInfo.name}维度上表现出明显的${finalLabel.label}倾向(${Math.abs(score * 100).toFixed(0)}%)。`;
-          
-          // 避免重复添加
-          if (!fixedSummary.includes(expectedDirection) && !fixedSummary.includes(additionalInfo)) {
-            fixedSummary += ` ${additionalInfo}`;
-          }
+          // 不再添加解释性句子，因为这些信息会在其他地方显示
+          // 保持摘要的自然性，仅当摘要完全没有体现价值倾向时才考虑添加
+          // 目前我们只做检查，不修改摘要
         }
       }
       
@@ -138,7 +133,7 @@ export class ConsistencyService {
   static validateAndFixFullConsistency(profile: ProfileData): ProfileData {
     let fixedProfile = { ...profile };
     
-    // 首先修复摘要一致性
+    // 首先修复摘要一致性（目前仅检查，不修改）
     fixedProfile = this.validateAndFixSummaryConsistency(fixedProfile);
     
     // 然后修复证据一致性

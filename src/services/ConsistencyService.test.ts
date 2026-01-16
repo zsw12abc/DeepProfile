@@ -27,7 +27,7 @@ describe('ConsistencyService', () => {
   });
 
   describe('validateAndFixSummaryConsistency', () => {
-    it('should add missing high-score label descriptions to summary', () => {
+    it('should not modify summary with high-score label descriptions (by design)', () => {
       const profileWithoutLabelReference = {
         ...sampleProfile,
         summary: 'This user has various views.'
@@ -35,10 +35,8 @@ describe('ConsistencyService', () => {
 
       const result = ConsistencyService.validateAndFixSummaryConsistency(profileWithoutLabelReference);
       
-      // Check if the summary now includes information about high-score labels
-      expect(result.summary).toContain('个人主义 vs 集体主义');
-      expect(result.summary).toContain('精英/奋斗 vs 草根/躺平');
-      expect(result.summary).toContain('城市 vs 乡土');
+      // The summary should remain unchanged as we no longer add label descriptions to summary
+      expect(result.summary).toBe('This user has various views.');
     });
 
     it('should not modify summary when labels are already mentioned', () => {
@@ -49,8 +47,8 @@ describe('ConsistencyService', () => {
 
       const result = ConsistencyService.validateAndFixSummaryConsistency(profileWithLabelReference);
       
-      // The summary should remain largely unchanged since labels are already mentioned
-      expect(result.summary).toContain('individualistic tendencies');
+      // The summary should remain unchanged
+      expect(result.summary).toBe('This user shows strong individualistic tendencies and urban preferences.');
     });
 
     it('should handle empty value_orientation array', () => {
@@ -108,7 +106,7 @@ describe('ConsistencyService', () => {
   });
 
   describe('validateAndFixFullConsistency', () => {
-    it('should apply both summary and evidence fixes', () => {
+    it('should apply evidence fixes but not summary modifications', () => {
       const profile = {
         ...sampleProfile,
         summary: 'Basic summary without details',
@@ -117,9 +115,11 @@ describe('ConsistencyService', () => {
 
       const result = ConsistencyService.validateAndFixFullConsistency(profile);
       
-      // Should have modified both summary and evidence
-      expect(result.summary).toContain('个人主义 vs 集体主义');
+      // Summary should remain unchanged
+      expect(result.summary).toBe('Basic summary without details');
+      // But evidence should be enhanced
       expect(result.evidence).not.toBeNull();
+      expect(result.evidence!.length).toBeGreaterThan(0);
     });
   });
 

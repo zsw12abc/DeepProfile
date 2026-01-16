@@ -60,7 +60,7 @@ Please strictly return the result in the following JSON format (do not include M
 5. Scoring Standard: 1.0 represents a strong tendency towards the right-side description of the label, -1.0 represents a strong tendency towards the left-side description.
 6. Output Language: ${isEn ? 'English' : 'Simplified Chinese'}.
 7. Content Safety: If the input content contains sensitive information, please analyze the user's value orientation based on their expression style, language habits, and topic preferences, without directly repeating sensitive content.
-8. CRITICAL CONSISTENCY RULE: The summary must accurately reflect the value_orientation scores. If a label has a high positive score (e.g., >0.7), the summary should reflect the right-side description of that label. If a label has a high negative score (e.g., <-0.7), the summary should reflect the left-side description of that label. The summary must be consistent with the numerical scores in value_orientation.
+8. CRITICAL CONSISTENCY RULE: The summary should reflect the user's overall personality, writing style, and expressed opinions naturally. Do NOT include explicit statements about specific label scores (e.g., "the user shows X% tendency toward..."). The summary should organically reflect the user's value orientations without stating them directly.
 
 【Standard Label Library】
 ${standardLabels}
@@ -96,7 +96,7 @@ Please strictly return the result in the following JSON format (do not include M
 5. 【Scoring Standard】 1.0 represents a strong tendency towards the right-side description of the label, -1.0 represents a strong tendency towards the left-side description.
 6. 【Output Language】 The output content (summary, analysis, etc.) MUST be in ${isEn ? 'English' : 'Simplified Chinese'}.
 7. 【Content Safety】 If the input content contains sensitive information, please analyze the user's value orientation based on their expression style, language habits, and topic preferences, without directly repeating sensitive content.
-8. 【CRITICAL CONSISTENCY RULE】 The summary and evidence must accurately reflect the value_orientation scores. If a label has a high positive score (e.g., >0.7), the summary should reflect the right-side description of that label. If a label has a high negative score (e.g., <-0.7), the summary should reflect the left-side description of that label. The summary must be consistent with the numerical scores in value_orientation. For example, if individualism_vs_collectivism has a score of 0.8, the summary should reflect individualistic tendencies; if it has a score of -0.8, the summary should reflect collectivistic tendencies.
+8. 【CRITICAL CONSISTENCY RULE】 The summary should reflect the user's overall personality, writing style, and expressed opinions naturally. Do NOT include explicit statements about specific label scores (e.g., "the user shows X% tendency toward..."). The summary should organically reflect the user's value orientations without stating them directly.
 
 【Standard Label Library】
 ${standardLabels}
@@ -292,8 +292,12 @@ class LangChainProvider implements LLMProvider {
       const validatedContent = this.validateAndFixResponse(resultContent as string);
       const parsedContent = JSON.parse(validatedContent);
       
-      // Apply consistency check to ensure summary aligns with value orientation scores
-      const consistentProfile = ConsistencyService.validateAndFixFullConsistency(parsedContent);
+      // Apply consistency check to ensure evidence aligns with value orientation scores
+      // But only fix evidence, not summary
+      const consistentProfile = {
+        ...parsedContent,
+        evidence: ConsistencyService.validateAndFixEvidenceConsistency(parsedContent).evidence
+      };
       
       const debugConfig = await ConfigService.getConfig();
       if (debugConfig.enableDebug) {
@@ -351,23 +355,19 @@ class LangChainProvider implements LLMProvider {
   
   private validateAndFixResponse(response: string): string {
     try {
-      let parsed;
-      try {
-        parsed = JSON.parse(response);
-      } catch (parseError) {
-        let cleanedResponse = response.trim();
-        if (cleanedResponse.startsWith('```json')) {
-          cleanedResponse = cleanedResponse.substring(7);
-        }
-        if (cleanedResponse.startsWith('```')) {
-          cleanedResponse = cleanedResponse.substring(3);
-        }
-        if (cleanedResponse.endsWith('```')) {
-          cleanedResponse = cleanedResponse.substring(0, cleanedResponse.length - 3);
-        }
-        cleanedResponse = cleanedResponse.trim();
-        parsed = JSON.parse(cleanedResponse);
+      let cleanedResponse = response.trim();
+      if (cleanedResponse.startsWith('```json')) {
+        cleanedResponse = cleanedResponse.substring(7);
       }
+      if (cleanedResponse.startsWith('```')) {
+        cleanedResponse = cleanedResponse.substring(3);
+      }
+      if (cleanedResponse.endsWith('```')) {
+        cleanedResponse = cleanedResponse.substring(0, cleanedResponse.length - 3);
+      }
+      cleanedResponse = cleanedResponse.trim();
+      
+      const parsed = JSON.parse(cleanedResponse);
       
       if (!parsed.value_orientation) {
         parsed.value_orientation = parsed.political_leaning || [];
@@ -377,11 +377,11 @@ class LangChainProvider implements LLMProvider {
       if (Array.isArray(parsed.value_orientation)) {
         parsed.value_orientation = parsed.value_orientation.map((item: any) => {
           if (typeof item === 'string') {
-            return { label: item.trim(), score: 0.5 };
+            return { label: normalizeLabelId(item.trim()), score: 0.5 };
           } else if (typeof item === 'object' && item.label) {
             let score = item.score || 0.5;
             score = Math.max(-1, Math.min(1, score));
-            return { label: String(item.label).trim(), score };
+            return { label: normalizeLabelId(String(item.label).trim()), score };
           }
           return { label: "Unknown", score: 0.5 };
         });
@@ -397,6 +397,37 @@ class LangChainProvider implements LLMProvider {
         summary: "Analysis Failed",
         evidence: []
       }, null, 2);
+    }
+    
+    // Normalize label IDs to ensure they match our standard definitions
+    function normalizeLabelId(labelId: string): string {
+      // Handle common variations that AI might return
+      const labelVariations: Record<string, string> = {
+        'collectivism_vs_individualism': 'individualism_vs_collectivism',
+        'individualism_collectivism': 'individualism_vs_collectivism',
+        'collectivism_individualism': 'individualism_vs_collectivism',
+        'left_right': 'ideology',
+        'ideology_left_right': 'ideology',
+        'authority_freedom': 'authority',
+        'freedom_authority': 'authority',
+        'traditional_progressive': 'change',
+        'progressive_traditional': 'change',
+        'market_government': 'market_vs_gov',
+        'government_market': 'market_vs_gov',
+        'individual_collective': 'individualism_vs_collectivism',
+        'elite_grassroots': 'elite_vs_grassroots',
+        'grassroots_elite': 'elite_vs_grassroots',
+        'feminism_patriarchy': 'feminism_vs_patriarchy',
+        'patriarchy_feminism': 'feminism_vs_patriarchy',
+        'urban_rural': 'urban_vs_rural',
+        'rural_urban': 'urban_vs_rural',
+        'generational_conflict_left_right': 'generational_conflict',
+        'left_generational_conflict': 'generational_conflict',
+        'right_generational_conflict': 'generational_conflict'
+      };
+      
+      // Return normalized ID if found, otherwise return original
+      return labelVariations[labelId.toLowerCase()] || labelId;
     }
   }
 }
@@ -503,8 +534,12 @@ class OllamaProvider implements LLMProvider {
       const validatedContent = this.validateAndFixResponse(content);
       const parsedContent = JSON.parse(validatedContent);
       
-      // Apply consistency check to ensure summary aligns with value orientation scores
-      const consistentProfile = ConsistencyService.validateAndFixFullConsistency(parsedContent);
+      // Apply consistency check to ensure evidence aligns with value orientation scores
+      // But only fix evidence, not summary
+      const consistentProfile = {
+        ...parsedContent,
+        evidence: ConsistencyService.validateAndFixEvidenceConsistency(parsedContent).evidence
+      };
       
       const debugConfig = await ConfigService.getConfig();
       if (debugConfig.enableDebug) {
