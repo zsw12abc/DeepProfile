@@ -192,9 +192,19 @@ export const enUS: LocaleDict = {
 // DeepProfile Current Version Changelog
 export const enUSChangelog = `# DeepProfile Current Version Changelog
 
-## Current Version: v0.6.3 (Beta)
+## Current Version: v0.7.0 (Beta)
 
 ### ✅ Features Achieved
+
+### Core Feature (v0.7.0) - Improved Profile Analysis Accuracy & Consistency
+- ✅ **AI Summary Consistency**: Ensure AI-generated summaries are consistent with numerical label scores
+- ✅ **Consistency Verification Mechanism**: Added ConsistencyService to verify and fix summary-label consistency
+- ✅ **Label-Summary Association**: High-scoring labels will be explicitly reflected in summaries
+- ✅ **Evidence Support**: Ensure analysis evidence matches label scores
+`;
+
+// DeepProfile Version History
+export const enUSVersionHistory = `# DeepProfile Version History
 
 ### Core Feature (v0.6.3) - Analysis Progress Visualization & Label Display Optimization
 - ✅ **Progress Estimation**: Display estimated remaining time based on analysis mode (e.g., "Analyzing... (15s)")
@@ -202,10 +212,7 @@ export const enUSChangelog = `# DeepProfile Current Version Changelog
 - ✅ **Mode Differentiation**: Different analysis modes (Fast/Balanced/Deep) display different estimated times.
 - ✅ **Bidirectional Divergent Bar Chart Optimization**: Value labels are aligned left and right, with percentage displayed above the bidirectional divergent bar.
 
-`;
 
-// DeepProfile Version History
-export const enUSVersionHistory = `# DeepProfile Version History
 
 ### v0.6.2 (2024-01-09) - Theme System
 *   **Feature**: **Theme Customization**, supports user-defined appearance themes, including color schemes, fonts, and sizes.
