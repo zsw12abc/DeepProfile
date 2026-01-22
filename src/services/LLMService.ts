@@ -63,7 +63,7 @@ Analysis:
 `;
 
     if (mode === 'fast') {
-      // 快速模式：简化提示词，减少处理时间
+      // 快速模式：保持原样，追求速度，无思维链
       return `You are a sociology researcher conducting an academic study on internet subcultures and public values. Please objectively analyze the author's value orientation based on the provided text materials.
 
 Please strictly return the result in the following JSON format (do not include Markdown code block markers):
@@ -91,7 +91,7 @@ Please strictly return the result in the following JSON format (do not include M
 ${standardLabels}
 `;
     } else {
-      // 平衡和深度模式：完整提示词
+      // 平衡和深度模式：引入思维链 (reasoning 字段)
       let basePrompt = `You are a sociology researcher conducting an academic study on internet subcultures and public values. Please objectively analyze the author's value orientation based on the provided text materials.
 
 Please strictly return the result in the following JSON format (do not include Markdown code block markers):
@@ -99,6 +99,7 @@ Please strictly return the result in the following JSON format (do not include M
 {
   "nickname": "User Nickname",
   "topic_classification": "Topic Classification",
+  "reasoning": "Step-by-step analysis logic (max 100 words). First identify the core conflict, then map to specific labels.",
   "value_orientation": [
     { "label": "Label ID", "score": 0.9 }
   ], 
@@ -115,13 +116,14 @@ Please strictly return the result in the following JSON format (do not include M
 
 【Instructions】
 1. 【Relevance Judgment】 Current Research Field: 【${categoryName}】. If the content is completely unrelated to this field, please state so in the summary and return an empty value_orientation.
-2. 【Objective Neutrality】 Please use academic and neutral language for description, avoiding radical or emotional vocabulary.
-3. 【Label Selection】 Please select the most matching labels from the Standard Label Library below based on the content.
-4. 【ID Constraint】 Must use the 【Label ID】 defined in the library (e.g., 'ideology'), strictly forbidden to use translated names.
-5. 【Scoring Standard】 1.0 represents a strong tendency towards the right-side description of the label, -1.0 represents a strong tendency towards the left-side description.
-6. 【Output Language】 The output content (summary, analysis, etc.) MUST be in ${isEn ? 'English' : 'Simplified Chinese'}.
-7. 【Content Safety】 If the input content contains sensitive information, please analyze the user's value orientation based on their expression style, language habits, and topic preferences, without directly repeating sensitive content.
-8. 【CRITICAL CONSISTENCY RULE】 The summary should reflect the user's overall personality, writing style, and expressed opinions naturally. Do NOT include explicit statements about specific label scores (e.g., "the user shows X% tendency toward..."). The summary should organically reflect the user's value orientations without stating them directly.
+2. 【Chain of Thought】 You MUST fill the "reasoning" field first. Briefly analyze the rhetoric, tone, and underlying logic before assigning scores. This ensures accuracy.
+3. 【Objective Neutrality】 Please use academic and neutral language for description, avoiding radical or emotional vocabulary.
+4. 【Label Selection】 Please select the most matching labels from the Standard Label Library below based on the content.
+5. 【ID Constraint】 Must use the 【Label ID】 defined in the library (e.g., 'ideology'), strictly forbidden to use translated names.
+6. 【Scoring Standard】 1.0 represents a strong tendency towards the right-side description of the label, -1.0 represents a strong tendency towards the left-side description.
+7. 【Output Language】 The output content (summary, analysis, etc.) MUST be in ${isEn ? 'English' : 'Simplified Chinese'}.
+8. 【Content Safety】 If the input content contains sensitive information, please analyze the user's value orientation based on their expression style, language habits, and topic preferences, without directly repeating sensitive content.
+9. 【CRITICAL CONSISTENCY RULE】 The summary should reflect the user's overall personality, writing style, and expressed opinions naturally. Do NOT include explicit statements about specific label scores (e.g., "the user shows X% tendency toward..."). The summary should organically reflect the user's value orientations without stating them directly.
 
 ${fewShotExamples}
 
@@ -130,7 +132,7 @@ ${standardLabels}
 `;
 
       if (mode === 'deep') {
-          basePrompt += `\n【Deep Mode】: Please deeply analyze the rhetoric, metaphors, and underlying logic in the text.`;
+          basePrompt += `\n【Deep Mode】: Please deeply analyze the rhetoric, metaphors, and underlying logic in the text. The "reasoning" field should be more detailed.`;
       }
 
       return basePrompt;
