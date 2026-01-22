@@ -257,4 +257,35 @@ export class LabelService {
     }
     return result;
   }
+
+  // 智能获取标签上下文：始终包含核心分类（政治/经济/社会），外加当前特定分类
+  getLabelsForContext(targetCategory: string, mode: AnalysisMode): string {
+    // 如果是快速模式，为了速度只返回特定分类
+    if (mode === 'fast') {
+      return this.getLabelsForCategory(targetCategory);
+    }
+
+    // 深度/平衡模式：返回核心分类 + 目标分类
+    const coreCategories = ['politics', 'economy', 'society'];
+    const categoriesToInclude = new Set([...coreCategories]);
+    
+    if (targetCategory !== 'general') {
+      categoriesToInclude.add(targetCategory);
+    }
+
+    let result = "标准标签系统 (Standard Label Library)：\n";
+    
+    for (const catId of categoriesToInclude) {
+      const cat = this.getCategoryById(catId);
+      if (cat) {
+        result += `\n分类: ${cat.name} (${cat.id})\n`;
+        result += "标签:\n";
+        for (const label of cat.labels) {
+          result += `  - ${label.name} (${label.id}): ${label.description}\n`;
+        }
+      }
+    }
+
+    return result;
+  }
 }
