@@ -512,7 +512,7 @@ export default function Options() {
           </div>
         );
       case 'zhihu':
-        return <PlatformSpecificSettings config={config} setConfig={setConfig} platform="zhihu" />;
+        return <PlatformSpecificSettings config={config} setConfig={handleConfigChange} platform="zhihu" />;
       case 'reddit':
         return <PlatformSpecificSettings config={config} setConfig={handleConfigChange} platform="reddit" />;
       case 'history':
