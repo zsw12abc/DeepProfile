@@ -27,7 +27,8 @@ export interface LLMProvider {
 }
 
 export class LLMService {
-  private static getSystemPrompt(mode: AnalysisMode, category: MacroCategory): string {
+  // 公开此方法以便在 generateProfile 中获取并打印
+  public static getSystemPrompt(mode: AnalysisMode, category: MacroCategory): string {
     // Refresh label cache to ensure language is up-to-date
     const labelService = LabelService.getInstance();
     labelService.refreshCategories();
@@ -142,8 +143,11 @@ ${standardLabels}
   static async generateProfile(text: string, category: MacroCategory): Promise<LLMResponse> {
     const config = await ConfigService.getConfig()
     
+    // 这里的日志现在会更详细
     if (config.enableDebug) {
-      console.log("【LANGCHAIN REQUEST】Sending to LLM:", text);
+      console.log("【LANGCHAIN REQUEST】Mode:", config.analysisMode || 'balanced');
+      // 注意：这里我们不直接调用 getSystemPrompt，因为那是私有的或者静态的，
+      // 但我们在 Provider 内部会调用它。为了调试，我们可以在 Provider 内部打印。
     }
     
     const provider = this.getProviderInstance(config.selectedProvider, config)
@@ -153,12 +157,13 @@ ${standardLabels}
   static async generateProfileForPlatform(text: string, category: MacroCategory, platform: string): Promise<LLMResponse> {
     const config = await ConfigService.getConfig()
     
-    if (config.enableDebug) {
-      console.log("【LANGCHAIN REQUEST】Sending to LLM for platform:", platform, text);
-    }
-    
     // Use platform-specific analysis mode if available, otherwise fallback to default
     const mode = config.platformAnalysisModes?.[platform] || config.analysisMode || 'balanced';
+    
+    if (config.enableDebug) {
+      console.log(`【LANGCHAIN REQUEST】Platform: ${platform}, Mode: ${mode}`);
+    }
+    
     const provider = this.getProviderInstance(config.selectedProvider, config)
     return provider.generateProfile(text, mode, category)
   }
@@ -297,8 +302,17 @@ class LangChainProvider implements LLMProvider {
     try {
       const timeout = 600000; // 10 minutes
       
+      const systemPrompt = LLMService.getSystemPrompt(mode, category);
+      
+      // 增强日志：打印完整的 System Prompt
+      const config = await ConfigService.getConfig();
+      if (config.enableDebug) {
+        console.log("【LANGCHAIN SYSTEM PROMPT】", systemPrompt);
+        console.log("【LANGCHAIN USER INPUT】", text);
+      }
+      
       const messages = [
-        new SystemMessage((LLMService as any).getSystemPrompt(mode, category)),
+        new SystemMessage(systemPrompt),
         new HumanMessage(text)
       ];
       
@@ -318,6 +332,11 @@ class LangChainProvider implements LLMProvider {
         resultContent = (result as any).text;
       }
       
+      // 增强日志：打印原始响应，方便检查 reasoning 字段
+      if (config.enableDebug) {
+        console.log("【LANGCHAIN RAW RESPONSE】", resultContent);
+      }
+      
       const validatedContent = this.validateAndFixResponse(resultContent as string);
       const parsedContent = JSON.parse(validatedContent);
       
@@ -328,8 +347,7 @@ class LangChainProvider implements LLMProvider {
         evidence: ConsistencyService.validateAndFixEvidenceConsistency(parsedContent).evidence
       };
       
-      const debugConfig = await ConfigService.getConfig();
-      if (debugConfig.enableDebug) {
+      if (config.enableDebug) {
         console.log("【LANGCHAIN LABEL SCORES】LLM Scores：", consistentProfile.value_orientation);
         console.log("【CONSISTENCY REPORT】", ConsistencyService.generateConsistencyReport(consistentProfile));
       }
@@ -488,7 +506,7 @@ class OllamaProvider implements LLMProvider {
     const startTime = Date.now();
     const url = `${this.baseUrl}/api/generate`
     
-    const prompt = (LLMService as any).getSystemPrompt(mode, category) + "\n\n" + text;
+    const prompt = LLMService.getSystemPrompt(mode, category) + "\n\n" + text;
     
     const config = await ConfigService.getConfig();
     if (config.enableDebug) {
