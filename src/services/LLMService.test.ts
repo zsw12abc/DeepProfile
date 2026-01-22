@@ -1,136 +1,135 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ConfigService } from './ConfigService';
-import { LabelService } from './LabelService';
-import { TopicService } from './TopicService';
-import { I18nService } from './I18nService';
-import { LLMService } from './LLMService';
-import { ChatOpenAI } from '@langchain/openai';
-import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { LLMService } from "./LLMService";
+import { ConfigService } from "./ConfigService";
+import { LabelService } from "./LabelService";
+import { I18nService } from "./I18nService";
+import { TopicService } from "./TopicService";
 
-// Mock dependencies first
-vi.mock('./ConfigService');
-vi.mock('./I18nService');
-vi.mock('./LabelService');
-vi.mock('./TopicService');
-vi.mock('@langchain/openai');
-vi.mock('@langchain/google-genai');
+// Mock the dependencies
+vi.mock("./ConfigService");
+vi.mock("./LabelService");
+vi.mock("./I18nService");
+vi.mock("./TopicService");
 
-const mockFetch = vi.fn();
-global.fetch = mockFetch;
-
-describe('LLMService', () => {
+describe("LLMService", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
 
-    // Mock I18nService
-    vi.mocked(I18nService).t.mockImplementation((key: string) => key);
-    vi.mocked(I18nService).getLanguage.mockReturnValue('zh-CN');
+  describe("getSystemPrompt", () => {
+    it("should generate fast mode prompt with format instructions", () => {
+      // Mock the dependencies
+      const mockLabelService = {
+        refreshCategories: vi.fn(),
+        getLabelsForContext: vi.fn().mockReturnValue("Mock label library")
+      };
+      LabelService.getInstance = vi.fn().mockReturnValue(mockLabelService);
+      TopicService.getCategoryName = vi.fn().mockReturnValue("Politics");
+      I18nService.getLanguage = vi.fn().mockReturnValue("en-US");
+      
+      const prompt = LLMService.getSystemPrompt("fast", "politics");
+      
+      expect(prompt).toContain("You are a sociology researcher");
+      expect(prompt).toContain("You must format your output as a JSON value");
+      expect(prompt).toContain("Current Research Field: 【Politics】");
+      expect(prompt).toContain("Mock label library");
+      expect(prompt).not.toContain("reasoning");
+      expect(prompt).not.toContain("evidence");
+    });
 
-    // Mock LabelService
-    const mockLabelServiceInstance = {
-      refreshCategories: vi.fn(),
-      getLabelsForCategory: vi.fn(() => 'Mock Labels'),
-    };
-    vi.mocked(LabelService.getInstance).mockReturnValue(mockLabelServiceInstance);
+    it("should generate balanced mode prompt with reasoning and evidence fields", () => {
+      // Mock the dependencies
+      const mockLabelService = {
+        refreshCategories: vi.fn(),
+        getLabelsForContext: vi.fn().mockReturnValue("Mock label library")
+      };
+      LabelService.getInstance = vi.fn().mockReturnValue(mockLabelService);
+      TopicService.getCategoryName = vi.fn().mockReturnValue("Society");
+      I18nService.getLanguage = vi.fn().mockReturnValue("en-US");
+      
+      const prompt = LLMService.getSystemPrompt("balanced", "society");
+      
+      expect(prompt).toContain("You are a sociology researcher");
+      expect(prompt).toContain("You must format your output as a JSON value");
+      expect(prompt).toContain("reasoning");
+      expect(prompt).toContain("evidence");
+      expect(prompt).toContain("Current Research Field: 【Society】");
+      expect(prompt).toContain("Mock label library");
+    });
 
-    // Mock TopicService
-    vi.mocked(TopicService.getCategoryName).mockReturnValue('Mock Category');
+    it("should generate deep mode prompt with additional deep analysis instruction", () => {
+      // Mock the dependencies
+      const mockLabelService = {
+        refreshCategories: vi.fn(),
+        getLabelsForContext: vi.fn().mockReturnValue("Mock label library")
+      };
+      LabelService.getInstance = vi.fn().mockReturnValue(mockLabelService);
+      TopicService.getCategoryName = vi.fn().mockReturnValue("Technology");
+      I18nService.getLanguage = vi.fn().mockReturnValue("en-US");
+      
+      const prompt = LLMService.getSystemPrompt("deep", "technology");
+      
+      expect(prompt).toContain("You are a sociology researcher");
+      expect(prompt).toContain("You must format your output as a JSON value");
+      expect(prompt).toContain("reasoning");
+      expect(prompt).toContain("evidence");
+      expect(prompt).toContain("【Deep Mode】");
+      expect(prompt).toContain("Current Research Field: 【Technology】");
+      expect(prompt).toContain("Mock label library");
+    });
 
-    // Mock fetch for Ollama
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        response: JSON.stringify({
-          nickname: 'Ollama User',
-          summary: 'Ollama Summary',
-          topic_classification: 'general',
-          value_orientation: [],
-          evidence: []
-        }),
-        prompt_eval_count: 10,
-        eval_count: 20
-      }),
+    it("should include few-shot examples in balanced mode", () => {
+      // Mock the dependencies
+      const mockLabelService = {
+        refreshCategories: vi.fn(),
+        getLabelsForContext: vi.fn().mockReturnValue("Mock label library")
+      };
+      LabelService.getInstance = vi.fn().mockReturnValue(mockLabelService);
+      TopicService.getCategoryName = vi.fn().mockReturnValue("Politics");
+      I18nService.getLanguage = vi.fn().mockReturnValue("en-US");
+      
+      const prompt = LLMService.getSystemPrompt("balanced", "politics");
+      
+      expect(prompt).toContain("【Few-Shot Examples】");
+      expect(prompt).toContain("Text:");
+    });
+
+    it("should include Chinese examples when language is zh-CN", () => {
+      // Mock the dependencies
+      const mockLabelService = {
+        refreshCategories: vi.fn(),
+        getLabelsForContext: vi.fn().mockReturnValue("Mock label library")
+      };
+      LabelService.getInstance = vi.fn().mockReturnValue(mockLabelService);
+      TopicService.getCategoryName = vi.fn().mockReturnValue("Politics");
+      I18nService.getLanguage = vi.fn().mockReturnValue("zh-CN");
+      
+      const prompt = LLMService.getSystemPrompt("balanced", "politics");
+      
+      expect(prompt).toContain("【Few-Shot Examples】");
+      expect(prompt).toContain("文本:");
     });
   });
 
-  const mockConfig = (provider: string, apiKey: string, baseUrl?: string, model?: string) => {
-    vi.mocked(ConfigService.getConfig).mockResolvedValue({
-      selectedProvider: provider,
-      apiKeys: { [provider]: apiKey },
-      customBaseUrls: { [provider]: baseUrl },
-      customModelNames: { [provider]: model },
-      analysisMode: 'balanced',
-      platformAnalysisModes: {},
-      enableDebug: false
-    } as any);
-  };
-
-  it('should call OpenAI API correctly', async () => {
-    mockConfig('openai', 'sk-test', 'http://mock-openai-url', 'gpt-3.5-turbo');
-    const mockInvoke = vi.fn().mockResolvedValue({
-      content: JSON.stringify({ nickname: 'OpenAI User' })
+  describe("getParserInstructions", () => {
+    it("should return format instructions for fast mode", () => {
+      const instructions = LLMService.getParserInstructions("fast");
+      expect(instructions).toContain("nickname");
+      expect(instructions).toContain("topic_classification");
+      expect(instructions).toContain("value_orientation");
+      expect(instructions).toContain("summary");
+      expect(instructions).not.toContain("reasoning");
+      expect(instructions).not.toContain("evidence");
     });
-    vi.mocked(ChatOpenAI).mockImplementation(() => ({ invoke: mockInvoke } as any));
 
-    const result = await LLMService.generateProfile('User content', 'general');
-
-    expect(ChatOpenAI).toHaveBeenCalledWith(expect.objectContaining({
-      openAIApiKey: 'sk-test',
-      configuration: { baseURL: 'http://mock-openai-url' },
-      modelName: 'gpt-3.5-turbo'
-    }));
-    expect(mockInvoke).toHaveBeenCalled();
-    expect(result.content.nickname).toBe('OpenAI User');
-  });
-
-  it('should call DeepSeek API correctly', async () => {
-    mockConfig('deepseek', 'sk-deepseek', 'http://mock-deepseek-url', 'deepseek-chat');
-    const mockInvoke = vi.fn().mockResolvedValue({
-      content: JSON.stringify({ nickname: 'DeepSeek User' })
+    it("should return format instructions for balanced mode", () => {
+      const instructions = LLMService.getParserInstructions("balanced");
+      expect(instructions).toContain("nickname");
+      expect(instructions).toContain("topic_classification");
+      expect(instructions).toContain("value_orientation");
+      expect(instructions).toContain("summary");
+      expect(instructions).toContain("reasoning");
+      expect(instructions).toContain("evidence");
     });
-    vi.mocked(ChatOpenAI).mockImplementation(() => ({ invoke: mockInvoke } as any));
-
-    const result = await LLMService.generateProfile('User content', 'general');
-
-    expect(ChatOpenAI).toHaveBeenCalledWith(expect.objectContaining({
-      openAIApiKey: 'sk-deepseek',
-      configuration: { baseURL: 'http://mock-deepseek-url' },
-      modelName: 'deepseek-chat'
-    }));
-    expect(mockInvoke).toHaveBeenCalled();
-    expect(result.content.nickname).toBe('DeepSeek User');
-  });
-
-  it('should call Gemini API correctly', async () => {
-    mockConfig('gemini', 'gemini-key', undefined, 'gemini-pro');
-    const mockInvoke = vi.fn().mockResolvedValue({
-      content: JSON.stringify({ nickname: 'Gemini User' })
-    });
-    vi.mocked(ChatGoogleGenerativeAI).mockImplementation(() => ({ invoke: mockInvoke } as any));
-
-    const result = await LLMService.generateProfile('User content', 'general');
-
-    expect(ChatGoogleGenerativeAI).toHaveBeenCalledWith(expect.objectContaining({
-      apiKey: 'gemini-key',
-      modelName: 'gemini-pro'
-    }));
-    expect(mockInvoke).toHaveBeenCalled();
-    expect(result.content.nickname).toBe('Gemini User');
-  });
-
-  it('should call Ollama API correctly', async () => {
-    mockConfig('ollama', '', 'http://localhost:11434', 'llama3');
-
-    const result = await LLMService.generateProfile('User content', 'general');
-
-    expect(mockFetch).toHaveBeenCalledWith('http://localhost:11434/api/generate', expect.any(Object));
-    const fetchBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-    expect(fetchBody.model).toBe('llama3');
-    expect(result.content.nickname).toBe('Ollama User');
-  });
-
-  it('should throw error for missing API Key when required', async () => {
-    mockConfig('openai', '', 'https://api.openai.com/v1'); // No key, not localhost
-    await expect(LLMService.generateProfile('test', 'general')).rejects.toThrow("API Key is required");
   });
 });

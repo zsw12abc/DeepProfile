@@ -1,4 +1,3 @@
-﻿
 import { LLMService } from "./LLMService";
 import type { MacroCategory } from "~types";
 import { I18nService } from "./I18nService";
@@ -10,12 +9,28 @@ const CATEGORIES: MacroCategory[] = [
 
 export class TopicService {
   
-  static classify(context: string): MacroCategory {
+  static classify(context: any): MacroCategory {
     if (!context) return 'general';
     
-    const text = context.toLowerCase();
+    // Ensure text is a string and convert to lowercase
+    let text = "";
+    try {
+      text = String(context).toLowerCase();
+    } catch (e) {
+      return 'general';
+    }
     
-    // 1. 政治 (Politics)
+    // 1. 娱乐 (Entertainment) - 高优先级，避免与文化混淆
+    if (this.matches(text, [
+      '娱乐', '游戏', '二次元', '动漫', 'acgn', '明星', '体育', '足球', '篮球', '电影',
+      '音乐', '亚文化', '小众', '邪典', 'entertainment', 'game', 'movie', 'music', 'sport', 'anime',
+      '原神', '王者荣耀', '英雄联盟', 'lol', 'dota', 'steam', 'switch', 'ps5', 'xbox', '任天堂',
+      'nba', 'cba', '世界杯', '奥运会', '梅西', 'c罗', '詹姆斯', '科比', '演唱会', '综艺'
+    ])) {
+      return 'entertainment';
+    }
+
+    // 2. 政治 (Politics)
     if (this.matches(text, [
       '政治', '意识形态', '左翼', '右翼', '自由主义', '威权', '政府', '国家', '外交', '战争', 
       '军事', '地缘', '民族', '爱国', '改革', '保守', '建制', '民粹', 'politics', 'ideology', 'government', 'war',
@@ -26,7 +41,7 @@ export class TopicService {
       return 'politics';
     }
 
-    // 2. 经济 (Economy)
+    // 3. 经济 (Economy)
     if (this.matches(text, [
       '经济', '金融', '市场', '计划', '公有制', '私有制', '国企', '民企', '投资', '股票', 
       '基金', '币圈', '宏观', '汇率', '搞钱', '副业', '实体经济', '虚拟经济', 'economy', 'finance', 'market', 'money',
@@ -36,7 +51,7 @@ export class TopicService {
       return 'economy';
     }
 
-    // 3. 社会 (Society)
+    // 4. 社会 (Society)
     if (this.matches(text, [
       '社会', '集体', '个人', '阶级', '资本', '躺平', '内卷', '奋斗', '女权', '性别', 
       '家庭观', '父权', '城市', '乡土', '地域', '代际', '后浪', '00后', 'society', 'class', 'gender', 'feminism',
@@ -46,26 +61,26 @@ export class TopicService {
       return 'society';
     }
 
-    // 4. 科技 (Technology)
+    // 5. 科技 (Technology)
     if (this.matches(text, [
       '科技', '技术', '开源', '闭源', 'ai', '人工智能', '加速主义', '安卓', '苹果', 'windows',
       '数码', '评测', '芯片', '软件', '硬件', '去中心化', 'technology', 'tech', 'ai', 'code', 'software',
-      'chatgpt', 'gpt', 'llm', '大模型', '华为', '小米', '华为', '荣耀', 'oppo', 'vivo', '三星', '索尼',
+      'chatgpt', 'gpt', 'llm', '大模型', '华为', '小米', '荣耀', 'oppo', 'vivo', '三星', '索尼',
       '显卡', 'cpu', 'gpu', '英伟达', '英特尔', 'amd', '特斯拉', '马斯克', 'spacex', '火箭', '航天'
     ])) {
       return 'technology';
     }
 
-    // 5. 文化 (Culture)
+    // 6. 文化 (Culture) - 低优先级，包含更抽象的概念
     if (this.matches(text, [
       '文化', '传统', '国学', '西化', '普世价值', '审美', '哲学', '艺术', '宗教', '信仰',
       '无神论', '玄学', '神秘学', '星座', 'culture', 'tradition', 'art', 'philosophy', 'religion',
-      '历史', '文学', '小说', '诗歌', '绘画', '书法', '音乐', '戏剧', '电影', '博物馆', '文物'
+      '历史', '文学', '小说', '诗歌', '绘画', '书法', '音乐', '戏剧', '博物馆', '文物'
     ])) {
       return 'culture';
     }
 
-    // 6. 环境 (Environment)
+    // 7. 环境 (Environment)
     if (this.matches(text, [
       '环境', '环保', '气候', '变暖', '碳排放', '污染', '生态', '绿色', 'environment', 'climate', 'pollution', 'green',
       '新能源', '电动车', '电池', '光伏', '风能', '核能', '垃圾分类', '保护动物', '生物多样性'
@@ -73,19 +88,9 @@ export class TopicService {
       return 'environment';
     }
 
-    // 7. 娱乐 (Entertainment)
-    if (this.matches(text, [
-      '娱乐', '游戏', '二次元', '动漫', 'acgn', '明星', '体育', '足球', '篮球', '电影',
-      '音乐', '亚文化', '小众', '邪典', 'entertainment', 'game', 'movie', 'music', 'sport', 'anime',
-      '原神', '王者荣耀', '英雄联盟', 'lol', 'dota', 'steam', 'switch', 'ps5', 'xbox', '任天堂',
-      'nba', 'cba', '世界杯', '奥运会', '梅西', 'c罗', '詹姆斯', '科比', '演唱会', '综艺'
-    ])) {
-      return 'entertainment';
-    }
-
     // 8. 生活与职场 (Lifestyle & Career)
     if (this.matches(text, [
-      '生活', '消费', '极简', '奢华', '精致', '健康', '养生', '熬夜', '婚恋', '单身',
+      '生活', '消费', '极细', '奢华', '精致', '健康', '养生', '熬夜', '婚恋', '单身',
       '丁克', '二胎', '宠物', '猫', '狗', '职场', '工作', '体制内', '考公', '编制', 
       '自由职业', '打工', '摸鱼', '老板', '创业', 'lifestyle', 'life', 'health', 'marriage', 'pet', 'career', 'job', 'work',
       '面试', '简历', '跳槽', '裁员', '失业', '996', '007', '加班', '调休', '年假', '工资', '薪资',
@@ -99,7 +104,22 @@ export class TopicService {
   }
 
   private static matches(text: string, keywords: string[]): boolean {
-    return keywords.some(kw => text.includes(kw));
+    // 确保参数有效
+    if (!text || typeof text !== 'string' || !keywords || !Array.isArray(keywords)) {
+      return false;
+    }
+    
+    // 确保text是字符串
+    const searchText = String(text);
+    
+    // 检查每个关键字是否存在于文本中
+    for (const kw of keywords) {
+      if (typeof kw === 'string' && searchText.includes(kw)) {
+        return true;
+      }
+    }
+    
+    return false;
   }
 
   static getCategoryName(category: MacroCategory): string {

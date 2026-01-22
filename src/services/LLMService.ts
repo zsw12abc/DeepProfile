@@ -9,6 +9,7 @@ import { RunnableSequence } from "@langchain/core/runnables"
 import { TopicService } from "./TopicService"
 import { I18nService } from "./I18nService"
 import { ConsistencyService } from "./ConsistencyService"
+import { StructuredOutputService } from "./StructuredOutputService"
 
 export interface LLMResponse {
   content: any;
@@ -27,6 +28,11 @@ export interface LLMProvider {
 }
 
 export class LLMService {
+  // Public this method to get parser instructions
+  public static getParserInstructions(mode: AnalysisMode): string {
+    return StructuredOutputService.getFormatInstructions(mode);
+  }
+
   // 公开此方法以便在 generateProfile 中获取并打印
   public static getSystemPrompt(mode: AnalysisMode, category: MacroCategory): string {
     // Refresh label cache to ensure language is up-to-date
@@ -39,6 +45,9 @@ export class LLMService {
     const categoryName = TopicService.getCategoryName(category);
     const isEn = I18nService.getLanguage() === 'en-US';
     
+    // Get format instructions from structured parser
+    const formatInstructions = LLMService.getParserInstructions(mode);
+
     const fewShotExamples = isEn ? `
 【Few-Shot Examples】
 Text: "The government should stop regulating the market so much. Let businesses compete freely, and the economy will grow."
@@ -67,16 +76,7 @@ Analysis:
       // 快速模式：保持原样，追求速度，无思维链
       return `You are a sociology researcher conducting an academic study on internet subcultures and public values. Please objectively analyze the author's value orientation based on the provided text materials.
 
-Please strictly return the result in the following JSON format (do not include Markdown code block markers):
-
-{
-  "nickname": "User Nickname",
-  "topic_classification": "Topic Classification",
-  "value_orientation": [
-    { "label": "Label ID", "score": 0.9 }
-  ], 
-  "summary": "Brief summary (within 100 words)"
-}
+${formatInstructions}
 
 【Instructions】
 1. Current Research Field: 【${categoryName}】. If the content is completely unrelated to this field, please state so in the summary and return an empty value_orientation.
@@ -95,25 +95,7 @@ ${standardLabels}
       // 平衡和深度模式：引入思维链 (reasoning 字段)
       let basePrompt = `You are a sociology researcher conducting an academic study on internet subcultures and public values. Please objectively analyze the author's value orientation based on the provided text materials.
 
-Please strictly return the result in the following JSON format (do not include Markdown code block markers):
-
-{
-  "nickname": "User Nickname",
-  "topic_classification": "Topic Classification",
-  "reasoning": "Step-by-step analysis logic (max 100 words). First identify the core conflict, then map to specific labels.",
-  "value_orientation": [
-    { "label": "Label ID", "score": 0.9 }
-  ], 
-  "summary": "Brief summary (within 100 words)",
-  "evidence": [
-    {
-      "quote": "Original Quote",
-      "analysis": "Analysis Explanation",
-      "source_title": "Source Title",
-      "source_id": "ID"
-    }
-  ]
-}
+${formatInstructions}
 
 【Instructions】
 1. 【Relevance Judgment】 Current Research Field: 【${categoryName}】. If the content is completely unrelated to this field, please state so in the summary and return an empty value_orientation.
@@ -256,8 +238,8 @@ class LangChainProvider implements LLMProvider {
           configuration: { baseURL: this.baseUrl },
           modelName: this.model,
           temperature: temperature,
-          timeout: timeout,
-          modelKwargs: { response_format: { type: "json_object" } }
+          timeout: timeout
+          // Removed response_format: { type: "json_object" } since we're using structured output parser
         });
         this.rawLlm = new ChatOpenAI({
           openAIApiKey: this.apiKey,
@@ -271,8 +253,8 @@ class LangChainProvider implements LLMProvider {
         this.llm = new ChatGoogleGenerativeAI({
           apiKey: this.apiKey,
           modelName: this.model,
-          temperature: temperature,
-          // responseMimeType: "application/json" // This can cause issues, relying on prompt instead
+          temperature: temperature
+          // Removed responseMimeType: "application/json" since we're using structured output parser
         });
         this.rawLlm = new ChatGoogleGenerativeAI({
           apiKey: this.apiKey,
@@ -311,13 +293,24 @@ class LangChainProvider implements LLMProvider {
         console.log("【LANGCHAIN USER INPUT】", text);
       }
       
+      // Create structured output parser based on mode
+      const parser = StructuredOutputService.getParserForMode(mode);
+      
+      // Create the chain with prompt -> LLM -> Parser
       const messages = [
         new SystemMessage(systemPrompt),
         new HumanMessage(text)
       ];
       
+      // Create a runnable sequence with the parser
+      const chain = RunnableSequence.from([
+        () => messages,
+        this.llm,
+        parser
+      ]);
+      
       const result = await Promise.race([
-        this.llm.invoke(messages),
+        chain.invoke({}),
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error('LLM request timeout')), timeout)
         )
@@ -325,20 +318,8 @@ class LangChainProvider implements LLMProvider {
       
       const durationMs = Date.now() - startTime;
 
-      let resultContent = result;
-      if (typeof result === 'object' && (result as any).content) {
-        resultContent = (result as any).content;
-      } else if (typeof result === 'object' && (result as any).text) {
-        resultContent = (result as any).text;
-      }
-      
-      // 增强日志：打印原始响应，方便检查 reasoning 字段
-      if (config.enableDebug) {
-        console.log("【LANGCHAIN RAW RESPONSE】", resultContent);
-      }
-      
-      const validatedContent = this.validateAndFixResponse(resultContent as string);
-      const parsedContent = JSON.parse(validatedContent);
+      // Since we're using structured parser, result should already be the parsed object
+      let parsedContent = result;
       
       // Apply consistency check to ensure evidence aligns with value orientation scores
       // But only fix evidence, not summary
@@ -549,7 +530,7 @@ class OllamaProvider implements LLMProvider {
             nickname: "",
             topic_classification: "Content Analysis",
             value_orientation: [],
-            summary: "Content Safety Review Failed: The content may involve sensitive topics and was blocked by the AI provider. Please try switching to DeepSeek or OpenAI models.",
+            summary: "Content Safety Review Failed: the content may involve sensitive topics and was blocked by the AI provider. Please try switching to DeepSeek or OpenAI models.",
             evidence: []
           };
           
