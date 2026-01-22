@@ -48,4 +48,13 @@ export class StructuredOutputService {
     const parser = this.getParserForMode(mode);
     return parser.parse(output);
   }
+  
+  // 获取用于动态 few-shot 选择的嵌入向量
+  static getSchemaFields(mode: 'fast' | 'balanced' | 'deep') {
+    if (mode === 'fast') {
+      return ['nickname', 'topic_classification', 'value_orientation', 'summary'];
+    } else {
+      return ['nickname', 'topic_classification', 'reasoning', 'value_orientation', 'summary', 'evidence'];
+    }
+  }
 }

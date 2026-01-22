@@ -10,6 +10,7 @@ import { TopicService } from "./TopicService"
 import { I18nService } from "./I18nService"
 import { ConsistencyService } from "./ConsistencyService"
 import { StructuredOutputService } from "./StructuredOutputService"
+import { ExampleService } from "./ExampleService"
 
 export interface LLMResponse {
   content: any;
@@ -34,7 +35,7 @@ export class LLMService {
   }
 
   // 公开此方法以便在 generateProfile 中获取并打印
-  public static getSystemPrompt(mode: AnalysisMode, category: MacroCategory): string {
+  public static getSystemPrompt(mode: AnalysisMode, category: MacroCategory, inputText?: string): string {
     // Refresh label cache to ensure language is up-to-date
     const labelService = LabelService.getInstance();
     labelService.refreshCategories();
@@ -48,7 +49,12 @@ export class LLMService {
     // Get format instructions from structured parser
     const formatInstructions = LLMService.getParserInstructions(mode);
 
-    const fewShotExamples = isEn ? `
+    // 获取与输入内容相关的动态示例
+    const exampleService = ExampleService.getInstance();
+    const dynamicExamples = inputText ? exampleService.getRelevantExamples(inputText, category, mode, 2) : [];
+    const dynamicFewShotExamples = dynamicExamples.length > 0 
+      ? exampleService.formatExamplesAsPrompt(dynamicExamples, mode)
+      : (isEn ? `
 【Few-Shot Examples】
 Text: "The government should stop regulating the market so much. Let businesses compete freely, and the economy will grow."
 Analysis:
@@ -70,7 +76,7 @@ Analysis:
 分析:
 - change: -0.9 (强烈保守/传统)
 - feminism_vs_patriarchy: -0.5 (倾向于传统家庭角色)
-`;
+`);
 
     if (mode === 'fast') {
       // 快速模式：保持原样，追求速度，无思维链
@@ -87,6 +93,8 @@ ${formatInstructions}
 6. Output Language: ${isEn ? 'English' : 'Simplified Chinese'}.
 7. Content Safety: If the input content contains sensitive information, please analyze the user's value orientation based on their expression style, language habits, and topic preferences, without directly repeating sensitive content.
 8. CRITICAL CONSISTENCY RULE: The summary should reflect the user's overall personality, writing style, and expressed opinions naturally. Do NOT include explicit statements about specific label scores (e.g., "the user shows X% tendency toward..."). The summary should organically reflect the user's value orientations without stating them directly.
+
+${dynamicFewShotExamples}
 
 【Standard Label Library】
 ${standardLabels}
@@ -108,7 +116,7 @@ ${formatInstructions}
 8. 【Content Safety】 If the input content contains sensitive information, please analyze the user's value orientation based on their expression style, language habits, and topic preferences, without directly repeating sensitive content.
 9. 【CRITICAL CONSISTENCY RULE】 The summary should reflect the user's overall personality, writing style, and expressed opinions naturally. Do NOT include explicit statements about specific label scores (e.g., "the user shows X% tendency toward..."). The summary should organically reflect the user's value orientations without stating them directly.
 
-${fewShotExamples}
+${dynamicFewShotExamples}
 
 【Standard Label Library】
 ${standardLabels}
@@ -284,7 +292,7 @@ class LangChainProvider implements LLMProvider {
     try {
       const timeout = 600000; // 10 minutes
       
-      const systemPrompt = LLMService.getSystemPrompt(mode, category);
+      const systemPrompt = LLMService.getSystemPrompt(mode, category, text);
       
       // 增强日志：打印完整的 System Prompt
       const config = await ConfigService.getConfig();
@@ -309,12 +317,42 @@ class LangChainProvider implements LLMProvider {
         parser
       ]);
       
-      const result = await Promise.race([
-        chain.invoke({}),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('LLM request timeout')), timeout)
-        )
-      ]);
+      // 尝试最多两次生成，如果第一次失败则进行错误反馈重试
+      let result = null;
+      let attempt = 0;
+      let lastError = null;
+      
+      while (attempt < 2) {
+        try {
+          result = await Promise.race([
+            chain.invoke({}),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('LLM request timeout')), timeout)
+            )
+          ]);
+          break; // 成功则退出循环
+        } catch (error: any) {
+          lastError = error;
+          console.error(`LangChain API Error (attempt ${attempt + 1}):`, error);
+          
+          // 如果是第一次失败且错误是格式相关，尝试错误反馈重试
+          if (attempt === 0 && this.shouldRetryOnError(error)) {
+            console.log("Attempting error correction with feedback...");
+            result = await this.retryWithErrorFeedback(text, mode, category, error.message);
+            
+            if (result) {
+              break; // 重试成功则退出循环
+            }
+          }
+          
+          attempt++;
+        }
+      }
+      
+      // 如果多次尝试都失败，抛出最后一次错误
+      if (result === null) {
+        throw lastError;
+      }
       
       const durationMs = Date.now() - startTime;
 
@@ -381,6 +419,56 @@ class LangChainProvider implements LLMProvider {
     }
   }
   
+  // 判断是否应该基于错误进行重试
+  private shouldRetryOnError(error: any): boolean {
+    // 如果是格式错误、解析错误或结构验证错误，则进行重试
+    const errorMessage = error.message.toLowerCase();
+    return (
+      errorMessage.includes('parse') || 
+      errorMessage.includes('format') || 
+      errorMessage.includes('schema') ||
+      errorMessage.includes('structure') ||
+      errorMessage.includes('validation')
+    );
+  }
+  
+  // 基于错误反馈进行重试
+  private async retryWithErrorFeedback(text: string, mode: AnalysisMode, category: MacroCategory, errorMessage: string): Promise<any> {
+    const systemPrompt = LLMService.getSystemPrompt(mode, category, text);
+    
+    // 构造错误反馈提示
+    const errorFeedbackPrompt = `Previous attempt failed with the following error:
+    
+"${errorMessage}"
+
+The output did not match the required JSON structure. Please ensure your response strictly follows the format instructions provided below and return ONLY the JSON object without any other text or markdown formatting:
+
+${LLMService.getParserInstructions(mode)}
+
+Now, please analyze the following text again:` + "\n\n" + text;
+    
+    try {
+      const messages = [
+        new SystemMessage(systemPrompt),
+        new HumanMessage(errorFeedbackPrompt)
+      ];
+      
+      const chain = RunnableSequence.from([
+        () => messages,
+        this.llm
+      ]);
+      
+      const result = await chain.invoke({});
+      
+      // 再次尝试解析
+      const parser = StructuredOutputService.getParserForMode(mode);
+      return await parser.parse(result.content || result);
+    } catch (e) {
+      console.error("Error correction attempt failed:", e);
+      return null;
+    }
+  }
+  
   private validateAndFixResponse(response: string): string {
     try {
       let cleanedResponse = response.trim();
@@ -431,27 +519,181 @@ class LangChainProvider implements LLMProvider {
     function normalizeLabelId(labelId: string): string {
       // Handle common variations that AI might return
       const labelVariations: Record<string, string> = {
+        // Individualism vs Collectivism variations
         'collectivism_vs_individualism': 'individualism_vs_collectivism',
         'individualism_collectivism': 'individualism_vs_collectivism',
         'collectivism_individualism': 'individualism_vs_collectivism',
+        'individual_collective': 'individualism_vs_collectivism',
+        
+        // Ideology variations
         'left_right': 'ideology',
         'ideology_left_right': 'ideology',
+        'left_vs_right': 'ideology',
+        'right_vs_left': 'ideology',
+        
+        // Authority/Liberty variations
         'authority_freedom': 'authority',
         'freedom_authority': 'authority',
+        'libertarian_authoritarian': 'authority',
+        'authoritarian_libertarian': 'authority',
+        'liberty_order': 'authority',
+        'order_liberty': 'authority',
+        
+        // Change/Tradition variations
         'traditional_progressive': 'change',
         'progressive_traditional': 'change',
+        'progressive_traditional': 'change',
+        'traditional_progressive': 'change',
+        'change_tradition': 'change',
+        'tradition_change': 'change',
+        
+        // Market vs Government variations
         'market_government': 'market_vs_gov',
         'government_market': 'market_vs_gov',
-        'individual_collective': 'individualism_vs_collectivism',
+        'market_state': 'market_vs_gov',
+        'state_market': 'market_vs_gov',
+        
+        // Elite vs Grassroots variations
         'elite_grassroots': 'elite_vs_grassroots',
         'grassroots_elite': 'elite_vs_grassroots',
+        'elite_people': 'elite_vs_grassroots',
+        'people_elite': 'elite_vs_grassroots',
+        
+        // Feminism vs Patriarchy variations
         'feminism_patriarchy': 'feminism_vs_patriarchy',
         'patriarchy_feminism': 'feminism_vs_patriarchy',
+        'gender_equality_tradition': 'feminism_vs_patriarchy',
+        'tradition_gender_equality': 'feminism_vs_patriarchy',
+        
+        // Urban vs Rural variations
         'urban_rural': 'urban_vs_rural',
         'rural_urban': 'urban_vs_rural',
+        
+        // Generational conflict variations
         'generational_conflict_left_right': 'generational_conflict',
         'left_generational_conflict': 'generational_conflict',
-        'right_generational_conflict': 'generational_conflict'
+        'right_generational_conflict': 'generational_conflict',
+        'gen_z_boomer': 'generational_conflict',
+        'boomer_gen_z': 'generational_conflict',
+        
+        // Open vs Closed variations
+        'open_closed': 'open_vs_closed',
+        'closed_open': 'open_vs_closed',
+        
+        // Innovation vs Security variations
+        'innovation_security': 'innovation_vs_security',
+        'security_innovation': 'innovation_vs_security',
+        
+        // Tech optimism variations
+        'tech_optimism_pessimism': 'optimism_vs_conservatism',
+        'optimism_pessimism_tech': 'optimism_vs_conservatism',
+        'tech_pessimism_optimism': 'optimism_vs_conservatism',
+        
+        // Decentralization variations
+        'decentralization_centralization': 'decentralization_vs_centralization',
+        'centralization_decentralization': 'decentralization_vs_centralization',
+        
+        // Local vs Global variations
+        'local_global': 'local_vs_global',
+        'global_local': 'local_vs_global',
+        'globalization_nationalism': 'local_vs_global',
+        'nationalism_globalization': 'local_vs_global',
+        
+        // Spiritual vs Material variations
+        'spiritual_material': 'spiritual_vs_material',
+        'material_spiritual': 'spiritual_vs_material',
+        
+        // Serious vs Popular variations
+        'serious_popular': 'serious_vs_popular',
+        'popular_serious': 'serious_vs_popular',
+        
+        // Secular vs Religious variations
+        'secular_religious': 'secular_vs_religious',
+        'religious_secular': 'secular_vs_religious',
+        
+        // Protection vs Development variations
+        'protection_development': 'protection_vs_development',
+        'development_protection': 'protection_vs_development',
+        
+        // Climate belief variations
+        'climate_believer_skeptic': 'climate_believer_vs_skeptic',
+        'skeptic_believer_climate': 'climate_believer_vs_skeptic',
+        
+        // 2D vs 3D variations
+        '2d_3d': '2d_vs_3d',
+        '3d_2d': '2d_vs_3d',
+        
+        // Hardcore vs Casual variations
+        'hardcore_casual': 'hardcore_vs_casual',
+        'casual_hardcore': 'hardcore_vs_casual',
+        
+        // Niche vs Mainstream variations
+        'niche_mainstream': 'niche_vs_mainstream',
+        'mainstream_niche': 'niche_vs_mainstream',
+        
+        // Frugal vs Luxury variations
+        'frugal_luxury': 'frugal_vs_luxury',
+        'luxury_frugal': 'frugal_vs_luxury',
+        
+        // Stable vs Risk variations
+        'stable_risk': 'stable_vs_risk',
+        'risk_stable': 'stable_vs_risk',
+        
+        // Cat vs Dog variations
+        'cat_dog': 'cat_vs_dog',
+        'dog_cat': 'cat_vs_dog',
+        
+        // Family vs Single variations
+        'family_single': 'family_vs_single',
+        'single_family': 'family_vs_single',
+        
+        // Discipline vs Hedonism variations
+        'discipline_hedonism': 'discipline_vs_hedonism',
+        'hedonism_discipline': 'discipline_vs_hedonism',
+        
+        // Competition vs Equality variations
+        'competition_equality': 'competition_vs_equality',
+        'equality_competition': 'competition_vs_equality',
+        
+        // Speculation vs Value variations
+        'speculation_value': 'speculation_vs_value',
+        'value_speculation': 'speculation_vs_value',
+        
+        // Micro vs Macro variations
+        'micro_macro': 'micro_vs_macro',
+        'macro_micro': 'micro_vs_macro',
+        
+        // Real vs Virtual variations
+        'real_virtual': 'real_vs_virtual',
+        'virtual_real': 'real_vs_virtual',
+        
+        // Capital vs Labor variations
+        'capital_labor': 'capital_vs_labor',
+        'labor_capital': 'capital_vs_labor',
+        
+        // Geopolitics variations
+        'globalism_nationalism': 'geopolitics',
+        'nationalism_globalism': 'geopolitics',
+        'internationalism_isolationism': 'geopolitics',
+        'isolationism_internationalism': 'geopolitics',
+        
+        // Radicalism variations
+        'radical_moderate': 'radicalism',
+        'moderate_radical': 'radicalism',
+        
+        // Establishment variations
+        'establishment_populist': 'establishment',
+        'populist_establishment': 'establishment',
+        
+        // Work vs Life variations
+        'work_life': 'work_vs_life',
+        'life_work': 'work_vs_life',
+        
+        // Conformity vs Individuality variations
+        'conformity_vs_individuality': 'conformity_vs_individuality',
+        'individuality_vs_conformity': 'conformity_vs_individuality',
+        'conformity_individuality': 'conformity_vs_individuality',
+        'individuality_conformity': 'conformity_vs_individuality'
       };
       
       // Return normalized ID if found, otherwise return original
@@ -487,7 +729,7 @@ class OllamaProvider implements LLMProvider {
     const startTime = Date.now();
     const url = `${this.baseUrl}/api/generate`
     
-    const prompt = LLMService.getSystemPrompt(mode, category) + "\n\n" + text;
+    const prompt = LLMService.getSystemPrompt(mode, category, text) + "\n\n" + text;
     
     const config = await ConfigService.getConfig();
     if (config.enableDebug) {

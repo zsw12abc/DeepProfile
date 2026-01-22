@@ -7,6 +7,7 @@ export interface ProfileData {
   topic_classification?: string;
   value_orientation?: Array<{ label: string; score: number }>;
   summary?: string;
+  reasoning?: string;
   evidence?: Array<{
     quote: string;
     analysis: string;

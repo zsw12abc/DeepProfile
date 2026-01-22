@@ -8,6 +8,7 @@ const FALLBACK_ID_NAMES: Record<string, string> = {
   "authority": "自由意志 vs 威权主义",
   "change": "进步派 vs 传统派",
   "geopolitics": "全球主义 vs 民族主义",
+  "nationalism_globalism": "民族主义 vs 全球主义",
   "radicalism": "激进派 vs 温和派",
   "establishment": "建制派 vs 民粹派",
   "market_vs_gov": "市场主导 vs 政府干预",
@@ -45,6 +46,7 @@ const FALLBACK_ID_NAMES_EN: Record<string, string> = {
   "authority": "Libertarian vs Authoritarian",
   "change": "Progressive vs Traditional",
   "geopolitics": "Globalism vs Nationalism",
+  "nationalism_globalism": "Nationalism vs Globalism",
   "radicalism": "Radical vs Moderate",
   "establishment": "Establishment vs Populist",
   "market_vs_gov": "Market vs Government",
@@ -90,6 +92,39 @@ export function parseLabelName(labelName: string): { left: string, right: string
     const labelInfo = getLabelInfo(labelName);
     if (labelInfo) {
       labelName = labelInfo.name;
+    }
+  }
+  
+  // 检查是否是 "中文|英文" 格式（来自LabelService）
+  if (labelName.includes('|')) {
+    const parts = labelName.split('|');
+    if (parts.length === 2) {
+      // 根据当前语言选择格式
+      const chinesePart = parts[0].trim();
+      const englishPart = parts[1].trim();
+      
+      // 如果当前是英文环境，优先使用英文部分
+      if (isEn) {
+        // 尝试解析英文部分的 "Left vs Right" 格式
+        if (englishPart.includes(' vs ')) {
+          const subParts = englishPart.split(' vs ');
+          if (subParts.length === 2) {
+            return { left: subParts[0].trim(), right: subParts[1].trim() };
+          }
+        }
+        // 如果英文部分不是 "vs" 格式，返回英文部分作为右侧
+        return { left: "", right: englishPart };
+      } else {
+        // 如果当前是中文环境，优先使用中文部分
+        if (chinesePart.includes(' vs ')) {
+          const subParts = chinesePart.split(' vs ');
+          if (subParts.length === 2) {
+            return { left: subParts[0].trim(), right: subParts[1].trim() };
+          }
+        }
+        // 如果中文部分不是 "vs" 格式，返回中文部分作为右侧
+        return { left: "", right: chinesePart };
+      }
     }
   }
   
