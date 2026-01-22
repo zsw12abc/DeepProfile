@@ -26,6 +26,7 @@ interface GeneralSettingsProps {
   testResult: { success: boolean; message: string } | null;
   handleTestConnection: () => void;
   renderModelSelector: () => React.ReactNode;
+  handleSave: () => void;
 }
 
 export const GeneralSettings: React.FC<GeneralSettingsProps> = ({ 
@@ -34,7 +35,8 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({
   isTesting, 
   testResult, 
   handleTestConnection, 
-  renderModelSelector 
+  renderModelSelector,
+  handleSave
 }) => {
   const showBaseUrlInput = config.selectedProvider === "ollama" || 
                            config.selectedProvider === "custom" || 
@@ -255,32 +257,56 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({
         flexDirection: "column",
         gap: "16px"
       }}>
-          <button
-            onClick={handleTestConnection}
-            disabled={isTesting}
-            style={{
-                padding: "12px 20px",
-                backgroundColor: isTesting 
-                  ? "var(--theme-text-secondary, #cbd5e0)" 
-                  : "var(--theme-primary, #3498db)",
-                border: "none",
-                borderRadius: "var(--theme-border-radius-medium, 10px)",
-                cursor: isTesting ? "not-allowed" : "pointer",
-                fontSize: "15px",
-                color: "white",
-                fontWeight: "600",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "8px",
-                transition: "all 0.2s",
-                boxShadow: isTesting 
-                  ? "none" 
-                  : "var(--theme-shadow-small, 0 4px 6px rgba(52, 152, 219, 0.3))"
-            }}
-          >
-            {isTesting ? "⏳ Testing..." : I18nService.t('test_connection')}
-          </button>
+          <div style={{ display: "flex", gap: "12px" }}>
+            <button
+              onClick={handleTestConnection}
+              disabled={isTesting}
+              style={{
+                  padding: "12px 20px",
+                  backgroundColor: isTesting 
+                    ? "var(--theme-text-secondary, #cbd5e0)" 
+                    : "var(--theme-primary, #3498db)",
+                  border: "none",
+                  borderRadius: "var(--theme-border-radius-medium, 10px)",
+                  cursor: isTesting ? "not-allowed" : "pointer",
+                  fontSize: "15px",
+                  color: "white",
+                  fontWeight: "600",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  transition: "all 0.2s",
+                  boxShadow: isTesting 
+                    ? "none" 
+                    : "var(--theme-shadow-small, 0 4px 6px rgba(52, 152, 219, 0.3))"
+              }}
+            >
+              {isTesting ? "⏳ Testing..." : I18nService.t('test_connection')}
+            </button>
+            
+            <button
+              onClick={handleSave}
+              style={{
+                  padding: "12px 20px",
+                  backgroundColor: "var(--theme-secondary, #6c757d)",
+                  border: "none",
+                  borderRadius: "var(--theme-border-radius-medium, 10px)",
+                  cursor: "pointer",
+                  fontSize: "15px",
+                  color: "white",
+                  fontWeight: "600",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  transition: "all 0.2s",
+                  boxShadow: "var(--theme-shadow-small, 0 4px 6px rgba(108, 117, 125, 0.3))"
+              }}
+            >
+              💾 {I18nService.t('save_changes')}
+            </button>
+          </div>
           
           {testResult && (
               <div style={{ 
