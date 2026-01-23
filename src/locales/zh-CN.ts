@@ -192,9 +192,15 @@ export const zhCN: LocaleDict = {
 // DeepProfile 当前版本更新日志
 export const zhCNChangelog = `# DeepProfile 当前版本更新日志
 
-## 当前版本: v0.7.0 (Beta)
+## 当前版本: v0.7.1 (Beta)
 
 ### ✅ 已达成功能
+
+### 核心功能 (v0.7.1) - 标签显示与LLM输出优化
+- ✅ **标签显示修复**: 解决了部分标签（如 \`competition_vs_equality\`, \`speculation_vs_value\` 等）在前端无法正确显示的问题。
+- ✅ **标签定义同步**: 确保了 \`LabelService\` 中的标签定义与 \`LabelDefinitions\` 完全一致，消除了 ID 不匹配导致的显示错误。
+- ✅ **LLM 输出标准化**: 增加了对 LLM 返回标签 ID 的自动标准化处理，能够自动纠正 AI 返回的非标准标签 ID（例如将 \`nationalism_globalism\` 自动映射为 \`geopolitics\`）。
+- ✅ **重复标签处理**: 优化了结果解析逻辑，自动合并和去重 LLM 返回的重复标签，优先保留置信度更高的评分。
 
 ### 核心功能 (v0.7.0) - 提升画像分析准确度与一致性
 - ✅ **AI摘要一致性**: 确保AI生成的摘要与数值标签分数保持一致
