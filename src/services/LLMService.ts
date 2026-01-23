@@ -130,6 +130,205 @@ ${standardLabels}
     }
   }
 
+  public static normalizeLabelId(labelId: string): string {
+      // Handle common variations that AI might return
+      const labelVariations: Record<string, string> = {
+        // Individualism vs Collectivism variations
+        'collectivism_vs_individualism': 'individualism_vs_collectivism',
+        'individualism_collectivism': 'individualism_vs_collectivism',
+        'collectivism_individualism': 'individualism_vs_collectivism',
+        'individual_collective': 'individualism_vs_collectivism',
+        
+        // Ideology variations
+        'left_right': 'ideology',
+        'ideology_left_right': 'ideology',
+        'left_vs_right': 'ideology',
+        'right_vs_left': 'ideology',
+        
+        // Authority/Liberty variations
+        'authority_freedom': 'authority',
+        'freedom_authority': 'authority',
+        'libertarian_authoritarian': 'authority',
+        'authoritarian_libertarian': 'authority',
+        'liberty_order': 'authority',
+        'order_liberty': 'authority',
+        'authoritarian_hierarchy': 'authority',
+        
+        // Change/Tradition variations
+        'traditional_progressive': 'change',
+        'progressive_traditional': 'change',
+        'change_tradition': 'change',
+        'tradition_change': 'change',
+        
+        // Market vs Government variations
+        'market_government': 'market_vs_gov',
+        'government_market': 'market_vs_gov',
+        'market_state': 'market_vs_gov',
+        'state_market': 'market_vs_gov',
+        
+        // Elite vs Grassroots variations
+        'elite_grassroots': 'elite_vs_grassroots',
+        'grassroots_elite': 'elite_vs_grassroots',
+        'elite_people': 'elite_vs_grassroots',
+        'people_elite': 'elite_vs_grassroots',
+        
+        // Feminism vs Patriarchy variations
+        'feminism_patriarchy': 'feminism_vs_patriarchy',
+        'patriarchy_feminism': 'feminism_vs_patriarchy',
+        'gender_equality_tradition': 'feminism_vs_patriarchy',
+        'tradition_gender_equality': 'feminism_vs_patriarchy',
+        
+        // Urban vs Rural variations
+        'urban_rural': 'urban_vs_rural',
+        'rural_urban': 'urban_vs_rural',
+        
+        // Generational conflict variations
+        'generational_conflict_left_right': 'generational_conflict',
+        'left_generational_conflict': 'generational_conflict',
+        'right_generational_conflict': 'generational_conflict',
+        'gen_z_boomer': 'generational_conflict',
+        'boomer_gen_z': 'generational_conflict',
+        
+        // Open vs Closed variations
+        'open_closed': 'open_vs_closed',
+        'closed_open': 'open_vs_closed',
+        
+        // Innovation vs Security variations
+        'innovation_security': 'innovation_vs_security',
+        'security_innovation': 'innovation_vs_security',
+        
+        // Tech optimism variations
+        'tech_optimism_pessimism': 'optimism_vs_conservatism',
+        'optimism_pessimism_tech': 'optimism_vs_conservatism',
+        'tech_pessimism_optimism': 'optimism_vs_conservatism',
+        'optimism_conservatism': 'optimism_vs_conservatism',
+        
+        // Decentralization variations
+        'decentralization_centralization': 'decentralization_vs_centralization',
+        'centralization_decentralization': 'decentralization_vs_centralization',
+        
+        // Local vs Global variations
+        'local_global': 'local_vs_global',
+        'global_local': 'local_vs_global',
+        'globalization_nationalism': 'local_vs_global',
+        'nationalism_globalization': 'local_vs_global',
+        
+        // Spiritual vs Material variations
+        'spiritual_material': 'spiritual_vs_material',
+        'material_spiritual': 'spiritual_vs_material',
+        'spiritual_vs_material': 'spiritual_vs_material',
+        'material_vs_spiritual': 'spiritual_vs_material',
+        
+        // Serious vs Popular variations
+        'serious_popular': 'serious_vs_popular',
+        'popular_serious': 'serious_vs_popular',
+        
+        // Secular vs Religious variations
+        'secular_religious': 'secular_vs_religious',
+        'religious_secular': 'secular_vs_religious',
+        
+        // Protection vs Development variations
+        'protection_development': 'protection_vs_development',
+        'development_protection': 'protection_vs_development',
+        
+        // Climate belief variations
+        'climate_believer_skeptic': 'climate_believer_vs_skeptic',
+        'skeptic_believer_climate': 'climate_believer_vs_skeptic',
+        
+        // 2D vs 3D variations
+        '2d_3d': '2d_vs_3d',
+        '3d_2d': '2d_vs_3d',
+        
+        // Hardcore vs Casual variations
+        'hardcore_casual': 'hardcore_vs_casual',
+        'casual_hardcore': 'hardcore_vs_casual',
+        
+        // Niche vs Mainstream variations
+        'niche_mainstream': 'niche_vs_mainstream',
+        'mainstream_niche': 'niche_vs_mainstream',
+        
+        // Frugal vs Luxury variations
+        'frugal_luxury': 'frugal_vs_luxury',
+        'luxury_frugal': 'frugal_vs_luxury',
+        
+        // Stable vs Risk variations
+        'stable_risk': 'stable_vs_risk',
+        'risk_stable': 'stable_vs_risk',
+        
+        // Cat vs Dog variations
+        'cat_dog': 'cat_vs_dog',
+        'dog_cat': 'cat_vs_dog',
+        
+        // Family vs Single variations
+        'family_single': 'family_vs_single',
+        'single_family': 'family_vs_single',
+        
+        // Discipline vs Hedonism variations
+        'discipline_hedonism': 'discipline_vs_hedonism',
+        'hedonism_discipline': 'discipline_vs_hedonism',
+        
+        // Competition vs Equality variations
+        'competition_equality': 'competition_vs_equality',
+        'equality_competition': 'competition_vs_equality',
+        
+        // Speculation vs Value variations
+        'speculation_value': 'speculation_vs_value',
+        'value_speculation': 'speculation_vs_value',
+        
+        // Micro vs Macro variations
+        'micro_macro': 'micro_vs_macro',
+        'macro_micro': 'micro_vs_macro',
+        
+        // Real vs Virtual variations
+        'real_virtual': 'real_vs_virtual',
+        'virtual_real': 'real_vs_virtual',
+        
+        // Capital vs Labor variations
+        'capital_labor': 'capital_labor',
+        'labor_capital': 'capital_labor',
+        'capital_vs_labor': 'capital_labor',
+        
+        // Geopolitics variations
+        'globalism_nationalism': 'geopolitics',
+        'nationalism_globalism': 'geopolitics',
+        'internationalism_isolationism': 'geopolitics',
+        'isolationism_internationalism': 'geopolitics',
+        
+        // Radicalism variations
+        'radical_moderate': 'radicalism',
+        'moderate_radical': 'radicalism',
+        
+        // Establishment variations
+        'establishment_populist': 'establishment',
+        'populist_establishment': 'establishment',
+        
+        // Work vs Life variations
+        'work_life': 'work_vs_life',
+        'life_work': 'work_vs_life',
+        
+        // Conformity vs Individuality variations
+        'conformity_vs_individuality': 'conformity_vs_individuality',
+        'individuality_vs_conformity': 'conformity_vs_individuality',
+        'conformity_individuality': 'conformity_vs_individuality',
+        'individuality_conformity': 'conformity_vs_individuality',
+        
+        // Acceleration vs Caution variations
+        'acceleration_vs_caution': 'acceleration_vs_caution',
+        'caution_vs_acceleration': 'acceleration_vs_caution',
+        'acceleration_caution': 'acceleration_vs_caution',
+        'caution_acceleration': 'acceleration_vs_caution',
+        
+        // Privacy vs Convenience variations
+        'privacy_vs_convenience': 'privacy_vs_convenience',
+        'convenience_vs_privacy': 'privacy_vs_convenience',
+        'privacy_convenience': 'privacy_vs_convenience',
+        'convenience_privacy': 'privacy_vs_convenience'
+      };
+      
+      // Return normalized ID if found, otherwise return original
+      return labelVariations[labelId.toLowerCase()] || labelId;
+  }
+
   static async generateProfile(text: string, category: MacroCategory): Promise<LLMResponse> {
     const config = await ConfigService.getConfig()
     
@@ -359,6 +558,31 @@ class LangChainProvider implements LLMProvider {
       // Since we're using structured parser, result should already be the parsed object
       let parsedContent = result;
       
+      // Normalize labels and deduplicate
+      if (parsedContent.value_orientation && Array.isArray(parsedContent.value_orientation)) {
+        const labelMap = new Map<string, number>();
+        
+        parsedContent.value_orientation.forEach((item: any) => {
+            const normalizedLabel = LLMService.normalizeLabelId(item.label);
+            const currentScore = item.score;
+            
+            // If duplicate, keep the one with stronger signal (higher absolute score)
+            if (labelMap.has(normalizedLabel)) {
+                const existingScore = labelMap.get(normalizedLabel)!;
+                if (Math.abs(currentScore) > Math.abs(existingScore)) {
+                    labelMap.set(normalizedLabel, currentScore);
+                }
+            } else {
+                labelMap.set(normalizedLabel, currentScore);
+            }
+        });
+        
+        parsedContent.value_orientation = Array.from(labelMap.entries()).map(([label, score]) => ({
+            label,
+            score
+        }));
+      }
+      
       // Apply consistency check to ensure evidence aligns with value orientation scores
       // But only fix evidence, not summary
       const consistentProfile = {
@@ -493,11 +717,11 @@ Now, please analyze the following text again:` + "\n\n" + text;
       if (Array.isArray(parsed.value_orientation)) {
         parsed.value_orientation = parsed.value_orientation.map((item: any) => {
           if (typeof item === 'string') {
-            return { label: normalizeLabelId(item.trim()), score: 0.5 };
+            return { label: LLMService.normalizeLabelId(item.trim()), score: 0.5 };
           } else if (typeof item === 'object' && item.label) {
             let score = item.score || 0.5;
             score = Math.max(-1, Math.min(1, score));
-            return { label: normalizeLabelId(String(item.label).trim()), score };
+            return { label: LLMService.normalizeLabelId(String(item.label).trim()), score };
           }
           return { label: "Unknown", score: 0.5 };
         });
@@ -513,191 +737,6 @@ Now, please analyze the following text again:` + "\n\n" + text;
         summary: "Analysis Failed",
         evidence: []
       }, null, 2);
-    }
-    
-    // Normalize label IDs to ensure they match our standard definitions
-    function normalizeLabelId(labelId: string): string {
-      // Handle common variations that AI might return
-      const labelVariations: Record<string, string> = {
-        // Individualism vs Collectivism variations
-        'collectivism_vs_individualism': 'individualism_vs_collectivism',
-        'individualism_collectivism': 'individualism_vs_collectivism',
-        'collectivism_individualism': 'individualism_vs_collectivism',
-        'individual_collective': 'individualism_vs_collectivism',
-        
-        // Ideology variations
-        'left_right': 'ideology',
-        'ideology_left_right': 'ideology',
-        'left_vs_right': 'ideology',
-        'right_vs_left': 'ideology',
-        
-        // Authority/Liberty variations
-        'authority_freedom': 'authority',
-        'freedom_authority': 'authority',
-        'libertarian_authoritarian': 'authority',
-        'authoritarian_libertarian': 'authority',
-        'liberty_order': 'authority',
-        'order_liberty': 'authority',
-        
-        // Change/Tradition variations
-        'traditional_progressive': 'change',
-        'progressive_traditional': 'change',
-        'progressive_traditional': 'change',
-        'traditional_progressive': 'change',
-        'change_tradition': 'change',
-        'tradition_change': 'change',
-        
-        // Market vs Government variations
-        'market_government': 'market_vs_gov',
-        'government_market': 'market_vs_gov',
-        'market_state': 'market_vs_gov',
-        'state_market': 'market_vs_gov',
-        
-        // Elite vs Grassroots variations
-        'elite_grassroots': 'elite_vs_grassroots',
-        'grassroots_elite': 'elite_vs_grassroots',
-        'elite_people': 'elite_vs_grassroots',
-        'people_elite': 'elite_vs_grassroots',
-        
-        // Feminism vs Patriarchy variations
-        'feminism_patriarchy': 'feminism_vs_patriarchy',
-        'patriarchy_feminism': 'feminism_vs_patriarchy',
-        'gender_equality_tradition': 'feminism_vs_patriarchy',
-        'tradition_gender_equality': 'feminism_vs_patriarchy',
-        
-        // Urban vs Rural variations
-        'urban_rural': 'urban_vs_rural',
-        'rural_urban': 'urban_vs_rural',
-        
-        // Generational conflict variations
-        'generational_conflict_left_right': 'generational_conflict',
-        'left_generational_conflict': 'generational_conflict',
-        'right_generational_conflict': 'generational_conflict',
-        'gen_z_boomer': 'generational_conflict',
-        'boomer_gen_z': 'generational_conflict',
-        
-        // Open vs Closed variations
-        'open_closed': 'open_vs_closed',
-        'closed_open': 'open_vs_closed',
-        
-        // Innovation vs Security variations
-        'innovation_security': 'innovation_vs_security',
-        'security_innovation': 'innovation_vs_security',
-        
-        // Tech optimism variations
-        'tech_optimism_pessimism': 'optimism_vs_conservatism',
-        'optimism_pessimism_tech': 'optimism_vs_conservatism',
-        'tech_pessimism_optimism': 'optimism_vs_conservatism',
-        
-        // Decentralization variations
-        'decentralization_centralization': 'decentralization_vs_centralization',
-        'centralization_decentralization': 'decentralization_vs_centralization',
-        
-        // Local vs Global variations
-        'local_global': 'local_vs_global',
-        'global_local': 'local_vs_global',
-        'globalization_nationalism': 'local_vs_global',
-        'nationalism_globalization': 'local_vs_global',
-        
-        // Spiritual vs Material variations
-        'spiritual_material': 'spiritual_vs_material',
-        'material_spiritual': 'spiritual_vs_material',
-        
-        // Serious vs Popular variations
-        'serious_popular': 'serious_vs_popular',
-        'popular_serious': 'serious_vs_popular',
-        
-        // Secular vs Religious variations
-        'secular_religious': 'secular_vs_religious',
-        'religious_secular': 'secular_vs_religious',
-        
-        // Protection vs Development variations
-        'protection_development': 'protection_vs_development',
-        'development_protection': 'protection_vs_development',
-        
-        // Climate belief variations
-        'climate_believer_skeptic': 'climate_believer_vs_skeptic',
-        'skeptic_believer_climate': 'climate_believer_vs_skeptic',
-        
-        // 2D vs 3D variations
-        '2d_3d': '2d_vs_3d',
-        '3d_2d': '2d_vs_3d',
-        
-        // Hardcore vs Casual variations
-        'hardcore_casual': 'hardcore_vs_casual',
-        'casual_hardcore': 'hardcore_vs_casual',
-        
-        // Niche vs Mainstream variations
-        'niche_mainstream': 'niche_vs_mainstream',
-        'mainstream_niche': 'niche_vs_mainstream',
-        
-        // Frugal vs Luxury variations
-        'frugal_luxury': 'frugal_vs_luxury',
-        'luxury_frugal': 'frugal_vs_luxury',
-        
-        // Stable vs Risk variations
-        'stable_risk': 'stable_vs_risk',
-        'risk_stable': 'stable_vs_risk',
-        
-        // Cat vs Dog variations
-        'cat_dog': 'cat_vs_dog',
-        'dog_cat': 'cat_vs_dog',
-        
-        // Family vs Single variations
-        'family_single': 'family_vs_single',
-        'single_family': 'family_vs_single',
-        
-        // Discipline vs Hedonism variations
-        'discipline_hedonism': 'discipline_vs_hedonism',
-        'hedonism_discipline': 'discipline_vs_hedonism',
-        
-        // Competition vs Equality variations
-        'competition_equality': 'competition_vs_equality',
-        'equality_competition': 'competition_vs_equality',
-        
-        // Speculation vs Value variations
-        'speculation_value': 'speculation_vs_value',
-        'value_speculation': 'speculation_vs_value',
-        
-        // Micro vs Macro variations
-        'micro_macro': 'micro_vs_macro',
-        'macro_micro': 'micro_vs_macro',
-        
-        // Real vs Virtual variations
-        'real_virtual': 'real_vs_virtual',
-        'virtual_real': 'real_vs_virtual',
-        
-        // Capital vs Labor variations
-        'capital_labor': 'capital_vs_labor',
-        'labor_capital': 'capital_vs_labor',
-        
-        // Geopolitics variations
-        'globalism_nationalism': 'geopolitics',
-        'nationalism_globalism': 'geopolitics',
-        'internationalism_isolationism': 'geopolitics',
-        'isolationism_internationalism': 'geopolitics',
-        
-        // Radicalism variations
-        'radical_moderate': 'radicalism',
-        'moderate_radical': 'radicalism',
-        
-        // Establishment variations
-        'establishment_populist': 'establishment',
-        'populist_establishment': 'establishment',
-        
-        // Work vs Life variations
-        'work_life': 'work_vs_life',
-        'life_work': 'work_vs_life',
-        
-        // Conformity vs Individuality variations
-        'conformity_vs_individuality': 'conformity_vs_individuality',
-        'individuality_vs_conformity': 'conformity_vs_individuality',
-        'conformity_individuality': 'conformity_vs_individuality',
-        'individuality_conformity': 'conformity_vs_individuality'
-      };
-      
-      // Return normalized ID if found, otherwise return original
-      return labelVariations[labelId.toLowerCase()] || labelId;
     }
   }
 }
@@ -804,6 +843,31 @@ class OllamaProvider implements LLMProvider {
       const validatedContent = this.validateAndFixResponse(content);
       const parsedContent = JSON.parse(validatedContent);
       
+      // Normalize labels and deduplicate
+      if (parsedContent.value_orientation && Array.isArray(parsedContent.value_orientation)) {
+        const labelMap = new Map<string, number>();
+        
+        parsedContent.value_orientation.forEach((item: any) => {
+            const normalizedLabel = LLMService.normalizeLabelId(item.label);
+            const currentScore = item.score;
+            
+            // If duplicate, keep the one with stronger signal (higher absolute score)
+            if (labelMap.has(normalizedLabel)) {
+                const existingScore = labelMap.get(normalizedLabel)!;
+                if (Math.abs(currentScore) > Math.abs(existingScore)) {
+                    labelMap.set(normalizedLabel, currentScore);
+                }
+            } else {
+                labelMap.set(normalizedLabel, currentScore);
+            }
+        });
+        
+        parsedContent.value_orientation = Array.from(labelMap.entries()).map(([label, score]) => ({
+            label,
+            score
+        }));
+      }
+      
       // Apply consistency check to ensure evidence aligns with value orientation scores
       // But only fix evidence, not summary
       const consistentProfile = {
@@ -856,11 +920,11 @@ class OllamaProvider implements LLMProvider {
       if (Array.isArray(parsed.value_orientation)) {
         parsed.value_orientation = parsed.value_orientation.map((item: any) => {
           if (typeof item === 'string') {
-            return { label: item.trim(), score: 0.5 };
+            return { label: LLMService.normalizeLabelId(item.trim()), score: 0.5 };
           } else if (typeof item === 'object' && item.label) {
             let score = item.score || 0.5;
             score = Math.max(-1, Math.min(1, score));
-            return { label: String(item.label).trim(), score };
+            return { label: LLMService.normalizeLabelId(String(item.label).trim()), score };
           }
           return { label: "Unknown", score: 0.5 };
         });

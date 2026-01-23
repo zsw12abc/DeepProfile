@@ -132,4 +132,26 @@ describe("LLMService", () => {
       expect(instructions).toContain("evidence");
     });
   });
+
+  describe("normalizeLabelId", () => {
+    it("should normalize common label variations correctly", () => {
+      const testCases = [
+        { input: "nationalism_globalism", expected: "geopolitics" },
+        { input: "individualism_vs_collectivism", expected: "individualism_vs_collectivism" },
+        { input: "competition_vs_equality", expected: "competition_vs_equality" },
+        { input: "liberty_order", expected: "authority" },
+        { input: "tradition_change", expected: "change" },
+        { input: "authoritarian_hierarchy", expected: "authority" },
+        { input: "innovation_vs_security", expected: "innovation_vs_security" },
+        { input: "ideology", expected: "ideology" },
+        { input: "open_vs_closed", expected: "open_vs_closed" },
+        { input: "speculation_vs_value", expected: "speculation_vs_value" },
+        { input: "elite_vs_grassroots", expected: "elite_vs_grassroots" },
+      ];
+
+      testCases.forEach(({ input, expected }) => {
+        expect(LLMService.normalizeLabelId(input)).toBe(expected);
+      });
+    });
+  });
 });

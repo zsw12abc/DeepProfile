@@ -2,7 +2,7 @@ import { LabelDefinition, LabelGroup, AnalysisMode, MacroCategory } from "~types
 import { I18nService } from "./I18nService";
 import { calculateFinalLabel } from "./LabelUtils";
 
-// 定义标签组
+// 定义标签组 - Aligned with LabelDefinitions.ts
 const LABEL_GROUPS: LabelGroup[] = [
   {
     id: "politics",
@@ -11,32 +11,38 @@ const LABEL_GROUPS: LabelGroup[] = [
       {
         id: "ideology",
         name: "左派 vs 右派|Left vs Right",
-        description: "左翼/右翼意识形态倾向",
+        description: "平等/福利优先 vs 效率/增长优先",
         weight: 1.0
       },
       {
-        id: "liberty_order",
-        name: "自由 vs 秩序|Liberty vs Order",
-        description: "重视个人自由vs社会秩序",
-        weight: 0.8
-      },
-      {
-        id: "tradition_change",
-        name: "传统 vs 变革|Tradition vs Change",
-        description: "维护传统vs拥抱变革",
-        weight: 0.8
-      },
-      {
-        id: "nationalism_globalism",
-        name: "民族主义 vs 全球主义|Nationalism vs Globalism",
-        description: "民族利益vs全球合作",
+        id: "authority",
+        name: "自由意志 vs 威权主义|Libertarian vs Authoritarian",
+        description: "小政府/自由/去监管 vs 大政府/秩序/监管",
         weight: 0.9
       },
       {
-        id: "authoritarian_hierarchy",
-        name: "威权 vs 平等|Authoritarian vs Egalitarian",
-        description: "等级制度vs平等主义",
+        id: "change",
+        name: "进步派 vs 传统派|Progressive vs Traditional",
+        description: "激进改革/Woke文化 vs 维护传统/保守价值观",
         weight: 0.9
+      },
+      {
+        id: "geopolitics",
+        name: "全球主义 vs 民族主义|Globalism vs Nationalism",
+        description: "全球一体化/多元包容 vs 本国优先/排外",
+        weight: 0.9
+      },
+      {
+        id: "radicalism",
+        name: "激进派 vs 温和派|Radical vs Moderate",
+        description: "革命/极端手段 vs 改良/中庸之道",
+        weight: 0.8
+      },
+      {
+        id: "establishment",
+        name: "建制派 vs 民粹派|Establishment vs Populist",
+        description: "相信专家/精英治国 vs 相信平民/反精英/阴谋论",
+        weight: 0.8
       }
     ]
   },
@@ -46,33 +52,33 @@ const LABEL_GROUPS: LabelGroup[] = [
     labels: [
       {
         id: "market_vs_gov",
-        name: "市场 vs 政府|Market vs Government",
-        description: "自由市场vs政府干预",
+        name: "市场主导 vs 政府干预|Market vs Government",
+        description: "相信“看不见的手” vs 相信宏观调控",
         weight: 1.0
       },
       {
         id: "competition_vs_equality",
-        name: "竞争 vs 平等|Competition vs Equality",
-        description: "市场竞争vs结果平等",
+        name: "自由竞争 vs 平等分配|Competition vs Equality",
+        description: "优胜劣汰/社达 vs 共同富裕/UBI",
         weight: 0.9
       },
       {
         id: "speculation_vs_value",
         name: "投机 vs 价值|Speculation vs Value",
-        description: "短期投机vs长期价值",
+        description: "币圈/炒作/暴富心理 vs 基本面/长期主义",
+        weight: 0.8
+      },
+      {
+        id: "micro_vs_macro",
+        name: "微观实操 vs 宏观叙事|Micro vs Macro",
+        description: "搞钱/副业/生计 vs 国运/大棋局/汇率",
         weight: 0.7
       },
       {
         id: "real_vs_virtual",
-        name: "实体 vs 虚拟|Real vs Virtual",
-        description: "实体经济vs虚拟经济",
+        name: "实体经济 vs 虚拟经济|Real vs Virtual Economy",
+        description: "制造业/实业救国 vs 互联网/金融/SaaS",
         weight: 0.7
-      },
-      {
-        id: "capital_labor",
-        name: "资方 vs 劳方|Capital vs Labor",
-        description: "资本收益vs劳动权益",
-        weight: 0.8
       }
     ]
   },
@@ -83,37 +89,31 @@ const LABEL_GROUPS: LabelGroup[] = [
       {
         id: "individualism_vs_collectivism",
         name: "个人主义 vs 集体主义|Individualism vs Collectivism",
-        description: "个人权利vs集体利益",
+        description: "自身权益优先 vs 大局/集体利益优先",
         weight: 1.0
-      },
-      {
-        id: "feminism_vs_patriarchy",
-        name: "女权主义 vs 父权制|Feminism vs Patriarchy",
-        description: "性别平等vs传统性别角色",
-        weight: 0.9
       },
       {
         id: "elite_vs_grassroots",
         name: "精英 vs 草根|Elite vs Grassroots",
-        description: "精英治理vs草根民主",
-        weight: 0.8
+        description: "狼性文化/慕强 vs 反内卷/摆烂",
+        weight: 0.9
+      },
+      {
+        id: "feminism_vs_patriarchy",
+        name: "女权 vs 父权|Feminism vs Patriarchy",
+        description: "性别平权/激进女权 vs 传统家庭观/红药丸(RedPill)",
+        weight: 0.9
       },
       {
         id: "urban_vs_rural",
-        name: "城市 vs 乡村|Urban vs Rural",
-        description: "城市观念vs乡村传统",
-        weight: 0.7
+        name: "城市 vs 乡土|Urban vs Rural",
+        description: "一线城市/中心化视角 vs 小镇青年/下沉市场视角",
+        weight: 0.8
       },
       {
         id: "generational_conflict",
         name: "代际冲突|Generational Conflict",
-        description: "新老世代观念差异",
-        weight: 0.7
-      },
-      {
-        id: "open_vs_closed",
-        name: "开放 vs 封闭|Open vs Closed",
-        description: "开放包容vs保守排外",
+        description: "后浪/Z世代/整顿职场 vs 前浪/老一辈/吃苦耐劳",
         weight: 0.8
       }
     ]
@@ -123,21 +123,27 @@ const LABEL_GROUPS: LabelGroup[] = [
     name: "Technology & Innovation",
     labels: [
       {
+        id: "open_vs_closed",
+        name: "开放 vs 封闭|Open vs Closed",
+        description: "开源/Linux vs 闭源/苹果/专利",
+        weight: 0.8
+      },
+      {
         id: "innovation_vs_security",
-        name: "创新 vs 安全|Innovation vs Security",
-        description: "技术进步vs安全稳定",
-        weight: 0.7
+        name: "创新导向 vs 安全导向|Innovation vs Security",
+        description: "激进迭代 vs 稳健/隐私优先",
+        weight: 0.9
       },
       {
-        id: "acceleration_vs_caution",
-        name: "加速主义 vs 谨慎主义|Acceleration vs Caution",
-        description: "技术加速vs审慎发展",
-        weight: 0.7
+        id: "optimism_vs_conservatism",
+        name: "技术乐观 vs 技术保守|Tech Optimism vs Conservatism",
+        description: "AI乌托邦/加速主义 vs AI末日论/卢德主义",
+        weight: 0.8
       },
       {
-        id: "privacy_vs_convenience",
-        name: "隐私 vs 便利|Privacy vs Convenience",
-        description: "隐私保护vs生活便利",
+        id: "decentralization_vs_centralization",
+        name: "去中心化 vs 中心化|Decentralization vs Centralization",
+        description: "Web3/区块链/DAO vs Web2/平台垄断",
         weight: 0.8
       }
     ]
@@ -147,22 +153,106 @@ const LABEL_GROUPS: LabelGroup[] = [
     name: "Culture & Lifestyle",
     labels: [
       {
-        id: "material_vs_spiritual",
-        name: "物质 vs 精神|Material vs Spiritual",
-        description: "物质享受vs精神追求",
+        id: "local_vs_global",
+        name: "本土化 vs 全球化|Local vs Global",
+        description: "文化自信/国潮 vs 普世价值/崇洋",
+        weight: 0.8
+      },
+      {
+        id: "spiritual_vs_material",
+        name: "精神 vs 物质|Spiritual vs Material",
+        description: "理想主义/哲学 vs 现实主义/消费",
+        weight: 0.8
+      },
+      {
+        id: "serious_vs_popular",
+        name: "严肃 vs 通俗|Serious vs Popular",
+        description: "深度/艺术/小众 vs 娱乐/流行/大众",
         weight: 0.7
       },
       {
-        id: "work_vs_life",
-        name: "工作 vs 生活|Work vs Life",
-        description: "事业成就vs生活品质",
+        id: "secular_vs_religious",
+        name: "世俗 vs 宗教|Secular vs Religious",
+        description: "唯物/科学/无神论 vs 宗教/玄学/星座/命理",
         weight: 0.7
+      }
+    ]
+  },
+  {
+    id: "environment",
+    name: "Environment",
+    labels: [
+      {
+        id: "protection_vs_development",
+        name: "环境保护 vs 经济发展|Protection vs Development",
+        description: "绿水青山优先 vs 工业产值优先",
+        weight: 0.8
       },
       {
-        id: "conformity_vs_individuality",
-        name: "从众 vs 个性|Conformity vs Individuality",
-        description: "社会规范vs个人特色",
-        weight: 0.7
+        id: "climate_believer_vs_skeptic",
+        name: "气候确信 vs 气候怀疑|Climate Believer vs Skeptic",
+        description: "认为气候变暖是紧急危机 vs 认为是骗局/自然周期",
+        weight: 0.8
+      }
+    ]
+  },
+  {
+    id: "entertainment",
+    name: "Entertainment",
+    labels: [
+      {
+        id: "2d_vs_3d",
+        name: "二次元 vs 三次元|2D vs 3D",
+        description: "动漫/虚拟 vs 现实/明星",
+        weight: 0.8
+      },
+      {
+        id: "hardcore_vs_casual",
+        name: "硬核 vs 休闲|Hardcore vs Casual",
+        description: "钻研/婆罗门/创造者 vs 吃瓜/路人/消费者",
+        weight: 0.8
+      },
+      {
+        id: "niche_vs_mainstream",
+        name: "亚文化 vs 主流|Niche vs Mainstream",
+        description: "独立/地下/邪典(Cult) vs 爆款/跟风/排行榜",
+        weight: 0.8
+      }
+    ]
+  },
+  {
+    id: "lifestyle_career",
+    name: "Lifestyle & Career",
+    labels: [
+      {
+        id: "frugal_vs_luxury",
+        name: "节俭 vs 奢华|Frugal vs Luxury",
+        description: "极简/挂逼/FIRE vs 消费主义/精致生活",
+        weight: 0.8
+      },
+      {
+        id: "stable_vs_risk",
+        name: "稳定 vs 风险|Stable vs Risk",
+        description: "体制内/考公 vs 创业/自由职业",
+        weight: 0.9
+      },
+      {
+        id: "cat_vs_dog",
+        name: "猫派 vs 狗派|Cat Person vs Dog Person",
+        description: "独立/宅 vs 热情/户外",
+        weight: 0.6
+      },
+      {
+        id: "family_vs_single",
+        name: "婚育 vs 单身|Family vs Single",
+        description: "亲子/鸡娃/家庭琐事 vs 丁克/不婚/单身贵族",
+        weight: 0.8
+      },
+      {
+        id: "discipline_vs_hedonism",
+        name: "自律 vs 享乐|Discipline vs Hedonism",
+        description: "健身/早起/成分党 vs 熬夜/美食/YOLO",
+        weight: 0.8
       }
     ]
   }
@@ -202,7 +292,6 @@ export class LabelService {
     return this.labelMap.get(id);
   }
 
-  // 添加缺失的方法
   public getCategories(): LabelGroup[] {
     return LABEL_GROUPS;
   }
@@ -233,7 +322,6 @@ export class LabelService {
     return this.formatLabels(filteredLabels);
   }
   
-  // 添加缺失的方法
   public getStandardLabelsForLLM(): string {
     const allGroups = this.getCategories();
     let result = "标准标签系统:\n";
@@ -258,71 +346,40 @@ export class LabelService {
   private getCategoryLabels(category: MacroCategory): LabelDefinition[] {
     switch(category) {
       case 'politics':
-        return this.labels.filter(l => 
-          l.id.includes('ideology') || 
-          l.id.includes('liberty') || 
-          l.id.includes('tradition') || 
-          l.id.includes('nationalism') ||
-          l.id.includes('authoritarian')
-        );
+        return this.getLabelsByCategory('politics');
       case 'economy':
-        return this.labels.filter(l => 
-          l.id.includes('market') || 
-          l.id.includes('competition') || 
-          l.id.includes('speculation') || 
-          l.id.includes('real') ||
-          l.id.includes('capital')
-        );
+        return this.getLabelsByCategory('economy');
       case 'society':
-        return this.labels.filter(l => 
-          l.id.includes('individualism') || 
-          l.id.includes('feminism') || 
-          l.id.includes('elite') || 
-          l.id.includes('urban') ||
-          l.id.includes('generational') ||
-          l.id.includes('open')
-        );
+        return this.getLabelsByCategory('society');
       case 'technology':
-        return this.labels.filter(l => 
-          l.id.includes('innovation') || 
-          l.id.includes('acceleration') || 
-          l.id.includes('privacy')
-        );
+        return this.getLabelsByCategory('technology');
       case 'culture':
-      case 'entertainment':
-        return this.labels.filter(l => 
-          l.id.includes('material') || 
-          l.id.includes('work') || 
-          l.id.includes('conformity')
-        );
+        return this.getLabelsByCategory('culture');
       case 'environment':
-        return this.labels.filter(l => 
-          l.id.includes('innovation') || 
-          l.id.includes('tradition') || 
-          l.id.includes('open')
-        );
+        return this.getLabelsByCategory('environment');
+      case 'entertainment':
+        return this.getLabelsByCategory('entertainment');
       case 'lifestyle_career':
-        return this.labels.filter(l => 
-          l.id.includes('work') || 
-          l.id.includes('material') || 
-          l.id.includes('conformity')
-        );
+        return this.getLabelsByCategory('lifestyle_career');
       default:
         return this.labels;
     }
   }
   
   private filterLabelsByMode(labels: LabelDefinition[], mode: AnalysisMode): LabelDefinition[] {
+    // Remove duplicates
+    const uniqueLabels = Array.from(new Map(labels.map(l => [l.id, l])).values());
+    
     switch(mode) {
       case 'fast':
         // 快速模式只返回最重要的标签
-        return labels.filter(l => l.weight >= 0.9);
+        return uniqueLabels.filter(l => l.weight >= 0.9);
       case 'balanced':
         // 平衡模式返回权重中等及以上的标签
-        return labels.filter(l => l.weight >= 0.7);
+        return uniqueLabels.filter(l => l.weight >= 0.7);
       case 'deep':
         // 深度模式返回所有标签
-        return labels;
+        return uniqueLabels;
     }
   }
   
@@ -365,175 +422,43 @@ export class LabelService {
   private calculateScoreForLabel(label: LabelDefinition, contentLower: string): number {
     // 根据标签ID和内容计算倾向性分数
     // 这是一个简化的启发式方法，实际实现可能会使用ML模型
+    
+    // 简单的关键词匹配逻辑
+    const nameParts = label.name.split('|');
+    const chineseTerms = (nameParts[0] || '').split(/[|，,]/);
+    const englishTerms = (nameParts[1] || '').split(/[|-]/);
+    
+    let positiveCount = 0;
+    let negativeCount = 0;
+    
+    // 检查描述中的关键词
+    if (label.description.toLowerCase().includes('vs')) {
+      const parts = label.description.split(/vs/i);
+      if (parts.length >= 2) {
+        const leftSide = parts[0].toLowerCase();
+        const rightSide = parts[1].toLowerCase();
+        
+        // 简单的包含检查
+        if (contentLower.includes(leftSide.trim())) negativeCount++;
+        if (contentLower.includes(rightSide.trim())) positiveCount++;
+      }
+    }
+    
+    // 检查ID相关的特定关键词
     switch(label.id) {
       case 'ideology':
-        if (contentLower.includes('左') || contentLower.includes('left')) return 0.8;
-        if (contentLower.includes('右') || contentLower.includes('right')) return -0.8;
-        if (contentLower.includes('自由') || contentLower.includes('liberal')) return 0.7;
-        if (contentLower.includes('保守') || contentLower.includes('conservative')) return -0.7;
+        if (contentLower.includes('左') || contentLower.includes('left')) positiveCount++;
+        if (contentLower.includes('右') || contentLower.includes('right')) negativeCount++;
         break;
       case 'market_vs_gov':
-        if (contentLower.includes('市场') || contentLower.includes('market')) return 0.8;
-        if (contentLower.includes('政府') || contentLower.includes('gov')) return -0.8;
-        if (contentLower.includes('监管') || contentLower.includes('regulat')) return -0.7;
-        if (contentLower.includes('自由') || contentLower.includes('free')) return 0.7;
+        if (contentLower.includes('市场') || contentLower.includes('market')) positiveCount++;
+        if (contentLower.includes('政府') || contentLower.includes('gov')) negativeCount++;
         break;
-      case 'individualism_vs_collectivism':
-        if (contentLower.includes('个人') || contentLower.includes('individual')) return 0.8;
-        if (contentLower.includes('集体') || contentLower.includes('collective')) return -0.8;
-        if (contentLower.includes('权利') || contentLower.includes('rights')) return 0.7;
-        if (contentLower.includes('团结') || contentLower.includes('unity')) return -0.7;
-        break;
-      case 'feminism_vs_patriarchy':
-        if (contentLower.includes('女权') || contentLower.includes('feminist')) return 0.8;
-        if (contentLower.includes('传统') || contentLower.includes('traditional')) return -0.8;
-        if (contentLower.includes('平权') || contentLower.includes('equality')) return 0.7;
-        if (contentLower.includes('家庭') || contentLower.includes('family')) return -0.7;
-        break;
-      case 'innovation_vs_security':
-        if (contentLower.includes('创新') || contentLower.includes('innovat')) return 0.8;
-        if (contentLower.includes('安全') || contentLower.includes('securit')) return -0.8;
-        if (contentLower.includes('发展') || contentLower.includes('develop')) return 0.7;
-        if (contentLower.includes('风险') || contentLower.includes('risk')) return -0.7;
-        break;
-      case 'open_vs_closed':
-        if (contentLower.includes('开放') || contentLower.includes('open')) return 0.8;
-        if (contentLower.includes('封闭') || contentLower.includes('closed')) return -0.8;
-        if (contentLower.includes('共享') || contentLower.includes('share')) return 0.7;
-        if (contentLower.includes('专有') || contentLower.includes('proprietary')) return -0.7;
-        break;
-      case 'urban_vs_rural':
-        if (contentLower.includes('城市') || contentLower.includes('urban')) return 0.8;
-        if (contentLower.includes('乡村') || contentLower.includes('rural')) return -0.8;
-        if (contentLower.includes('现代') || contentLower.includes('modern')) return 0.7;
-        if (contentLower.includes('传统') || contentLower.includes('tradition')) return -0.7;
-        break;
-      case 'generational_conflict':
-        if (contentLower.includes('年轻') || contentLower.includes('young')) return 0.8;
-        if (contentLower.includes('老') || contentLower.includes('old')) return -0.8;
-        if (contentLower.includes('新') || contentLower.includes('new')) return 0.7;
-        if (contentLower.includes('旧') || contentLower.includes('old')) return -0.7;
-        break;
-      case 'competition_vs_equality':
-        if (contentLower.includes('竞争') || contentLower.includes('competit')) return 0.8;
-        if (contentLower.includes('平等') || contentLower.includes('equalit')) return -0.8;
-        if (contentLower.includes('优胜劣汰') || contentLower.includes('survival')) return 0.7;
-        if (contentLower.includes('互助') || contentLower.includes('mutual')) return -0.7;
-        break;
-      case 'speculation_vs_value':
-        if (contentLower.includes('投机') || contentLower.includes('speculat')) return -0.8;
-        if (contentLower.includes('价值') || contentLower.includes('value')) return 0.8;
-        if (contentLower.includes('长期') || contentLower.includes('long-term')) return 0.7;
-        if (contentLower.includes('短期') || contentLower.includes('short-term')) return -0.7;
-        break;
-      case 'real_vs_virtual':
-        if (contentLower.includes('实体') || contentLower.includes('real')) return 0.8;
-        if (contentLower.includes('虚拟') || contentLower.includes('virtual')) return -0.8;
-        if (contentLower.includes('制造') || contentLower.includes('manufactur')) return 0.7;
-        if (contentLower.includes('金融') || contentLower.includes('finance')) return -0.7;
-        break;
-      case 'elite_vs_grassroots':
-        if (contentLower.includes('精英') || contentLower.includes('elite')) return 0.8;
-        if (contentLower.includes('草根') || contentLower.includes('grassroot')) return -0.8;
-        if (contentLower.includes('专业') || contentLower.includes('expert')) return 0.7;
-        if (contentLower.includes('民众') || contentLower.includes('people')) return -0.7;
-        break;
-      case 'liberty_order':
-        if (contentLower.includes('自由') || contentLower.includes('libert')) return 0.8;
-        if (contentLower.includes('秩序') || contentLower.includes('order')) return -0.8;
-        if (contentLower.includes('权利') || contentLower.includes('right')) return 0.7;
-        if (contentLower.includes('管制') || contentLower.includes('control')) return -0.7;
-        break;
-      case 'tradition_change':
-        if (contentLower.includes('传统') || contentLower.includes('tradition')) return 0.8;
-        if (contentLower.includes('革新') || contentLower.includes('change')) return -0.8;
-        if (contentLower.includes('守旧') || contentLower.includes('conservat')) return 0.7;
-        if (contentLower.includes('改革') || contentLower.includes('reform')) return -0.7;
-        break;
-      case 'nationalism_globalism':
-        if (contentLower.includes('民族') || contentLower.includes('nation')) return 0.8;
-        if (contentLower.includes('全球') || contentLower.includes('global')) return -0.8;
-        if (contentLower.includes('主权') || contentLower.includes('sovereignty')) return 0.7;
-        if (contentLower.includes('合作') || contentLower.includes('cooperat')) return -0.7;
-        break;
-      case 'authoritarian_hierarchy':
-        if (contentLower.includes('权威') || contentLower.includes('authorit')) return 0.8;
-        if (contentLower.includes('平等') || contentLower.includes('equal')) return -0.8;
-        if (contentLower.includes('等级') || contentLower.includes('hierarch')) return 0.7;
-        if (contentLower.includes('民主') || contentLower.includes('democracy')) return -0.7;
-        break;
-      case 'acceleration_vs_caution':
-        if (contentLower.includes('加速') || contentLower.includes('accelerat')) return 0.8;
-        if (contentLower.includes('谨慎') || contentLower.includes('cautious')) return -0.8;
-        if (contentLower.includes('进步') || contentLower.includes('progress')) return 0.7;
-        if (contentLower.includes('稳健') || contentLower.includes('steady')) return -0.7;
-        break;
-      case 'privacy_vs_convenience':
-        if (contentLower.includes('隐私') || contentLower.includes('privac')) return 0.8;
-        if (contentLower.includes('便利') || contentLower.includes('convenienc')) return -0.8;
-        if (contentLower.includes('保护') || contentLower.includes('protect')) return 0.7;
-        if (contentLower.includes('便捷') || contentLower.includes('convenient')) return -0.7;
-        break;
-      case 'material_vs_spiritual':
-        if (contentLower.includes('物质') || contentLower.includes('materi')) return 0.8;
-        if (contentLower.includes('精神') || contentLower.includes('spiritual')) return -0.8;
-        if (contentLower.includes('财富') || contentLower.includes('wealth')) return 0.7;
-        if (contentLower.includes('心灵') || contentLower.includes('soul')) return -0.7;
-        break;
-      case 'work_vs_life':
-        if (contentLower.includes('工作') || contentLower.includes('work')) return 0.8;
-        if (contentLower.includes('生活') || contentLower.includes('life')) return -0.8;
-        if (contentLower.includes('事业') || contentLower.includes('career')) return 0.7;
-        if (contentLower.includes('休闲') || contentLower.includes('leisure')) return -0.7;
-        break;
-      case 'conformity_vs_individuality':
-        if (contentLower.includes('个性') || contentLower.includes('individu')) return 0.8;
-        if (contentLower.includes('从众') || contentLower.includes('conform')) return -0.8;
-        if (contentLower.includes('独特') || contentLower.includes('unique')) return 0.7;
-        if (contentLower.includes('统一') || contentLower.includes('uniform')) return -0.7;
-        break;
-      case 'capital_labor':
-        if (contentLower.includes('资本') || contentLower.includes('capital')) return 0.8;
-        if (contentLower.includes('劳动') || contentLower.includes('labor')) return -0.8;
-        if (contentLower.includes('投资') || contentLower.includes('invest')) return 0.7;
-        if (contentLower.includes('工资') || contentLower.includes('wage')) return -0.7;
-        break;
-      default:
-        // 对于未特别处理的标签，使用通用关键词匹配
-        const nameParts = label.name.split('|');
-        const chineseTerms = (nameParts[0] || '').split(/[|，,]/);
-        const englishTerms = (nameParts[1] || '').split(/[|-]/);
-        
-        let positiveCount = 0;
-        let negativeCount = 0;
-        
-        chineseTerms.forEach(term => {
-          if (contentLower.includes(term.toLowerCase())) {
-            positiveCount++;
-          }
-        });
-        
-        englishTerms.forEach(term => {
-          if (contentLower.includes(term.toLowerCase())) {
-            positiveCount++;
-          }
-        });
-        
-        // 根据标签的描述进一步细化判断
-        if (label.description.toLowerCase().includes('vs') || label.description.toLowerCase().includes('versus')) {
-          const parts = label.description.split(/vs|versus/i);
-          if (parts.length >= 2) {
-            const leftSide = parts[0].toLowerCase();
-            const rightSide = parts[1].toLowerCase();
-            
-            if (contentLower.includes(leftSide)) negativeCount++;
-            if (contentLower.includes(rightSide)) positiveCount++;
-          }
-        }
-        
-        if (positiveCount > 0 || negativeCount > 0) {
-          return (positiveCount - negativeCount) / (positiveCount + negativeCount);
-        }
+      // 可以添加更多特定标签的逻辑
+    }
+    
+    if (positiveCount > 0 || negativeCount > 0) {
+      return (positiveCount - negativeCount) / (positiveCount + negativeCount + 1); // +1 防止除零，并稍微平滑分数
     }
     
     return 0; // 默认无明显倾向
