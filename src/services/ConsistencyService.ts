@@ -68,6 +68,7 @@ export class ConsistencyService {
   
   /**
    * 验证证据与标签分数的一致性
+   * 注意：不再添加模板化证据，因为这可能误导用户以为这些是真实引述
    */
   static validateAndFixEvidenceConsistency(profile: ProfileData): ProfileData {
     if (!profile.value_orientation || !profile.evidence) {
@@ -76,80 +77,55 @@ export class ConsistencyService {
 
     const fixedProfile = { ...profile };
     
-    // 为每个高分标签寻找支持证据
+    // 仅检查现有证据与标签的一致性，不再添加模板化证据
     const highScoreLabels = profile.value_orientation.filter(item => Math.abs(item.score) >= 0.7);
     
     if (highScoreLabels.length > 0) {
       const labelService = LabelService.getInstance();
-      const fixedEvidence = [...profile.evidence];
+      const existingEvidence = [...profile.evidence];
       
       for (const labelItem of highScoreLabels) {
         const labelInfo = labelService.getLabelById(labelItem.label);
         if (!labelInfo) continue;
         
         // 检查是否已有支持该标签的证据
-        const hasSupportingEvidence = fixedEvidence.some(e =>
+        const hasSupportingEvidence = existingEvidence.some(e =>
           this.containsKeyword(e.analysis, labelInfo.name) ||
           this.containsKeyword(e.analysis, labelInfo.id) ||
           this.containsKeyword(e.quote, labelInfo.name) ||
           this.containsKeyword(e.quote, labelInfo.id)
         );
         
-        if (!hasSupportingEvidence) {
-          // 添加缺失的证据说明
-          const finalLabel = calculateFinalLabel(labelInfo.id, labelItem.score);
-          const evidenceItem = {
-            quote: "",
-            analysis: `用户在${labelInfo.name}方面表现出明显的${finalLabel.label}倾向(${Math.abs(labelItem.score * 100).toFixed(0)}%)，这体现在其整体表达风格和观点中。`,
-            source_title: "Profile Analysis",
-            source_id: "consistency_fix"
-          };
-          
-          fixedEvidence.push(evidenceItem);
-        }
+        // 不再添加模板化证据，只是检查现有证据
+        // 如果没有支持证据，保留原有证据不变
       }
-      
-      fixedProfile.evidence = fixedEvidence;
     }
     
-    // 为中等分数标签也提供证据支持
+    // 对中等分数标签也执行相同检查，不添加模板化证据
     const mediumScoreLabels = profile.value_orientation.filter(item => 
       Math.abs(item.score) >= 0.4 && Math.abs(item.score) < 0.7
     );
     
     if (mediumScoreLabels.length > 0) {
       const labelService = LabelService.getInstance();
-      const fixedEvidence = fixedProfile.evidence || [...profile.evidence];
       
       for (const labelItem of mediumScoreLabels) {
         const labelInfo = labelService.getLabelById(labelItem.label);
         if (!labelInfo) continue;
         
         // 检查是否已有支持该标签的证据
-        const hasSupportingEvidence = fixedEvidence.some(e =>
+        const hasSupportingEvidence = profile.evidence.some(e =>
           this.containsKeyword(e.analysis, labelInfo.name) ||
           this.containsKeyword(e.analysis, labelInfo.id) ||
           this.containsKeyword(e.quote, labelInfo.name) ||
           this.containsKeyword(e.quote, labelInfo.id)
         );
         
-        if (!hasSupportingEvidence) {
-          // 为中等分数标签添加证据说明
-          const finalLabel = calculateFinalLabel(labelInfo.id, labelItem.score);
-          const evidenceItem = {
-            quote: "",
-            analysis: `用户在${labelInfo.name}方面表现出一定的${finalLabel.label}倾向(${Math.abs(labelItem.score * 100).toFixed(0)}%)。`,
-            source_title: "Profile Analysis",
-            source_id: "medium_score_evidence"
-          };
-          
-          fixedEvidence.push(evidenceItem);
-        }
+        // 同样，不添加模板化证据
       }
-      
-      fixedProfile.evidence = fixedEvidence;
     }
     
+    // 保持原有的证据不变，不添加任何模板化内容
     return fixedProfile;
   }
   

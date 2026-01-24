@@ -65,7 +65,7 @@ describe('ConsistencyService', () => {
   });
 
   describe('validateAndFixEvidenceConsistency', () => {
-    it('should add evidence for high-score labels without supporting evidence', () => {
+    it('should not add template evidence for high-score labels without supporting evidence', () => {
       const profileWithoutEvidence = {
         ...sampleProfile,
         evidence: [] // No existing evidence
@@ -77,15 +77,15 @@ describe('ConsistencyService', () => {
       expect(result.evidence).not.toBeUndefined();
       expect(Array.isArray(result.evidence)).toBe(true);
       
-      // Should have added evidence for high-score labels
+      // Should NOT add template evidence for high-score labels
       const addedEvidence = result.evidence!.filter(e => 
         e.source_id === 'consistency_fix'
       );
       
-      expect(addedEvidence.length).toBeGreaterThan(0);
+      expect(addedEvidence.length).toBe(0);
     });
 
-    it('should not add duplicate evidence when some evidence already exists', () => {
+    it('should preserve existing evidence without adding template evidence', () => {
       const profileWithPartialEvidence = {
         ...sampleProfile,
         evidence: [
@@ -100,13 +100,20 @@ describe('ConsistencyService', () => {
 
       const result = ConsistencyService.validateAndFixEvidenceConsistency(profileWithPartialEvidence);
       
-      // Should still have original evidence plus any needed additions
-      expect(result.evidence!.length).toBeGreaterThanOrEqual(1);
+      // Should preserve original evidence without adding template evidence
+      expect(result.evidence!.length).toBe(1);
+      
+      // Should NOT have added any template evidence
+      const templateEvidence = result.evidence!.filter(e => 
+        e.source_id === 'consistency_fix' || e.source_id === 'medium_score_evidence'
+      );
+      
+      expect(templateEvidence.length).toBe(0);
     });
   });
 
   describe('validateAndFixFullConsistency', () => {
-    it('should apply evidence fixes but not summary modifications', () => {
+    it('should not modify evidence or summary', () => {
       const profile = {
         ...sampleProfile,
         summary: 'Basic summary without details',
@@ -117,9 +124,9 @@ describe('ConsistencyService', () => {
       
       // Summary should remain unchanged
       expect(result.summary).toBe('Basic summary without details');
-      // But evidence should be enhanced
+      // Evidence should remain unchanged (no template evidence added)
       expect(result.evidence).not.toBeNull();
-      expect(result.evidence!.length).toBeGreaterThan(0);
+      expect(result.evidence!.length).toBe(0);
     });
   });
 
