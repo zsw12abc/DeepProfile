@@ -41,6 +41,13 @@ export class ConfigService {
     }
   }
 
+  static getConfigSync(): ExtendedAppConfig {
+    // This is a synchronous method that returns default config
+    // In a real implementation, this could check a local cache of the config
+    // For now, returning default config to avoid breaking functionality
+    return DEFAULT_CONFIG as ExtendedAppConfig;
+  }
+
   static async updateApiKey(provider: string, apiKey: string): Promise<void> {
     const currentConfig = await this.getConfig()
     const newConfig = {

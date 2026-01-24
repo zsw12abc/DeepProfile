@@ -192,19 +192,32 @@ export const zhCN: LocaleDict = {
 // DeepProfile 当前版本更新日志
 export const zhCNChangelog = `# DeepProfile 当前版本更新日志
 
-## 当前版本: v0.6.3 (Beta)
+## 当前版本: v0.7.1 (Beta)
 
 ### ✅ 已达成功能
+
+### 核心功能 (v0.7.1) - 标签显示与LLM输出优化
+- ✅ **标签显示修复**: 解决了部分标签（如 \`competition_vs_equality\`, \`speculation_vs_value\` 等）在前端无法正确显示的问题。
+- ✅ **标签定义同步**: 确保了 \`LabelService\` 中的标签定义与 \`LabelDefinitions\` 完全一致，消除了 ID 不匹配导致的显示错误。
+- ✅ **LLM 输出标准化**: 增加了对 LLM 返回标签 ID 的自动标准化处理，能够自动纠正 AI 返回的非标准标签 ID（例如将 \`nationalism_globalism\` 自动映射为 \`geopolitics\`）。
+- ✅ **重复标签处理**: 优化了结果解析逻辑，自动合并和去重 LLM 返回的重复标签，优先保留置信度更高的评分。
+
+### 核心功能 (v0.7.0) - 提升画像分析准确度与一致性
+- ✅ **AI摘要一致性**: 确保AI生成的摘要与数值标签分数保持一致
+- ✅ **一致性验证机制**: 新增ConsistencyService验证并修复摘要与标签的一致性
+- ✅ **标签-摘要关联**: 高分标签会在摘要中得到明确体现
+- ✅ **证据支撑**: 确保分析证据与标签分数相匹配
+
+`;
+
+// DeepProfile 版本历史记录
+export const zhCNVersionHistory = `# DeepProfile 版本历史
 
 ### 核心功能 (v0.6.3) - 分析进度可视化与标签显示优化
 - ✅ **进度预估**: 根据分析模式显示预估剩余时间 (例如: "正在分析... (15s)")
 - ✅ **进度条动画**: 显示动态进度条，直观反映分析进度。
 - ✅ **模式差异化**: 不同分析模式 (极速/平衡/深度) 显示不同的预估时间。
 - ✅ **双向发散条形图优化**: 价值标签左右对齐，百分比显示在双向发散条上方。
-`;
-
-// DeepProfile 版本历史记录
-export const zhCNVersionHistory = `# DeepProfile 版本历史
 
 ### v0.6.2 (2024-01-09) - 主题系统
 *   **Feature**: **主题定制**，支持用户自定义外观主题，包括颜色方案、字体、尺寸等。

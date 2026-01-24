@@ -1,4 +1,3 @@
-﻿
 import { LLMService } from "./LLMService";
 import type { MacroCategory } from "~types";
 import { I18nService } from "./I18nService";
@@ -10,70 +9,18 @@ const CATEGORIES: MacroCategory[] = [
 
 export class TopicService {
   
-  static classify(context: string): MacroCategory {
+  static classify(context: any): MacroCategory {
     if (!context) return 'general';
     
-    const text = context.toLowerCase();
+    // Ensure text is a string and convert to lowercase
+    let text = "";
+    try {
+      text = String(context).toLowerCase();
+    } catch (e) {
+      return 'general';
+    }
     
-    // 1. 政治 (Politics)
-    if (this.matches(text, [
-      '政治', '意识形态', '左翼', '右翼', '自由主义', '威权', '政府', '国家', '外交', '战争', 
-      '军事', '地缘', '民族', '爱国', '改革', '保守', '建制', '民粹', 'politics', 'ideology', 'government', 'war',
-      '美国', '中国', '俄罗斯', '乌克兰', '以色列', '巴勒斯坦', '台湾', '日本', '韩国', '朝鲜', '印度', '欧洲', '欧盟',
-      '拜登', '特朗普', '普京', '泽连斯基', '联合国', '北约', '制裁', '贸易战', '脱钩', '一带一路',
-      '巡洋舰', '航母', '战斗机', '导弹', '核武器', '军队', '解放军', '美军'
-    ])) {
-      return 'politics';
-    }
-
-    // 2. 经济 (Economy)
-    if (this.matches(text, [
-      '经济', '金融', '市场', '计划', '公有制', '私有制', '国企', '民企', '投资', '股票', 
-      '基金', '币圈', '宏观', '汇率', '搞钱', '副业', '实体经济', '虚拟经济', 'economy', 'finance', 'market', 'money',
-      'gdp', 'cpi', '通胀', '通缩', '降息', '加息', '美联储', '央行', '财政', '税收', '债务', '房地产', '房价',
-      '股市', 'a股', '美股', '港股', '比特币', '以太坊', '区块链', 'web3', '消费', '降级', '升级'
-    ])) {
-      return 'economy';
-    }
-
-    // 3. 社会 (Society)
-    if (this.matches(text, [
-      '社会', '集体', '个人', '阶级', '资本', '躺平', '内卷', '奋斗', '女权', '性别', 
-      '家庭观', '父权', '城市', '乡土', '地域', '代际', '后浪', '00后', 'society', 'class', 'gender', 'feminism',
-      '人口', '生育', '老龄化', '少子化', '退休', '养老', '医保', '社保', '教育', '高考', '考研', '留学',
-      '歧视', '公平', '正义', '道德', '伦理', '法律', '案件', '犯罪', '治安'
-    ])) {
-      return 'society';
-    }
-
-    // 4. 科技 (Technology)
-    if (this.matches(text, [
-      '科技', '技术', '开源', '闭源', 'ai', '人工智能', '加速主义', '安卓', '苹果', 'windows',
-      '数码', '评测', '芯片', '软件', '硬件', '去中心化', 'technology', 'tech', 'ai', 'code', 'software',
-      'chatgpt', 'gpt', 'llm', '大模型', '华为', '小米', '华为', '荣耀', 'oppo', 'vivo', '三星', '索尼',
-      '显卡', 'cpu', 'gpu', '英伟达', '英特尔', 'amd', '特斯拉', '马斯克', 'spacex', '火箭', '航天'
-    ])) {
-      return 'technology';
-    }
-
-    // 5. 文化 (Culture)
-    if (this.matches(text, [
-      '文化', '传统', '国学', '西化', '普世价值', '审美', '哲学', '艺术', '宗教', '信仰',
-      '无神论', '玄学', '神秘学', '星座', 'culture', 'tradition', 'art', 'philosophy', 'religion',
-      '历史', '文学', '小说', '诗歌', '绘画', '书法', '音乐', '戏剧', '电影', '博物馆', '文物'
-    ])) {
-      return 'culture';
-    }
-
-    // 6. 环境 (Environment)
-    if (this.matches(text, [
-      '环境', '环保', '气候', '变暖', '碳排放', '污染', '生态', '绿色', 'environment', 'climate', 'pollution', 'green',
-      '新能源', '电动车', '电池', '光伏', '风能', '核能', '垃圾分类', '保护动物', '生物多样性'
-    ])) {
-      return 'environment';
-    }
-
-    // 7. 娱乐 (Entertainment)
+    // 1. 娱乐 (Entertainment) - 高优先级，避免与文化混淆
     if (this.matches(text, [
       '娱乐', '游戏', '二次元', '动漫', 'acgn', '明星', '体育', '足球', '篮球', '电影',
       '音乐', '亚文化', '小众', '邪典', 'entertainment', 'game', 'movie', 'music', 'sport', 'anime',
@@ -83,61 +30,264 @@ export class TopicService {
       return 'entertainment';
     }
 
-    // 8. 生活与职场 (Lifestyle & Career)
+    // 2. 技术 (Technology) - 避免与文化混淆
     if (this.matches(text, [
-      '生活', '消费', '极简', '奢华', '精致', '健康', '养生', '熬夜', '婚恋', '单身',
-      '丁克', '二胎', '宠物', '猫', '狗', '职场', '工作', '体制内', '考公', '编制', 
-      '自由职业', '打工', '摸鱼', '老板', '创业', 'lifestyle', 'life', 'health', 'marriage', 'pet', 'career', 'job', 'work',
-      '面试', '简历', '跳槽', '裁员', '失业', '996', '007', '加班', '调休', '年假', '工资', '薪资',
-      '买房', '租房', '装修', '家居', '美食', '做饭', '外卖', '旅游', '旅行', '签证'
+      '技术', '科技', '编程', '软件', '硬件', '互联网', 'ai', '人工智能', '算法', '数据',
+      '开源', 'github', 'git', 'linux', 'windows', 'mac', 'apple', 'google', 'microsoft',
+      'developer', 'programming', 'software', 'hardware', 'internet', 'algorithm', 'database',
+      'cloud', 'docker', 'kubernetes', 'devops', 'security', 'cybersecurity', 'blockchain'
+    ])) {
+      return 'technology';
+    }
+
+    // 3. 经济 (Economy)
+    if (this.matches(text, [
+      '经济', '金融', '股票', '基金', '投资', '理财', '货币', '银行', '股市', '债券',
+      '房地产', '房价', '房贷', '利率', '通胀', 'gdp', '经济', '财政', '税收', '预算',
+      'economy', 'finance', 'stock', 'investment', 'bank', 'mortgage', 'interest', 'inflation',
+      'property', 'real estate', 'bond', 'currency', 'banking', 'trading', 'fund'
+    ])) {
+      return 'economy';
+    }
+
+    // 4. 政治 (Politics)
+    if (this.matches(text, [
+      '政治', '政府', '党派', '选举', '总统', '总理', '国会', '议会', '法律', '政策',
+      '宪法', '民主', '专制', '人权', '自由', '左派', '右派', '保守', '自由派',
+      'politics', 'government', 'party', 'election', 'president', 'prime minister', 'congress',
+      'parliament', 'law', 'policy', 'constitution', 'democracy', 'dictatorship', 'human rights'
+    ])) {
+      return 'politics';
+    }
+
+    // 5. 社会 (Society) - 需要更精确的关键词，避免与文化、生活混淆
+    if (this.matches(text, [
+      '社会', '社会问题', '社会治理', '民生', '社会现象', '社会保障', '社保', '医保', '社会福利',
+      '家庭', '婚姻', '生育', '养老', '就业', '失业', '工资', '贫困', '社会阶层', '社会流动',
+      '社会矛盾', '社会公平', '社会正义', '社会建设', '社会管理', '性别', '女权',
+      'society', 'social', 'social issue', 'social governance', 'social welfare', 'social phenomenon',
+      'family', 'marriage', 'employment', 'social mobility', 'social justice', 'social equity', 'social construction'
+    ])) {
+      return 'society';
+    }
+
+    // 6. 文化 (Culture) - 在社会之后，避免冲突
+    if (this.matches(text, [
+      '文化', '艺术', '文学', '小说', '诗歌', '绘画', '书法', '摄影', '设计', '时尚',
+      '传统', '习俗', '节日', '宗教', '哲学', '思想', '信仰', '价值观', '道德', '文教',
+      'culture', 'art', 'literature', 'novel', 'poetry', 'painting', 'photography',
+      'design', 'fashion', 'tradition', 'custom', 'festival', 'religion', 'philosophy', 'culture'
+    ])) {
+      return 'culture';
+    }
+
+    // 7. 生活/职业 (Lifestyle/Career) - 需要明确的生活/职业关键词
+    if (this.matches(text, [
+      '工作', '职业', '职场', '同事', '老板', '公司', '企业', '创业', '生意', '商业',
+      '生活', '日常生活', '个人生活', '家务', '做饭', '饮食', '健康', '运动', '健身', '旅游', '爱好',
+      '求职', '面试', '职业生涯', '工作生活', 'work life', 'life balance',
+      'work', 'job', 'career', 'colleague', 'boss', 'company', 'business', 'startup',
+      'daily life', 'personal life', 'home', 'cooking', 'diet', 'health', 'exercise', 'travel', 'hobby',
+      'job hunting', 'interview', 'career path', 'work-life', 'work life balance'
     ])) {
       return 'lifestyle_career';
     }
 
-    // 默认归类
+    // 8. 环境 (Environment)
+    if (this.matches(text, [
+      '环境', '环保', '污染', '气候', '天气', '生态', '自然', '动物', '植物', '森林',
+      '海洋', '河流', '空气', '水质', '垃圾', '回收', '绿色', '可持续', '碳排放',
+      'environment', 'pollution', 'climate', 'weather', 'ecology', 'nature', 'animal',
+      'plant', 'forest', 'ocean', 'river', 'air', 'water', 'waste', 'green', 'carbon'
+    ])) {
+      return 'environment';
+    }
+
     return 'general';
+  }
+
+  static async classifyWithConfidence(context: string): Promise<{category: MacroCategory, confidence: number}> {
+    if (!context) return {category: 'general', confidence: 1.0};
+    
+    // 使用关键词匹配作为初步分类
+    const keywordCategory = this.classify(context);
+    
+    // 计算关键词匹配的置信度
+    const keywordConfidence = this.calculateKeywordConfidence(context, keywordCategory);
+    
+    try {
+      // 使用LLM进行二次确认
+      const llmCategory = await this.classifyWithLLM(context);
+      
+      // 比较两种方法的结果
+      if (keywordCategory === llmCategory) {
+        // 如果两种方法一致，置信度更高
+        return {category: keywordCategory, confidence: Math.min(1.0, keywordConfidence + 0.2)};
+      } else {
+        // 如果结果不同，返回LLM结果，置信度稍低
+        return {category: llmCategory, confidence: 0.7};
+      }
+    } catch (error) {
+      // 如果LLM分类失败，返回关键词分类结果
+      return {category: keywordCategory, confidence: keywordConfidence};
+    }
+  }
+
+  private static calculateKeywordConfidence(context: string, category: MacroCategory): number {
+    if (!context) return 0.0;
+    
+    const text = String(context).toLowerCase();
+    let matchedKeywordsCount = 0;
+    
+    // 根据类别统计匹配的关键词数量
+    switch (category) {
+      case 'entertainment':
+        matchedKeywordsCount = this.countMatches(text, [
+          '娱乐', '游戏', '二次元', '动漫', 'acgn', '明星', '体育', '足球', '篮球', '电影',
+          '音乐', '亚文化', '小众', '邪典', 'entertainment', 'game', 'movie', 'music', 'sport', 'anime',
+          '原神', '王者荣耀', '英雄联盟', 'lol', 'dota', 'steam', 'switch', 'ps5', 'xbox', '任天堂',
+          'nba', 'cba', '世界杯', '奥运会', '梅西', 'c罗', '詹姆斯', '科比', '演唱会', '综艺'
+        ]);
+        break;
+      case 'technology':
+        matchedKeywordsCount = this.countMatches(text, [
+          '技术', '科技', '编程', '软件', '硬件', '互联网', 'ai', '人工智能', '算法', '数据',
+          '开源', 'github', 'git', 'linux', 'windows', 'mac', 'apple', 'google', 'microsoft',
+          'developer', 'programming', 'software', 'hardware', 'internet', 'algorithm', 'database',
+          'cloud', 'docker', 'kubernetes', 'devops', 'security', 'cybersecurity', 'blockchain'
+        ]);
+        break;
+      case 'economy':
+        matchedKeywordsCount = this.countMatches(text, [
+          '经济', '金融', '股票', '基金', '投资', '理财', '货币', '银行', '股市', '债券',
+          '房地产', '房价', '房贷', '利率', '通胀', 'gdp', '经济', '财政', '税收', '预算',
+          'economy', 'finance', 'stock', 'investment', 'bank', 'mortgage', 'interest', 'inflation',
+          'property', 'real estate', 'bond', 'currency', 'banking', 'trading', 'fund'
+        ]);
+        break;
+      case 'politics':
+        matchedKeywordsCount = this.countMatches(text, [
+          '政治', '政府', '党派', '选举', '总统', '总理', '国会', '议会', '法律', '政策',
+          '宪法', '民主', '专制', '人权', '自由', '左派', '右派', '保守', '自由派',
+          'politics', 'government', 'party', 'election', 'president', 'prime minister', 'congress',
+          'parliament', 'law', 'policy', 'constitution', 'democracy', 'dictatorship', 'human rights'
+        ]);
+        break;
+      case 'society':
+        matchedKeywordsCount = this.countMatches(text, [
+          '社会', '社会问题', '社会治理', '民生', '社会现象', '社会保障', '社保', '医保', '社会福利',
+          '家庭', '婚姻', '生育', '养老', '就业', '失业', '工资', '贫困', '社会阶层', '社会流动',
+          '社会矛盾', '社会公平', '社会正义', '社会建设', '社会管理', '性别', '女权',
+          'society', 'social', 'social issue', 'social governance', 'social welfare', 'social phenomenon',
+          'family', 'marriage', 'employment', 'social mobility', 'social justice', 'social equity', 'social construction'
+        ]);
+        break;
+      case 'culture':
+        matchedKeywordsCount = this.countMatches(text, [
+          '文化', '艺术', '文学', '小说', '诗歌', '绘画', '书法', '摄影', '设计', '时尚',
+          '传统', '习俗', '节日', '宗教', '哲学', '思想', '信仰', '价值观', '道德', '文教',
+          'culture', 'art', 'literature', 'novel', 'poetry', 'painting', 'photography',
+          'design', 'fashion', 'tradition', 'custom', 'festival', 'religion', 'philosophy', 'culture'
+        ]);
+        break;
+      case 'lifestyle_career':
+        matchedKeywordsCount = this.countMatches(text, [
+          '工作', '职业', '职场', '同事', '老板', '公司', '企业', '创业', '生意', '商业',
+          '生活', '日常生活', '个人生活', '家务', '做饭', '饮食', '健康', '运动', '健身', '旅游', '爱好',
+          '求职', '面试', '职业生涯', '工作生活', 'work life', 'life balance',
+          'work', 'job', 'career', 'colleague', 'boss', 'company', 'business', 'startup',
+          'daily life', 'personal life', 'home', 'cooking', 'diet', 'health', 'exercise', 'travel', 'hobby',
+          'job hunting', 'interview', 'career path', 'work-life', 'work life balance'
+        ]);
+        break;
+      case 'environment':
+        matchedKeywordsCount = this.countMatches(text, [
+          '环境', '环保', '污染', '气候', '天气', '生态', '自然', '动物', '植物', '森林',
+          '海洋', '河流', '空气', '水质', '垃圾', '回收', '绿色', '可持续', '碳排放',
+          'environment', 'pollution', 'climate', 'weather', 'ecology', 'nature', 'animal',
+          'plant', 'forest', 'ocean', 'river', 'air', 'water', 'waste', 'green', 'carbon'
+        ]);
+        break;
+      default:
+        matchedKeywordsCount = 0;
+    }
+    
+    // 基础置信度：0.5，每匹配一个关键词增加0.1，最多到0.9
+    return Math.min(0.9, 0.5 + (matchedKeywordsCount * 0.1));
+  }
+
+  private static countMatches(text: string, keywords: string[]): number {
+    let count = 0;
+    for (const keyword of keywords) {
+      if (text.includes(keyword.toLowerCase())) {
+        count++;
+      }
+    }
+    return count;
   }
 
   private static matches(text: string, keywords: string[]): boolean {
-    return keywords.some(kw => text.includes(kw));
+    for (const keyword of keywords) {
+      if (text.includes(keyword.toLowerCase())) {
+        return true;
+      }
+    }
+    return false;
   }
 
   static getCategoryName(category: MacroCategory): string {
-    switch (category) {
-      case 'politics': return I18nService.t('category_politics');
-      case 'economy': return I18nService.t('category_economy');
-      case 'society': return I18nService.t('category_society');
-      case 'technology': return I18nService.t('category_technology');
-      case 'culture': return I18nService.t('category_culture');
-      case 'environment': return I18nService.t('category_environment');
-      case 'entertainment': return I18nService.t('category_entertainment');
-      case 'lifestyle_career': return I18nService.t('category_lifestyle_career');
-      case 'general': return I18nService.t('category_general');
-      default: return category;
-    }
+    const isEn = I18nService.getLanguage() === 'en-US';
+    
+    const categoryNames: Record<MacroCategory, { en: string; zh: string }> = {
+      politics: { en: "Politics", zh: "政治" },
+      economy: { en: "Economy", zh: "经济" },
+      society: { en: "Society", zh: "社会" },
+      technology: { en: "Technology", zh: "技术" },
+      culture: { en: "Culture", zh: "文化" },
+      environment: { en: "Environment", zh: "环境" },
+      entertainment: { en: "Entertainment", zh: "娱乐" },
+      lifestyle_career: { en: "Lifestyle & Career", zh: "生活与职业" },
+      general: { en: "General", zh: "综合" }
+    };
+
+    return isEn ? categoryNames[category].en : categoryNames[category].zh;
   }
 
   static async classifyWithLLM(context: string): Promise<MacroCategory> {
-    const prompt = `
-      你是一个文本分类专家。请将以下文本归类到这几个分类中最合适的一个：
-      ${CATEGORIES.join(', ')}
-
-      文本: "${context}"
-
-      请只返回最合适的分类ID，不要添加任何解释或标点符号。
-    `;
+    if (!context) return 'general';
     
+    // 使用 LLM 进行更智能的分类
+    const prompt = `请将以下文本内容归类到以下8个领域之一：
+- politics: 政治相关话题
+- economy: 经济金融话题
+- society: 社会民生话题
+- technology: 科技话题
+- culture: 文化艺术话题
+- environment: 环境话题
+- entertainment: 娱乐话题
+- lifestyle_career: 生活职业话题
+
+如果都不符合，归类为 general。
+
+请直接返回类别名称，不要添加其他文字。
+
+文本内容：
+${context}`;
+
     try {
-      const result = await LLMService.generateRawText(prompt);
-
-      if (CATEGORIES.includes(result as MacroCategory)) {
-        return result as MacroCategory;
+      const response = await LLMService.generateRawText(prompt);
+      const category = response.trim().toLowerCase();
+      
+      // 验证返回的类别是否有效
+      if (CATEGORIES.includes(category as MacroCategory)) {
+        return category as MacroCategory;
+      } else {
+        // 如果 LLM 返回无效类别，默认返回 general
+        return 'general';
       }
-    } catch (e) {
-      console.error("LLM classification failed:", e);
+    } catch (error) {
+      console.error('LLM classification failed:', error);
+      return 'general';
     }
-
-    // Fallback to general if LLM fails or returns invalid data
-    return 'general';
   }
 }

@@ -1,7 +1,7 @@
 {
   "name": "deep-profile",
   "displayName": "DeepProfile",
-  "version": "0.6.3",
+  "version": "0.7.1",
   "description": "A Chrome extension to analyze social media user profiles using AI.",
   "author": "DeepProfile Team",
   "license": "SEE LICENSE IN LICENSE",
@@ -21,7 +21,8 @@
     "langchain": "^0.1.21",
     "plasmo": "^0.90.5",
     "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",

@@ -477,7 +477,7 @@ export default function Options() {
       models={models}
       modelError={modelError}
       config={config}
-      setConfig={handleConfigChange}
+      setConfig={setConfig}
     />;
   }
 
@@ -504,6 +504,7 @@ export default function Options() {
               testResult={testResult}
               handleTestConnection={handleTestConnection}
               renderModelSelector={renderModelSelector}
+              handleSave={() => handleConfigChange({...config})}
             />
             <ThemeSettings 
               config={config} 
@@ -512,7 +513,7 @@ export default function Options() {
           </div>
         );
       case 'zhihu':
-        return <PlatformSpecificSettings config={config} setConfig={setConfig} platform="zhihu" />;
+        return <PlatformSpecificSettings config={config} setConfig={handleConfigChange} platform="zhihu" />;
       case 'reddit':
         return <PlatformSpecificSettings config={config} setConfig={handleConfigChange} platform="reddit" />;
       case 'history':

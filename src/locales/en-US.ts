@@ -192,9 +192,25 @@ export const enUS: LocaleDict = {
 // DeepProfile Current Version Changelog
 export const enUSChangelog = `# DeepProfile Current Version Changelog
 
-## Current Version: v0.6.3 (Beta)
+## Current Version: v0.7.1 (Beta)
 
 ### ✅ Features Achieved
+
+### Core Feature (v0.7.1) - Label Display & LLM Output Optimization
+- ✅ **Label Display Fix**: Resolved issues where certain labels (e.g., \`competition_vs_equality\`, \`speculation_vs_value\`) were not displaying correctly in the frontend.
+- ✅ **Label Definition Sync**: Ensured label definitions in \`LabelService\` are fully synchronized with \`LabelDefinitions\`, eliminating display errors caused by ID mismatches.
+- ✅ **LLM Output Standardization**: Added automatic standardization for LLM-returned label IDs, capable of correcting non-standard label IDs (e.g., mapping \`nationalism_globalism\` to \`geopolitics\`).
+- ✅ **Duplicate Label Handling**: Optimized result parsing logic to automatically merge and deduplicate labels returned by LLM, prioritizing scores with higher confidence.
+
+### Core Feature (v0.7.0) - Improved Profile Analysis Accuracy & Consistency
+- ✅ **AI Summary Consistency**: Ensure AI-generated summaries are consistent with numerical label scores
+- ✅ **Consistency Verification Mechanism**: Added ConsistencyService to verify and fix summary-label consistency
+- ✅ **Label-Summary Association**: High-scoring labels will be explicitly reflected in summaries
+- ✅ **Evidence Support**: Ensure analysis evidence matches label scores
+`;
+
+// DeepProfile Version History
+export const enUSVersionHistory = `# DeepProfile Version History
 
 ### Core Feature (v0.6.3) - Analysis Progress Visualization & Label Display Optimization
 - ✅ **Progress Estimation**: Display estimated remaining time based on analysis mode (e.g., "Analyzing... (15s)")
@@ -202,10 +218,7 @@ export const enUSChangelog = `# DeepProfile Current Version Changelog
 - ✅ **Mode Differentiation**: Different analysis modes (Fast/Balanced/Deep) display different estimated times.
 - ✅ **Bidirectional Divergent Bar Chart Optimization**: Value labels are aligned left and right, with percentage displayed above the bidirectional divergent bar.
 
-`;
 
-// DeepProfile Version History
-export const enUSVersionHistory = `# DeepProfile Version History
 
 ### v0.6.2 (2024-01-09) - Theme System
 *   **Feature**: **Theme Customization**, supports user-defined appearance themes, including color schemes, fonts, and sizes.
