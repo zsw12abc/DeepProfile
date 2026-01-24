@@ -112,6 +112,44 @@ export class ConsistencyService {
       fixedProfile.evidence = fixedEvidence;
     }
     
+    // 为中等分数标签也提供证据支持
+    const mediumScoreLabels = profile.value_orientation.filter(item => 
+      Math.abs(item.score) >= 0.4 && Math.abs(item.score) < 0.7
+    );
+    
+    if (mediumScoreLabels.length > 0) {
+      const labelService = LabelService.getInstance();
+      const fixedEvidence = fixedProfile.evidence || [...profile.evidence];
+      
+      for (const labelItem of mediumScoreLabels) {
+        const labelInfo = labelService.getLabelById(labelItem.label);
+        if (!labelInfo) continue;
+        
+        // 检查是否已有支持该标签的证据
+        const hasSupportingEvidence = fixedEvidence.some(e =>
+          this.containsKeyword(e.analysis, labelInfo.name) ||
+          this.containsKeyword(e.analysis, labelInfo.id) ||
+          this.containsKeyword(e.quote, labelInfo.name) ||
+          this.containsKeyword(e.quote, labelInfo.id)
+        );
+        
+        if (!hasSupportingEvidence) {
+          // 为中等分数标签添加证据说明
+          const finalLabel = calculateFinalLabel(labelInfo.id, labelItem.score);
+          const evidenceItem = {
+            quote: "",
+            analysis: `用户在${labelInfo.name}方面表现出一定的${finalLabel.label}倾向(${Math.abs(labelItem.score * 100).toFixed(0)}%)。`,
+            source_title: "Profile Analysis",
+            source_id: "medium_score_evidence"
+          };
+          
+          fixedEvidence.push(evidenceItem);
+        }
+      }
+      
+      fixedProfile.evidence = fixedEvidence;
+    }
+    
     return fixedProfile;
   }
   
