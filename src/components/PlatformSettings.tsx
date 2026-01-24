@@ -354,7 +354,7 @@ export const PlatformSpecificSettings: React.FC<PlatformSpecificSettingsProps> =
       ? <img src="https://www.redditstatic.com/desktop2x/img/favicon/apple-icon-120x120.png" alt="Reddit" style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "contain" }} />
       : platform === 'twitter'
         ? <img src="https://abs.twimg.com/icons/apple-touch-icon-192x192.png" alt="Twitter" style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "contain" }} />
-        : <img src="https://qsf.fs.quoracdn.net/-4-images.favicon.ico-26-60d2760ec2f3f870.ico" alt="Quora" style={{ width: "24px", height: "24px", objectFit: "contain" }} />;
+        : <img src="https://qsf.fs.quoracdn.net/-4-ans_frontend_assets.favicon-new.ico-26-e7e93fe0a7fbc991.ico" alt="Quora" style={{ width: "24px", height: "24px", objectFit: "contain" }} />;
 
   return (
     <Card title={platformName} icon={platformIcon}>

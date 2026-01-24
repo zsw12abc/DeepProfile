@@ -4,8 +4,8 @@ import { type AIProvider } from "~types";
 // 图标组件
 export const ZhihuIcon = <img src="https://static.zhihu.com/heifetz/assets/apple-touch-icon-152.a53ae37b.png" alt="Zhihu" style={{ width: "24px", height: "24px", borderRadius: "4px", objectFit: "contain" }} />;
 export const RedditIcon = <img src="https://www.redditstatic.com/desktop2x/img/favicon/apple-icon-120x120.png" alt="Reddit" style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "contain" }} />;
-export const TwitterIcon = <img src="https://abs.twimg.com/icons/apple-touch-icon-192x192.png" alt="Twitter" style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "contain" }} />;
-export const QuoraIcon = <img src="https://qsf.fs.quoracdn.net/-4-images.favicon.ico-26-60d2760ec2f3f870.ico" alt="Quora" style={{ width: "24px", height: "24px", objectFit: "contain" }} />;
+export const TwitterIcon = <img src="https://abs.twimg.com/icons/apple-touch-icon-192x192.png" alt="Twitter" style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "cover", backgroundColor: "white", border: "1px solid #e2e8f0" }} />;
+export const QuoraIcon = <img src="https://qsf.fs.quoracdn.net/-4-ans_frontend_assets.favicon-new.ico-26-e7e93fe0a7fbc991.ico" alt="Quora" style={{ width: "24px", height: "24px", objectFit: "cover", backgroundColor: "white", border: "1px solid #e2e8f0" }} />;
 
 // 获取API基础URL占位符的函数
 export const getBaseUrlPlaceholder = (provider: AIProvider) => {

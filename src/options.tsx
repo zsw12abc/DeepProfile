@@ -34,7 +34,7 @@ import { enUSChangelog, enUSVersionHistory } from './locales/en-US';
 import { GeneralSettings, PlatformSpecificSettings, DebugSettings } from "./components/PlatformSettings"
 import { HistorySection } from "./components/HistorySection"
 import { VersionInfo } from "./components/VersionInfo"
-import { ZhihuIcon, RedditIcon, getBaseUrlPlaceholder, shouldShowBaseUrlInput } from "./components/HelperComponents"
+import { ZhihuIcon, RedditIcon, TwitterIcon, QuoraIcon, getBaseUrlPlaceholder, shouldShowBaseUrlInput } from "./components/HelperComponents"
 import { ModelSelector } from "./components/ModelSelector"
 import ThemeSettings from "./components/ThemeSettings";
 import { ThemeService } from "./services/ThemeService";
@@ -487,8 +487,8 @@ export default function Options() {
     { id: 'general', name: I18nService.t('settings_general'), icon: <span style={{ fontSize: "24px" }}>⚙️</span> },
     { id: 'zhihu', name: I18nService.t('settings_zhihu'), icon: ZhihuIcon },
     { id: 'reddit', name: I18nService.t('settings_reddit'), icon: RedditIcon },
-    { id: 'twitter', name: I18nService.t('settings_twitter'), icon: <span style={{ fontSize: "24px" }}>🐦</span> },
-    { id: 'quora', name: I18nService.t('settings_quora'), icon: <span style={{ fontSize: "24px" }}>📚</span> },
+    { id: 'twitter', name: I18nService.t('settings_twitter'), icon: TwitterIcon },
+    { id: 'quora', name: I18nService.t('settings_quora'), icon: QuoraIcon },
     { id: 'history', name: I18nService.t('settings_history'), icon: <span style={{ fontSize: "24px" }}>📅</span> },
     { id: 'debug', name: I18nService.t('settings_debug'), icon: <span style={{ fontSize: "24px" }}>🛠️</span> },
     { id: 'version', name: I18nService.t('version_info'), icon: <span style={{ fontSize: "24px" }}>ℹ️</span> },
