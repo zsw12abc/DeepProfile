@@ -21,6 +21,8 @@ export const enUS: LocaleDict = {
   settings_general: "General Settings",
   settings_zhihu: "Zhihu Settings",
   settings_reddit: "Reddit Settings",
+  settings_twitter: "Twitter Settings",
+  settings_quora: "Quora Settings",
   debug_mode: "Debug Mode",
   debug_mode_desc: "Enable detailed logging",
   settings_history: "History",
@@ -192,9 +194,23 @@ export const enUS: LocaleDict = {
 // DeepProfile Current Version Changelog
 export const enUSChangelog = `# DeepProfile Current Version Changelog
 
-## Current Version: v0.7.1 (Beta)
+## Current Version: v0.8.0 (Beta)
 
 ### ✅ Features Achieved
+
+### Core Feature (v0.8.0) - Twitter and Quora Platform Support
+- ✅ **Twitter Platform Support**: Added user profile analysis support for Twitter(X) platform, including content scraping and analysis features.
+- ✅ **Quora Platform Support**: Added user profile analysis support for Quora platform, including content scraping and analysis features.
+- ✅ **Multi-platform Architecture**: Extended underlying architecture to support multiple platforms, facilitating addition of more social platforms in the future.
+- ✅ **Interface Integration**: Added Twitter and Quora settings entries in the options page, along with corresponding icons.
+- ✅ **Permission Configuration**: Updated manifest file to include access permissions for Twitter and Quora.
+
+### Core Feature (v0.8.0) - Twitter and Quora Platform Support
+- ✅ **Twitter Platform Support**: Added user profile analysis support for Twitter(X) platform, including content scraping and analysis features.
+- ✅ **Quora Platform Support**: Added user profile analysis support for Quora platform, including content scraping and analysis features.
+- ✅ **Multi-platform Architecture**: Extended underlying architecture to support multiple platforms, facilitating addition of more social platforms in the future.
+- ✅ **Interface Integration**: Added Twitter and Quora settings entries in the options page, along with corresponding icons.
+- ✅ **Permission Configuration**: Updated manifest file to include access permissions for Twitter and Quora.
 
 ### Core Feature (v0.7.1) - Label Display & LLM Output Optimization
 - ✅ **Label Display Fix**: Resolved issues where certain labels (e.g., \`competition_vs_equality\`, \`speculation_vs_value\`) were not displaying correctly in the frontend.
@@ -211,6 +227,25 @@ export const enUSChangelog = `# DeepProfile Current Version Changelog
 
 // DeepProfile Version History
 export const enUSVersionHistory = `# DeepProfile Version History
+
+### Core Feature (v0.8.0) - Twitter and Quora Platform Support
+- ✅ **Twitter Platform Support**: Added user profile analysis support for Twitter(X) platform, including content scraping and analysis features.
+- ✅ **Quora Platform Support**: Added user profile analysis support for Quora platform, including content scraping and analysis features.
+- ✅ **Multi-platform Architecture**: Extended underlying architecture to support multiple platforms, facilitating addition of more social platforms in the future.
+- ✅ **Interface Integration**: Added Twitter and Quora settings entries in the options page, along with corresponding icons.
+- ✅ **Permission Configuration**: Updated manifest file to include access permissions for Twitter and Quora.
+
+### Core Feature (v0.7.1) - Label Display & LLM Output Optimization
+- ✅ **Label Display Fix**: Resolved issues where certain labels (e.g., \`competition_vs_equality\`, \`speculation_vs_value\`) were not displaying correctly in the frontend.
+- ✅ **Label Definition Sync**: Ensured label definitions in \`LabelService\` are fully synchronized with \`LabelDefinitions\`, eliminating display errors caused by ID mismatches.
+- ✅ **LLM Output Standardization**: Added automatic standardization for LLM-returned label IDs, capable of correcting non-standard label IDs (e.g., mapping \`nationalism_globalism\` to \`geopolitics\`).
+- ✅ **Duplicate Label Handling**: Optimized result parsing logic to automatically merge and deduplicate labels returned by LLM, prioritizing scores with higher confidence.
+
+### Core Feature (v0.7.0) - Improved Profile Analysis Accuracy & Consistency
+- ✅ **AI Summary Consistency**: Ensure AI-generated summaries are consistent with numerical label scores
+- ✅ **Consistency Verification Mechanism**: Added ConsistencyService to verify and fix summary-label consistency
+- ✅ **Label-Summary Association**: High-scoring labels will be explicitly reflected in summaries
+- ✅ **Evidence Support**: Ensure analysis evidence matches label scores
 
 ### Core Feature (v0.6.3) - Analysis Progress Visualization & Label Display Optimization
 - ✅ **Progress Estimation**: Display estimated remaining time based on analysis mode (e.g., "Analyzing... (15s)")

@@ -487,6 +487,8 @@ export default function Options() {
     { id: 'general', name: I18nService.t('settings_general'), icon: <span style={{ fontSize: "24px" }}>⚙️</span> },
     { id: 'zhihu', name: I18nService.t('settings_zhihu'), icon: ZhihuIcon },
     { id: 'reddit', name: I18nService.t('settings_reddit'), icon: RedditIcon },
+    { id: 'twitter', name: I18nService.t('settings_twitter'), icon: <span style={{ fontSize: "24px" }}>🐦</span> },
+    { id: 'quora', name: I18nService.t('settings_quora'), icon: <span style={{ fontSize: "24px" }}>📚</span> },
     { id: 'history', name: I18nService.t('settings_history'), icon: <span style={{ fontSize: "24px" }}>📅</span> },
     { id: 'debug', name: I18nService.t('settings_debug'), icon: <span style={{ fontSize: "24px" }}>🛠️</span> },
     { id: 'version', name: I18nService.t('version_info'), icon: <span style={{ fontSize: "24px" }}>ℹ️</span> },
@@ -516,6 +518,10 @@ export default function Options() {
         return <PlatformSpecificSettings config={config} setConfig={handleConfigChange} platform="zhihu" />;
       case 'reddit':
         return <PlatformSpecificSettings config={config} setConfig={handleConfigChange} platform="reddit" />;
+      case 'twitter':
+        return <PlatformSpecificSettings config={config} setConfig={handleConfigChange} platform="twitter" />;
+      case 'quora':
+        return <PlatformSpecificSettings config={config} setConfig={handleConfigChange} platform="quora" />;
       case 'history':
         return (
           <HistorySection 

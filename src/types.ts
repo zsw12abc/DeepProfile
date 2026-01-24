@@ -2,7 +2,7 @@ export type AIProvider = 'openai' | 'gemini' | 'deepseek' | 'qwen' | 'ollama' | 
 
 export type AnalysisMode = 'fast' | 'balanced' | 'deep';
 
-export type SupportedPlatform = 'zhihu' | 'reddit' | 'twitter' | 'weibo';
+export type SupportedPlatform = 'zhihu' | 'reddit' | 'twitter' | 'quora' | 'weibo';
 
 export type Language = 'zh-CN' | 'en-US';
 
@@ -352,12 +352,14 @@ export const DEFAULT_CONFIG: ExtendedAppConfig = {
     zhihu: 'balanced',
     reddit: 'balanced',
     twitter: 'balanced',
+    quora: 'balanced',
     weibo: 'balanced'
   },
   enabledPlatforms: {
     zhihu: true,
     reddit: true,
     twitter: false,
+    quora: false,
     weibo: false
   },
   platformConfigs: {
@@ -375,6 +377,11 @@ export const DEFAULT_CONFIG: ExtendedAppConfig = {
       enabled: false,
       baseUrl: 'https://twitter.com',
       apiEndpoint: 'https://api.twitter.com'
+    },
+    quora: {
+      enabled: false,
+      baseUrl: 'https://www.quora.com',
+      apiEndpoint: 'https://www.quora.com/api'
     },
     weibo: {
       enabled: false,

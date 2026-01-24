@@ -1,7 +1,7 @@
 {
   "name": "deep-profile",
   "displayName": "DeepProfile",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "description": "A Chrome extension to analyze social media user profiles using AI.",
   "author": "DeepProfile Team",
   "license": "SEE LICENSE IN LICENSE",
@@ -46,7 +46,12 @@
       "https://old.reddit.com/*",
       "https://reddit.com/*",
       "https://oauth.reddit.com/*",
-      "https://api.reddit.com/*"
+      "https://api.reddit.com/*",
+      "https://twitter.com/*",
+      "https://*.twitter.com/*",
+      "https://x.com/*",
+      "https://*.x.com/*",
+      "https://www.quora.com/*"
     ],
     "permissions": [
       "storage",

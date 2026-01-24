@@ -97,11 +97,17 @@ export const HistorySection: React.FC<HistorySectionProps> = ({
                     fontSize: "12px", 
                     padding: "2px 6px", 
                     borderRadius: "4px", 
-                    backgroundColor: userRecord.platform === 'zhihu' ? 'var(--theme-primary, #e1f0fa)' : 'var(--theme-warning, #ffedd5)',
-                    color: userRecord.platform === 'zhihu' ? 'var(--theme-primary-text, #ffffff)' : 'var(--theme-warning-text, #ffffff)',
+                    backgroundColor: userRecord.platform === 'zhihu' ? 'var(--theme-primary, #e1f0fa)' : 
+                                   userRecord.platform === 'twitter' ? 'var(--theme-accent, #1DA1F2)' :
+                                   userRecord.platform === 'quora' ? 'var(--theme-success, #b9261c)' : 'var(--theme-warning, #ffedd5)',
+                    color: userRecord.platform === 'zhihu' ? 'var(--theme-primary-text, #ffffff)' : 
+                           userRecord.platform === 'twitter' ? 'var(--theme-primary-text, #ffffff)' :
+                           userRecord.platform === 'quora' ? 'var(--theme-primary-text, #ffffff)' : 'var(--theme-warning-text, #ffffff)',
                     fontWeight: "600"
                   }}>
-                    {userRecord.platform === 'zhihu' ? '知乎' : 'Reddit'}
+                    {userRecord.platform === 'zhihu' ? '知乎' : 
+                     userRecord.platform === 'twitter' ? 'Twitter' : 
+                     userRecord.platform === 'quora' ? 'Quora' : 'Reddit'}
                   </span>
                   <span style={{ fontWeight: "600", color: "var(--theme-text, #2d3748)" }}>
                     {userRecord.userInfo?.name || Object.values(userRecord.profiles)[0]?.profileData.nickname || userRecord.userId}

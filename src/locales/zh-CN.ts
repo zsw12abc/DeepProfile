@@ -21,6 +21,8 @@ export const zhCN: LocaleDict = {
   settings_general: "通用设置",
   settings_zhihu: "知乎设置",
   settings_reddit: "Reddit 设置",
+  settings_twitter: "Twitter 设置",
+  settings_quora: "Quora 设置",
   debug_mode: "调试模式",
   debug_mode_desc: "启用详细日志记录",
   settings_history: "历史记录",
@@ -192,9 +194,23 @@ export const zhCN: LocaleDict = {
 // DeepProfile 当前版本更新日志
 export const zhCNChangelog = `# DeepProfile 当前版本更新日志
 
-## 当前版本: v0.7.1 (Beta)
+## 当前版本: v0.8.0 (Beta)
 
 ### ✅ 已达成功能
+
+### 核心功能 (v0.8.0) - Twitter与Quora平台支持
+- ✅ **Twitter平台支持**: 添加了对Twitter(X)平台的用户画像分析支持，包括内容抓取和分析功能。
+- ✅ **Quora平台支持**: 添加了对Quora平台的用户画像分析支持，包括内容抓取和分析功能。
+- ✅ **多平台架构**: 扩展了底层架构以支持多平台，便于未来添加更多社交平台。
+- ✅ **界面集成**: 在选项页面中添加了Twitter和Quora的设置入口，以及相应的图标。
+- ✅ **权限配置**: 更新了manifest文件以包含Twitter和Quora的访问权限。
+
+### 核心功能 (v0.8.0) - Twitter与Quora平台支持
+- ✅ **Twitter平台支持**: 添加了对Twitter(X)平台的用户画像分析支持，包括内容抓取和分析功能。
+- ✅ **Quora平台支持**: 添加了对Quora平台的用户画像分析支持，包括内容抓取和分析功能。
+- ✅ **多平台架构**: 扩展了底层架构以支持多平台，便于未来添加更多社交平台。
+- ✅ **界面集成**: 在选项页面中添加了Twitter和Quora的设置入口，以及相应的图标。
+- ✅ **权限配置**: 更新了manifest文件以包含Twitter和Quora的访问权限。
 
 ### 核心功能 (v0.7.1) - 标签显示与LLM输出优化
 - ✅ **标签显示修复**: 解决了部分标签（如 \`competition_vs_equality\`, \`speculation_vs_value\` 等）在前端无法正确显示的问题。
@@ -212,6 +228,25 @@ export const zhCNChangelog = `# DeepProfile 当前版本更新日志
 
 // DeepProfile 版本历史记录
 export const zhCNVersionHistory = `# DeepProfile 版本历史
+
+### 核心功能 (v0.8.0) - Twitter与Quora平台支持
+- ✅ **Twitter平台支持**: 添加了对Twitter(X)平台的用户画像分析支持，包括内容抓取和分析功能。
+- ✅ **Quora平台支持**: 添加了对Quora平台的用户画像分析支持，包括内容抓取和分析功能。
+- ✅ **多平台架构**: 扩展了底层架构以支持多平台，便于未来添加更多社交平台。
+- ✅ **界面集成**: 在选项页面中添加了Twitter和Quora的设置入口，以及相应的图标。
+- ✅ **权限配置**: 更新了manifest文件以包含Twitter和Quora的访问权限。
+
+### 核心功能 (v0.7.1) - 标签显示与LLM输出优化
+- ✅ **标签显示修复**: 解决了部分标签（如 \`competition_vs_equality\`, \`speculation_vs_value\` 等）在前端无法正确显示的问题。
+- ✅ **标签定义同步**: 确保了 \`LabelService\` 中的标签定义与 \`LabelDefinitions\` 完全一致，消除了 ID 不匹配导致的显示错误。
+- ✅ **LLM 输出标准化**: 增加了对 LLM 返回标签 ID 的自动标准化处理，能够自动纠正 AI 返回的非标准标签 ID（例如将 \`nationalism_globalism\` 自动映射为 \`geopolitics\`）。
+- ✅ **重复标签处理**: 优化了结果解析逻辑，自动合并和去重 LLM 返回的重复标签，优先保留置信度更高的评分。
+
+### 核心功能 (v0.7.0) - 提升画像分析准确度与一致性
+- ✅ **AI摘要一致性**: 确保AI生成的摘要与数值标签分数保持一致
+- ✅ **一致性验证机制**: 新增ConsistencyService验证并修复摘要与标签的一致性
+- ✅ **标签-摘要关联**: 高分标签会在摘要中得到明确体现
+- ✅ **证据支撑**: 确保分析证据与标签分数相匹配
 
 ### 核心功能 (v0.6.3) - 分析进度可视化与标签显示优化
 - ✅ **进度预估**: 根据分析模式显示预估剩余时间 (例如: "正在分析... (15s)")
