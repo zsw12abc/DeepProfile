@@ -75,6 +75,7 @@ export type LocaleKey =
   | 'error_network'
   | 'error_zhihu_403'
   | 'error_user_not_found'
+  | 'error_content_filter'
   
   // Categories
   | 'category_politics'

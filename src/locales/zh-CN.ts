@@ -91,6 +91,7 @@ export const zhCN: LocaleDict = {
   error_zhihu_403: "哎呀，被知乎拦截了 (403) 🚧。请试着刷新一下知乎页面，或者确认是否登录了哦～",
   error_user_not_found: "哎呀，找不到这个用户的数据 🕵️‍♂️，可能是账号被封禁或设置了隐私保护。",
   error_extension_context: "扩展上下文已失效，请刷新页面重试。",
+  error_content_filter: "内容安全审查失败：输入内容被AI服务商标记为可能不当。请尝试切换到DeepSeek或OpenAI等模型。",
 
   // Export
   click_jump: "点击跳转",

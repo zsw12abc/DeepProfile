@@ -93,6 +93,7 @@ ${formatInstructions}
 6. Output Language: ${isEn ? 'English' : 'Simplified Chinese'}.
 7. Content Safety: If the input content contains sensitive information, please analyze the user's value orientation based on their expression style, language habits, and topic preferences, without directly repeating sensitive content.
 8. CRITICAL CONSISTENCY RULE: The summary should reflect the user's overall personality, writing style, and expressed opinions naturally. Do NOT include explicit statements about specific label scores (e.g., "the user shows X% tendency toward..."). The summary should organically reflect the user's value orientations without stating them directly.
+9. ABSOLUTE SAFETY RULE: Under NO circumstances should the output contain explicit, offensive, or inappropriate language. If the input text contains such content, analyze the user's communication style and attitude rather than repeating the content.
 
 ${dynamicFewShotExamples}
 
@@ -332,15 +333,20 @@ ${standardLabels}
   static async generateProfile(text: string, category: MacroCategory): Promise<LLMResponse> {
     const config = await ConfigService.getConfig()
     
+    // 对输入文本进行清理，防止触发内容过滤器
+    const sanitizedText = this.sanitizeInputText(text);
+    
     // 这里的日志现在会更详细
     if (config.enableDebug) {
       console.log("【LANGCHAIN REQUEST】Mode:", config.analysisMode || 'balanced');
+      console.log("【LANGCHAIN REQUEST】Original text:", text);
+      console.log("【LANGCHAIN REQUEST】Sanitized text:", sanitizedText);
       // 注意：这里我们不直接调用 getSystemPrompt，因为那是私有的或者静态的，
       // 但我们在 Provider 内部会调用它。为了调试，我们可以在 Provider 内部打印。
     }
     
     const provider = this.getProviderInstance(config.selectedProvider, config)
-    return provider.generateProfile(text, config.analysisMode || 'balanced', category)
+    return provider.generateProfile(sanitizedText, config.analysisMode || 'balanced', category)
   }
 
   static normalizeLabelId(labelId: string): string {
@@ -691,6 +697,88 @@ ${standardLabels}
     return provider.generateRawText(prompt);
   }
 
+  // Sanitize text to remove potentially problematic content
+  private static sanitizeInputText(text: string): string {
+    let sanitized = text;
+
+    // Define a dictionary of sensitive words and their replacements
+    const sensitiveWords = {
+      // Geopolitical
+      "台湾": "TW", "香港": "HK", "澳门": "MO", "西藏": "XZ", "新疆": "XJ", "独立": "independence", "统一": "reunification",
+      "共产党": "CCP", "国民党": "KMT", "民进党": "DPP", "习近平": "XI", "蔡英文": "TSAI", "普京": "Putin", "泽连斯基": "Zelenskyy",
+      "法轮功": "FLG", "达赖喇嘛": "Dalai Lama", "天安门": "Tiananmen", "六四": "64", "8964": "8964",
+      "维吾尔": "Uygur", "集中营": "camp", "种族灭绝": "genocide", "镇压": "suppression",
+      "反送中": "Anti-Extradition Bill Movement", "光复香港": "Liberate HK", "时代革命": "Revolution of Our Times",
+      "香港警察": "HK Police", "黑警": "black police",
+      "巴勒斯坦": "Palestine", "以色列": "Israel", "哈马斯": "Hamas", "加沙": "Gaza",
+      "乌克兰": "Ukraine", "俄罗斯": "Russia", "战争": "war", "入侵": "invasion",
+
+      // Social/Political
+      "民主": "democracy", "自由": "freedom", "人权": "human rights", "独裁": "dictatorship", "专制": "autocracy",
+      "革命": "revolution", "抗议": "protest", "示威": "demonstration", "游行": "march",
+      "审查": "censorship", "防火墙": "GFW", "翻墙": "circumvention",
+      "女权": "feminism", "男权": "masculinism", "LGBT": "LGBT", "同性恋": "homosexuality", "跨性别": "transgender",
+      "白左": "white left", "左派": "leftist", "右派": "rightist", "白右": "white right",
+      "躺平": "lying flat", "内卷": "involution", "润": "run",
+      "疫情": "pandemic", "病毒": "virus", "清零": "zero-COVID",
+
+      // Slurs/Insults (replace with neutral placeholders)
+      "傻逼": "[insult]", "脑残": "[insult]", "支那": "[slur]", "粉红": "[political label]", "美分": "[political label]",
+      "公知": "[intellectual]", "五毛": "[commentator]", "战狼": "[nationalist]",
+      "尼哥": "[slur]", "黑鬼": "[slur]",
+
+      // English sensitive words
+      "nigger": "[slur]", "nigga": "[slur]", "chink": "[slur]", "gook": "[slur]",
+      "genocide": "mass killing", "dictator": "leader", "regime": "government",
+      "Uyghur": "Uygur", "Tibet": "XZ", "Xinjiang": "XJ", "Hong Kong": "HK", "Taiwan": "TW",
+      "Falun Gong": "FLG", "Tiananmen Square": "Tiananmen", "June 4th": "64",
+      "CCP": "Party", "communism": "ideology", "socialism": "ideology",
+      "separatism": "separatism", "terrorism": "extremism",
+      "assassination": "killing", "massacre": "mass killing",
+      "revolution": "upheaval", "protest": "demonstration", "riot": "unrest",
+      "censorship": "content moderation", "Great Firewall": "GFW",
+      "feminism": "gender equality movement", "LGBTQ": "LGBTQ", "gay": "homosexual", "lesbian": "homosexual", "transgender": "trans",
+      "woke": "progressive", "SJW": "social activist",
+      "MAGA": "MAGA", "Trump": "Trump", "Biden": "Biden", "democrat": "democrat", "republican": "republican"
+    };
+
+    // Create a regex pattern to find all occurrences of the sensitive words
+    const pattern = new RegExp(Object.keys(sensitiveWords).join("|"), "gi");
+
+    // Replace the words found
+    sanitized = sanitized.replace(pattern, (matched) => {
+      // Find the corresponding replacement, case-insensitively
+      const lowerMatched = matched.toLowerCase();
+      for (const key in sensitiveWords) {
+        if (key.toLowerCase() === lowerMatched) {
+          return sensitiveWords[key];
+        }
+      }
+      return matched; // Should not happen with the current regex
+    });
+
+    // Remove repeated symbols that might trigger content filters
+    sanitized = sanitized.replace(/([!?.])\1{2,}/g, '$1$1'); // Limit repeated punctuation
+
+    // Remove some potentially sensitive patterns
+    sanitized = sanitized.replace(/\b(password|passwd|pwd)\s*[:=]\s*([^\s]+)/gi, '[REDACTED]');
+    sanitized = sanitized.replace(/\b(token|secret|key)\s*[:=]\s*([^\s]+)/gi, '[REDACTED]');
+
+    // Remove potential code injection patterns
+    sanitized = sanitized.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '[SCRIPT REMOVED]');
+    sanitized = sanitized.replace(/<iframe[^>]*>[\s\S]*?<\/iframe>/gi, '[IFRAME REMOVED]');
+
+    // Replace some common offensive patterns with safer alternatives
+    sanitized = sanitized.replace(/\b(f[u]+ck?|s[h]+it|c[u]+nt)\b/gi, '***');
+
+    // Truncate if too long (some providers have length limits)
+    if (sanitized.length > 50000) {
+      sanitized = sanitized.substring(0, 50000);
+    }
+
+    return sanitized;
+  }
+
   private static getProviderInstance(
     type: AIProvider,
     config: any
@@ -861,6 +949,13 @@ class LangChainProvider implements LLMProvider {
         } catch (error: any) {
           lastError = error;
           console.error(`LangChain API Error (attempt ${attempt + 1}):`, error);
+
+          // 如果是内容审查错误，立即失败并提示用户
+          if (error.message && error.message.includes('400') && error.message.includes('Input data may contain inappropriate content')) {
+            const userFriendlyError = new Error(I18nService.t('error_content_filter'));
+            (userFriendlyError as any).isContentFilter = true;
+            throw userFriendlyError;
+          }
           
           // 如果是第一次失败且错误是格式相关，尝试错误反馈重试
           if (attempt === 0 && this.shouldRetryOnError(error)) {
@@ -930,7 +1025,27 @@ class LangChainProvider implements LLMProvider {
           model: this.model || "unknown"
       }
     } catch (error: any) {
+      // 如果是内容过滤错误，直接返回特定响应
+      if (error.isContentFilter) {
+        const defaultResponse = {
+          nickname: "",
+          topic_classification: "Content Analysis",
+          value_orientation: [],
+          summary: error.message,
+          evidence: []
+        };
+        
+        const durationMs = Date.now() - startTime;
+        return {
+          content: defaultResponse,
+          usage: undefined,
+          durationMs,
+          model: this.model || "unknown"
+        };
+      }
+
       console.error("LangChain API Error:", error);
+      // 其他错误保持原有逻辑
       if (error.message && (error.message.includes('inappropriate content') || error.message.includes('data_inspection_failed'))) {
         const defaultResponse = {
           nickname: "",
@@ -949,24 +1064,6 @@ class LangChainProvider implements LLMProvider {
         };
       }
       
-      if (error.message && error.message.includes('400') && error.message.includes('Output data may contain inappropriate content')) {
-          const defaultResponse = {
-            nickname: "",
-            topic_classification: "Content Analysis",
-            value_orientation: [],
-            summary: "Content Safety Review Failed: The content may involve sensitive topics and was blocked by the AI provider. Please try switching to DeepSeek or OpenAI models.",
-            evidence: []
-          };
-          
-          const durationMs = Date.now() - startTime;
-          return {
-            content: defaultResponse,
-            usage: undefined,
-            durationMs,
-            model: this.model || "unknown"
-          };
-      }
-
       throw error;
     }
   }
