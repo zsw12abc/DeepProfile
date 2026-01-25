@@ -178,13 +178,7 @@ const QuoraOverlay = () => {
         // 实际上ProfileCard组件渲染了一个fixed定位的div，我们需要确保点击不在那个div上
         // 这里简化处理：如果点击的是container本身（如果它覆盖全屏）或者body，则关闭
         // 但目前的实现container只是一个挂载点，ProfileCard是fixed定位
-        // 最好的方式是在ProfileCard内部处理点击外部，或者在这里通过类名判断
-        
-        // 简单实现：如果点击的目标不在ProfileCard的DOM树中，则关闭
-        // 注意：这需要ProfileCard组件有一个明确的根元素引用，或者我们可以假设container的第一个子元素是ProfileCard
-        // 由于React Portal或直接render，container内部就是ProfileCard的内容
-        
-        // 更好的方法：让ProfileCard组件处理点击外部，或者在这里不做处理，只依赖关闭按钮
+        // 最好的方式是在ProfileCard内部处理点击外部，或者在这里不做处理，只依赖关闭按钮
         // 为了用户体验，我们暂时只依赖关闭按钮，避免误触关闭
       };
       
@@ -527,128 +521,189 @@ const QuoraOverlay = () => {
       const contentItems: any[] = [];
       const seenContent = new Set<string>();
       
-      console.log(`Scraping Quora content for ${username} on ${currentUrl}`);
+      // Decode username for better matching
+      const decodedUsername = decodeURIComponent(username);
+      const usernameLower = username.toLowerCase();
+      const decodedUsernameLower = decodedUsername.toLowerCase();
+      
+      console.log(`Scraping Quora content for ${username} (${decodedUsername}) on ${currentUrl}`);
 
       // Helper to check if an element contains user link
-      const hasUserLink = (el: Element, user: string): boolean => {
+      const hasUserLink = (el: Element): boolean => {
           const links = el.querySelectorAll('a');
-          const userLower = user.toLowerCase();
           for (const link of Array.from(links)) {
               const href = link.getAttribute('href');
-              if (href && (href.toLowerCase().includes(`/profile/${userLower}`) || href.toLowerCase().includes(`/answer/${userLower}`))) {
-                  return true;
-              }
-          }
-          // Also check images with alt text containing username (fuzzy match)
-          const imgs = el.querySelectorAll('img');
-          const namePart = user.split('-')[0].toLowerCase();
-          for (const img of Array.from(imgs)) {
-              if (img.alt && img.alt.toLowerCase().includes(namePart)) {
-                  return true;
+              if (href) {
+                  const hrefLower = href.toLowerCase();
+                  if (hrefLower.includes(`/profile/${usernameLower}`) || 
+                      hrefLower.includes(`/profile/${decodedUsernameLower}`)) {
+                      return true;
+                  }
               }
           }
           return false;
       };
 
-      // Selectors for answer containers
-      // We prioritize q-click-wrapper as requested, but also look for other common containers
-      const containers = document.querySelectorAll('.q-click-wrapper, .pagedlist_item, .dom_annotate_question_answer_item');
+      // Broad selection of potential item containers
+      let containers = Array.from(document.querySelectorAll(
+        '.q-click-wrapper, ' + 
+        '.pagedlist_item, ' + 
+        '.dom_annotate_question_answer_item, ' + 
+        '[data-testid="feed_item"], ' + 
+        '.q-box.qu-borderBottom, ' +
+        '.q-box.qu-pb--medium'
+      ));
       
-      for (const container of Array.from(containers)) {
+      // If few containers found, try a more aggressive approach by finding text blocks
+      if (containers.length < 3) {
+          const textBlocks = document.querySelectorAll('.q-text');
+          const potentialContainers = new Set<Element>();
+          textBlocks.forEach(block => {
+              // Only consider substantial text
+              if (!block.textContent || block.textContent.length < 50) return;
+              
+              // Go up to find a container
+              let parent = block.parentElement;
+              for (let i = 0; i < 8; i++) {
+                  if (!parent) break;
+                  // Check if parent looks like a container (has siblings, or specific classes)
+                  if (parent.classList.contains('q-box') || parent.tagName === 'DIV') {
+                      // Check if it has a border or is a list item
+                      const style = window.getComputedStyle(parent);
+                      if (style.borderBottomWidth !== '0px' || parent.parentElement?.childElementCount! > 3) {
+                          potentialContainers.add(parent);
+                          // Don't break immediately, we might find a better outer container
+                      }
+                  }
+                  parent = parent.parentElement;
+              }
+          });
+          if (potentialContainers.size > 0) {
+              // Merge with existing containers
+              const existingSet = new Set(containers);
+              potentialContainers.forEach(c => existingSet.add(c));
+              containers = Array.from(existingSet);
+          }
+      }
+      
+      for (const container of containers) {
           if (contentItems.length >= limit) break;
           
+          // Skip promoted content
+          if (container.textContent?.includes('Promoted') || container.querySelector('.promoted_tag')) continue;
+
           // Must have some text
           if (!container.textContent || container.textContent.length < 10) continue;
 
-          // Check if this container holds an answer
-          // Look for the answer content class provided by user
-          let contentEl = container.querySelector('.puppeteer_test_answer_content');
+          // Determine if this is user's content
+          let isUserContent = false;
           
-          // Fallback selectors if the specific test class is missing
-          if (!contentEl) {
-              contentEl = container.querySelector('.spacing_log_answer_content');
-          }
-          if (!contentEl) {
-              // Try finding a q-text block that looks like an answer (long text)
-              const textBlocks = container.querySelectorAll('.q-text');
-              for (const block of Array.from(textBlocks)) {
-                  if (block.textContent && block.textContent.length > 50) {
-                      // Avoid titles
-                      if (!block.classList.contains('puppeteer_test_question_title') && 
-                          !block.classList.contains('qu-fontWeight--bold')) {
-                          contentEl = block;
-                          break;
-                      }
+          // If we are on the specific user's profile page
+          if (currentUrl.toLowerCase().includes('/profile/' + usernameLower) || 
+              currentUrl.toLowerCase().includes('/profile/' + decodedUsernameLower)) {
+              
+              // On profile page, we are more permissive
+              if (currentUrl.includes('/answers') || currentUrl.includes('/questions') || currentUrl.includes('/posts')) {
+                  isUserContent = true;
+              } else {
+                  // Main profile page
+                  // If it has a user link, it's definitely related
+                  if (hasUserLink(container)) {
+                      isUserContent = true;
+                  } else {
+                      // If no user link, but we are on profile page, it might be their content
+                      // We accept it if it looks like a question or answer
+                      isUserContent = true;
                   }
               }
-          }
-
-          if (!contentEl) continue;
-
-          // Verify it belongs to the user
-          let isUserContent = false;
-          let itemUrl = currentUrl;
-
-          if (hasUserLink(container, username)) {
-              isUserContent = true;
-              // Try to find specific answer link
-              const answerLink = container.querySelector(`a[href*="/answer/${username}"]`) as HTMLAnchorElement;
-              if (answerLink) itemUrl = answerLink.href;
-          } else if (currentUrl.includes('/answers') || currentUrl.includes('/profile/' + username)) {
-              // If we are on the user's profile/answers page, and the structure looks like an answer, assume it is theirs
-              // unless we find a link to ANOTHER user
-              const otherUserLink = Array.from(container.querySelectorAll('a[href*="/profile/"]')).find(a => {
-                  const href = a.getAttribute('href') || '';
-                  return !href.toLowerCase().includes(username.toLowerCase());
-              });
-              
-              // If there are no links to other users in the header area, it's likely the profile owner's content
-              // But be careful, comments might link to others.
-              // We check if the "header" part contains other users.
-              const header = container.querySelector('.spacing_log_answer_header');
-              if (header) {
-                   const headerLinks = header.querySelectorAll('a[href*="/profile/"]');
-                   let hasOtherUser = false;
-                   for (const hl of Array.from(headerLinks)) {
-                       if (!hl.getAttribute('href')?.toLowerCase().includes(username.toLowerCase())) {
-                           hasOtherUser = true;
-                           break;
-                       }
-                   }
-                   if (!hasOtherUser) isUserContent = true;
-              } else {
-                  // If no header found, but we are on /answers page and found content, assume yes
-                  if (currentUrl.includes('/answers')) isUserContent = true;
+          } else {
+              // Not on profile page, must have explicit link
+              if (hasUserLink(container)) {
+                  isUserContent = true;
               }
           }
 
           if (!isUserContent) continue;
 
           // Extract Title
-          let title = 'Answer';
+          let title = '';
           const titleEl = container.querySelector('.puppeteer_test_question_title') || 
-                          container.querySelector('.q-text.qu-fontWeight--bold');
-          if (titleEl) title = titleEl.textContent?.trim() || title;
+                          container.querySelector('.q-text.qu-fontWeight--bold') ||
+                          container.querySelector('span.q-text.qu-fontWeight--bold');
+          if (titleEl) title = titleEl.textContent?.trim() || '';
 
           // Extract Content
-          let content = contentEl.textContent?.trim() || '';
-          // Try to get cleaner text from q-text inside
-          const richTextEl = contentEl.querySelector('.q-text');
-          if (richTextEl) content = richTextEl.textContent?.trim() || content;
+          let content = '';
+          let contentEl = container.querySelector('.puppeteer_test_answer_content') || 
+                          container.querySelector('.spacing_log_answer_content');
+          
+          if (contentEl) {
+              content = contentEl.textContent?.trim() || '';
+          } else {
+              // Fallback: Find the longest text block
+              const textBlocks = container.querySelectorAll('.q-text, span, p, div');
+              let maxLen = 0;
+              for (const block of Array.from(textBlocks)) {
+                  // Skip title
+                  if (title && block.textContent?.includes(title)) continue;
+                  // Skip small metadata
+                  if (block.textContent && block.textContent.length < 20) continue;
+                  // Skip if contains many links
+                  if (block.querySelectorAll('a').length > 3) continue;
+                  
+                  const text = block.textContent?.trim() || '';
+                  if (text.length > maxLen) {
+                      maxLen = text.length;
+                      content = text;
+                  }
+              }
+          }
 
-          if (content && content.length > 10) {
-              const contentHash = btoa(content.substring(0, Math.min(100, content.length)).toLowerCase()).substring(0, 20);
+          // Handle Questions (where content might be empty but title exists)
+          let type: 'answer' | 'question' | 'post' = 'answer';
+          if (!content && title && (title.includes('?') || currentUrl.includes('/questions'))) {
+              content = title;
+              type = 'question';
+          }
+
+          // Final cleanup
+          if (content) {
+              // If content is just the title, and it's not a question, ignore (might be just a link)
+              if (title && content === title && type !== 'question') continue;
+              
+              // If content is very short, ignore
+              if (content.length < 5) continue;
+              
+              // Safe content hash for deduplication
+              const safeContent = content.substring(0, Math.min(100, content.length)).toLowerCase();
+              // Simple hash to avoid btoa unicode issues
+              let hash = 0;
+              for (let i = 0; i < safeContent.length; i++) {
+                hash = ((hash << 5) - hash) + safeContent.charCodeAt(i);
+                hash |= 0;
+              }
+              const contentHash = "h" + Math.abs(hash).toString(36);
+
               if (!seenContent.has(contentHash)) {
                   seenContent.add(contentHash);
+                  
+                  // Try to find a specific URL for this item
+                  let itemUrl = currentUrl;
+                  const answerLink = container.querySelector('a[href*="/answer/"]');
+                  const questionLink = container.querySelector('a[href*="/unanswered/"], a[href*="/q/"]');
+                  
+                  if (answerLink) itemUrl = (answerLink as HTMLAnchorElement).href;
+                  else if (questionLink) itemUrl = (questionLink as HTMLAnchorElement).href;
+                  
                   contentItems.push({
                       id: `quora-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-                      title: title,
+                      title: title || (type === 'question' ? 'Question' : 'Answer'),
                       excerpt: content.substring(0, 200),
                       content: content,
                       created_time: Date.now(),
                       url: itemUrl,
                       action_type: 'created',
-                      type: 'answer',
+                      type: type,
                       is_relevant: true
                   });
               }
