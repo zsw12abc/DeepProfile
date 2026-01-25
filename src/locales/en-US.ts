@@ -195,21 +195,21 @@ export const enUS: LocaleDict = {
 // DeepProfile Current Version Changelog
 export const enUSChangelog = `# DeepProfile Current Version Changelog
 
-## Current Version: v0.8.0 (Beta)
+## Current Version: v0.8.1 (Beta) - Memory Optimization & Leak Fixes
 
-### ✅ Features Achieved
+### 🚀 Memory Optimization (v0.8.1)
+- **Memory Leak Fixes**: Fixed memory leaks caused by timers not being properly cleared in the background service
+- **Event Listener Management**: Improved registration and deregistration mechanisms for event listeners in content scripts to prevent duplicate bindings
+- **Cache Strategy Optimization**: Optimized cache cleanup mechanisms for history records, regularly cleaning up expired data
+- **Component Unmount Optimization**: Improved unmount logic for React components to ensure DOM nodes and event handlers are properly cleaned up
+- **Resource Management**: Added tracking for active timers to prevent timer accumulation
 
-### Core Feature (v0.8.0) - Twitter and Quora Platform Support
-- ✅ **Twitter Platform Support**: Added user profile analysis support for Twitter(X) platform, including content scraping and analysis features.
-- ✅ **Quora Platform Support**: Added user profile analysis support for Quora platform, including content scraping and analysis features.
-- ✅ **Multi-platform Architecture**: Extended underlying architecture to support multiple platforms, facilitating addition of more social platforms in the future.
-- ✅ **Interface Integration**: Added Twitter and Quora settings entries in the options page, along with corresponding icons.
-- ✅ **Permission Configuration**: Updated manifest file to include access permissions for Twitter and Quora.
-
-`;
-
-// DeepProfile Version History
-export const enUSVersionHistory = `# DeepProfile Version History
+### Core Feature (v0.8.0) - Platform Expansion & UI Modernization
+- ✅ **Quora Platform Support**: Added user profile analysis support for Quora platform, including content scraping and user info extraction
+- ✅ **Twitter/X Platform Support**: Added user profile analysis support for Twitter/X platform, adapting to new API interfaces
+- ✅ **UI Modernization**: Adopted modern UI design, updated settings page layout with card-based design for improved visual experience
+- ✅ **Icon Updates**: Added dedicated icons for all supported platforms, enhancing interface aesthetics
+- ✅ **Responsive Enhancement**: Optimized interface display across different screen sizes
 
 ### Core Feature (v0.7.1) - Label Display & LLM Output Optimization
 - ✅ **Label Display Fix**: Resolved issues where certain labels (e.g., \`competition_vs_equality\`, \`speculation_vs_value\`) were not displaying correctly in the frontend.
@@ -220,23 +220,21 @@ export const enUSVersionHistory = `# DeepProfile Version History
 ### Core Feature (v0.7.0) - Improved Profile Analysis Accuracy & Consistency
 - ✅ **AI Summary Consistency**: Ensure AI-generated summaries are consistent with numerical label scores
 - ✅ **Consistency Verification Mechanism**: Added ConsistencyService to verify and fix summary-label consistency
-- ✅ **Label-Summary Association**: High-scoring labels will be explicitly reflected in summaries
+- ✅ **Label-Summary Association**: High-scoring labels are clearly reflected in summaries
 - ✅ **Evidence Support**: Ensure analysis evidence matches label scores
 
 ### Core Feature (v0.6.3) - Analysis Progress Visualization & Label Display Optimization
-- ✅ **Progress Estimation**: Display estimated remaining time based on analysis mode (e.g., "Analyzing... (15s)")
-- ✅ **Progress Bar Animation**: Show dynamic progress bar reflecting analysis progress.
-- ✅ **Mode Differentiation**: Different analysis modes (Fast/Balanced/Deep) display different estimated times.
-- ✅ **Bidirectional Divergent Bar Chart Optimization**: Value labels are aligned left and right, with percentage displayed above the bidirectional divergent bar.
-
-
+- ✅ **Progress Estimation**: Show estimated remaining time based on analysis mode (e.g., "Analyzing... (15s)")
+- ✅ **Progress Bar Animation**: Display dynamic progress bar for intuitive analysis progress indication.
+- ✅ **Mode Differentiation**: Different analysis modes (Fast/Balanced/Deep) show different estimated times.
+- ✅ **Bidirectional Divergent Bar Chart Optimization**: Value labels are left-right aligned, with percentages displayed above bidirectional divergent bars.
 
 ### v0.6.2 (2024-01-09) - Theme System
-*   **Feature**: **Theme Customization**, supports user-defined appearance themes, including color schemes, fonts, and sizes.
-*   **Feature**: **Multiple Built-in Themes**, provides multiple preset themes, including Zhihu White/Black themes and Reddit White/Black themes.
-*   **Feature**: **Dynamic Theme Switching**, supports real-time theme switching without page refresh.
+*   **Feature**: **Theme Customization**, supports user-defined appearance themes, including color schemes, fonts, sizes, etc.
+*   **Feature**: **Multiple Built-in Themes**, provides multiple preset themes, including Zhihu White/Black themes, Reddit White/Black themes.
+*   **Feature**: **Dynamic Theme Switching**, supports real-time theme switching without refreshing the page.
 *   **Feature**: **CSS Variable Driven**, uses CSS variables to implement global theme dynamic application, ensuring all components update synchronously.
-*   **Feature**: **Theme Management**, supports creating, editing, and deleting custom themes, with import/export functionality.
+*   **Feature**: **Theme Management**, supports creating, editing, deleting custom themes, and provides theme import/export functionality.
 
 ### v0.6.1 (2024-01-09) - Real-time Settings Save
 *   **Feature**: Implemented **real-time settings save functionality** on the settings page, all configuration changes are immediately saved to storage automatically.
@@ -250,45 +248,134 @@ export const enUSVersionHistory = `# DeepProfile Version History
 *   **Feature**: Ensured that Reddit platform analysis buttons and user profile cards support Chinese/English interface switching.
 *   **Feature**: Implemented consistent button injection mechanism aligned with Zhihu platform, including configuration checks, cleanup functions, and orphaned button removal features.
 *   **Feature**: Updated internationalization support for loading, analysis, and error status messages to ensure interface fully follows user language settings.
-*   **Feature**: Fixed useCallback import issue in Reddit overlay, optimizing component performance.
 
-### v0.5.1 (2024-01-10) - Multi-language Support
-*   **Major Feature**: Full support for **Simplified Chinese** and **English** bilingual switching.
-*   **Feature**: AI analysis results automatically adapt to selected language.
-*   **Refactor**: Introduced \`I18nService\` to manage text resources uniformly.
+### v0.5.0 (2024-01-07) - Reddit Platform Support
+*   **Feature**: **Reddit Platform Support**, added support for analyzing Reddit user profiles.
+*   **Feature**: **Cross-Platform Architecture**, refactored code to support multi-social platform expansion.
+*   **Feature**: **Platform-Specific Configuration**, allows setting different analysis parameters for different platforms.
+*   **Feature**: **Reddit Content Scraping**, implemented content extraction and parsing for Reddit API.
+*   **Feature**: **Platform-Specific UI**, adapted user interface styles for Reddit.
 
-### v0.5.0 (2024-01-09) - Comment Sentiment Summary
-*   **Major Feature**: **Comment Sentiment Summary**, one-click generation of page sentiment profile, including position distribution, core views, and emotion detection.
-*   **Security**: Adopted **zero-risk analysis** strategy, only analyzing loaded DOM text, not calling Zhihu API, completely avoiding risk control.
+### v0.4.0 (2024-01-06) - Comment Analysis Feature
+*   **Feature**: **Comment Analysis**, added specialized comment analysis feature to analyze user comments under specific posts.
+*   **Feature**: **Sentiment Analysis**, implemented emotional tendency analysis of user comments (support/oppose/neutral).
+*   **Feature**: **Opinion Clustering**, automatically clusters main opinions in user comments.
+*   **Feature**: **Position Identification**, identifies user positions on controversial topics.
+*   **Feature**: **Public Opinion Overview**, generates AI summary of overall public opinion.
 
-### v0.4.2 (2024-01-08) - Enhanced Export and UX Optimization
-*   **Feature**: Export images support displaying user avatars and QR codes.
-*   **Feature**: History record management supports image export.
-*   **Fix**: Fixed user nickname display issue in history records.
-*   **Fix**: Optimized Zhihu API request headers, resolving 403 issue.
-*   **UX**: Error prompt copy optimized, more friendly and witty.
+### v0.3.0 (2024-01-05) - Value Label System
+*   **Feature**: **Value Label System**, established multi-dimensional value orientation label system (political, economic, social, cultural, technological, etc.).
+*   **Feature**: **Quantitative Analysis**, transforms value orientations into quantitative scores between -1 and 1.
+*   **Feature**: **Bipolar Coordinates**, uses bipolar coordinate system to intuitively display value orientations.
+*   **Feature**: **Label Visualization**, displays value distributions in various dimensions through chart form.
+*   **Feature**: **Label Explanations**, provides detailed explanations for each label.
 
-### v0.4.1 (2024-01-07) - Performance Optimization
-*   **Optimization**: **Dynamic Prompt Trimming**, based on topic category only loads relevant label definitions, significantly reducing Token consumption and improving response speed.
-*   **Refactor**: Optimized label service and topic service, improving code maintainability.
+### v0.2.1 (2024-01-04) - Optimization & Fixes
+*   **Fix**: Optimized content scraping logic, added handling for API rate limiting.
+*   **Fix**: Fixed issues where analysis results were incomplete in certain situations.
+*   **Fix**: Improved error handling mechanisms, providing clearer error messages.
+*   **UI**: Fine-tuned UI component styles, enhancing visual effects.
+*   **Performance**: Optimized caching mechanisms, improving response speed for repeated queries.
 
-### v0.4.0 (2024-01-06) - History Records and Intelligent Classification
-*   **Major Feature**: **History Record System**, supporting local cache, second-level response, and visual management.
-*   **Major Feature**: **Eight-dimensional Full Spectrum Classification**, introducing 30+ sub-dimensions in politics, economy, society, technology, etc., making profiles more three-dimensional.
-*   **Feature**: **Hybrid Classification Strategy**, combining keyword matching with LLM intelligent classification, ensuring accurate topic categorization.
-*   **Feature**: **Domain Adaptive Analysis**, LLM automatically judges content relevance, avoiding incorrect analysis due to topic mismatch.
-*   **Optimization**: **Deep Prompt Desensitization**, significantly reducing probability of triggering content security risk control.
-*   **UI**: Added "History Records" panel to settings page, supporting expansion view and fine-grained management.
+### v0.2.0 (2024-01-03) - Deep Analysis and Context Awareness
+*   **Feature**: Added context-aware functionality, automatically filtering user's relevant answers based on current browsing question.
+*   **Feature**: Added "Analysis Mode" setting (Fast/Balanced/Deep), Deep mode supports irony identification.
+*   **Feature**: Profile labels added confidence probability display.
+*   **Feature**: Enhanced Debug mode, displaying topic classification and scraping strategy.
+*   **Fix**: Optimized injection logic, precisely positioning to the right of nickname, excluding avatar interference.
+*   **Fix**: Fixed issue where citation links were in API format, unified to web links.
 
-### v0.3.0 (2024-01-04) - Precise Focus and UX Optimization
-*   **Major Feature**: **Refactored Context-aware Algorithm**, using topic tags for precise matching and adopting dynamic truncation strategy, completely solving topic deviation issues.
-*   **Major Feature**: **Refactored Prompt**, using "value orientation" instead of "political orientation", avoiding domestic model risk control, and requiring AI to explain contradiction points.
-*   **Feature**: **New "Connection Test" Function**, providing friendly Chinese error prompts.
-*   **Feature**: **Dynamic Model List Loading**, upgraded model name input box to dropdown selection box.
-*   **Feature**: Added support for **Qwen (Tongyi Qianwen)** and **Custom OpenAI Compatible Interface**.
-*   **Feature**: Data source adds **user like activity**, and can display source ratio in Debug panel.
-*   **Fix**: Prioritizes extracting and analyzing **complete body** of answers/articles, not brief summaries.
-*   **UI**: Modernized settings page UI, adopting card-based layout.
+### v0.1.0 (2024-01-02) - MVP Release
+*   **Feature**: Completed basic architecture (Plasmo + React + TypeScript).
+*   **Feature**: Implemented Zhihu API scraping and cleaning.
+*   **Feature**: Connected OpenAI/Gemini/Ollama interfaces.
+*   **Feature**: Implemented basic UI injection and profile display card.
+*   **Feature**: Supports API Key configuration.
+
+`;
+
+// DeepProfile Version History
+export const enUSVersionHistory = `# DeepProfile Version History
+
+### Memory Optimization (v0.8.1) - Memory Management & Leak Fixes
+- ✅ **Memory Leak Fixes**: Fixed memory leaks caused by timers not being properly cleared in the background service
+- ✅ **Event Listener Management**: Improved registration and deregistration mechanisms for event listeners in content scripts to prevent duplicate bindings
+- ✅ **Cache Strategy Optimization**: Optimized cache cleanup mechanisms for history records, regularly cleaning up expired data
+- ✅ **Component Unmount Optimization**: Improved unmount logic for React components to ensure DOM nodes and event handlers are properly cleaned up
+- ✅ **Resource Management**: Added tracking for active timers to prevent timer accumulation
+
+### Core Feature (v0.8.0) - Platform Expansion & UI Modernization
+- ✅ **Quora Platform Support**: Added user profile analysis support for Quora platform, including content scraping and user info extraction
+- ✅ **Twitter/X Platform Support**: Added user profile analysis support for Twitter/X platform, adapting to new API interfaces
+- ✅ **UI Modernization**: Adopted modern UI design, updated settings page layout with card-based design for improved visual experience
+- ✅ **Icon Updates**: Added dedicated icons for all supported platforms, enhancing interface aesthetics
+- ✅ **Responsive Enhancement**: Optimized interface display across different screen sizes
+
+### Core Feature (v0.7.1) - Label Display & LLM Output Optimization
+- ✅ **Label Display Fix**: Resolved issues where certain labels (e.g., \`competition_vs_equality\`, \`speculation_vs_value\`) were not displaying correctly in the frontend.
+- ✅ **Label Definition Sync**: Ensured label definitions in \`LabelService\` are fully synchronized with \`LabelDefinitions\`, eliminating display errors caused by ID mismatches.
+- ✅ **LLM Output Standardization**: Added automatic standardization for LLM-returned label IDs, capable of correcting non-standard label IDs (e.g., mapping \`nationalism_globalism\` to \`geopolitics\`).
+- ✅ **Duplicate Label Handling**: Optimized result parsing logic to automatically merge and deduplicate labels returned by LLM, prioritizing scores with higher confidence.
+
+### Core Feature (v0.7.0) - Improved Profile Analysis Accuracy & Consistency
+- ✅ **AI Summary Consistency**: Ensure AI-generated summaries are consistent with numerical label scores
+- ✅ **Consistency Verification Mechanism**: Added ConsistencyService to verify and fix summary-label consistency
+- ✅ **Label-Summary Association**: High-scoring labels are clearly reflected in summaries
+- ✅ **Evidence Support**: Ensure analysis evidence matches label scores
+
+### Core Feature (v0.6.3) - Analysis Progress Visualization & Label Display Optimization
+- ✅ **Progress Estimation**: Show estimated remaining time based on analysis mode (e.g., "Analyzing... (15s)")
+- ✅ **Progress Bar Animation**: Display dynamic progress bar for intuitive analysis progress indication.
+- ✅ **Mode Differentiation**: Different analysis modes (Fast/Balanced/Deep) show different estimated times.
+- ✅ **Bidirectional Divergent Bar Chart Optimization**: Value labels are left-right aligned, with percentages displayed above bidirectional divergent bars.
+
+### v0.6.2 (2024-01-09) - Theme System
+*   **Feature**: **Theme Customization**, supports user-defined appearance themes, including color schemes, fonts, sizes, etc.
+*   **Feature**: **Multiple Built-in Themes**, provides multiple preset themes, including Zhihu White/Black themes, Reddit White/Black themes.
+*   **Feature**: **Dynamic Theme Switching**, supports real-time theme switching without refreshing the page.
+*   **Feature**: **CSS Variable Driven**, uses CSS variables to implement global theme dynamic application, ensuring all components update synchronously.
+*   **Feature**: **Theme Management**, supports creating, editing, deleting custom themes, and provides theme import/export functionality.
+
+### v0.6.1 (2024-01-09) - Real-time Settings Save
+*   **Feature**: Implemented **real-time settings save functionality** on the settings page, all configuration changes are immediately saved to storage automatically.
+*   **Feature**: Removed manual save button, simplifying the settings interface.
+*   **Feature**: Configuration changes take effect immediately without restart or refresh.
+*   **UX**: Improved user experience with a smoother settings workflow.
+
+### v0.6.0 (2024-01-08) - Reddit Platform Multilingual Support Enhancement
+*   **Feature**: Fixed I18nService initialization issue on Reddit platform to ensure multilingual functionality works properly.
+*   **Feature**: Refactored button injection logic on Reddit platform to align with Zhihu platform, resolving the disappearing button issue.
+*   **Feature**: Ensured that Reddit platform analysis buttons and user profile cards support Chinese/English interface switching.
+*   **Feature**: Implemented consistent button injection mechanism aligned with Zhihu platform, including configuration checks, cleanup functions, and orphaned button removal features.
+*   **Feature**: Updated internationalization support for loading, analysis, and error status messages to ensure interface fully follows user language settings.
+
+### v0.5.0 (2024-01-07) - Reddit Platform Support
+*   **Feature**: **Reddit Platform Support**, added support for analyzing Reddit user profiles.
+*   **Feature**: **Cross-Platform Architecture**, refactored code to support multi-social platform expansion.
+*   **Feature**: **Platform-Specific Configuration**, allows setting different analysis parameters for different platforms.
+*   **Feature**: **Reddit Content Scraping**, implemented content extraction and parsing for Reddit API.
+*   **Feature**: **Platform-Specific UI**, adapted user interface styles for Reddit.
+
+### v0.4.0 (2024-01-06) - Comment Analysis Feature
+*   **Feature**: **Comment Analysis**, added specialized comment analysis feature to analyze user comments under specific posts.
+*   **Feature**: **Sentiment Analysis**, implemented emotional tendency analysis of user comments (support/oppose/neutral).
+*   **Feature**: **Opinion Clustering**, automatically clusters main opinions in user comments.
+*   **Feature**: **Position Identification**, identifies user positions on controversial topics.
+*   **Feature**: **Public Opinion Overview**, generates AI summary of overall public opinion.
+
+### v0.3.0 (2024-01-05) - Value Label System
+*   **Feature**: **Value Label System**, established multi-dimensional value orientation label system (political, economic, social, cultural, technological, etc.).
+*   **Feature**: **Quantitative Analysis**, transforms value orientations into quantitative scores between -1 and 1.
+*   **Feature**: **Bipolar Coordinates**, uses bipolar coordinate system to intuitively display value orientations.
+*   **Feature**: **Label Visualization**, displays value distributions in various dimensions through chart form.
+*   **Feature**: **Label Explanations**, provides detailed explanations for each label.
+
+### v0.2.1 (2024-01-04) - Optimization & Fixes
+*   **Fix**: Optimized content scraping logic, added handling for API rate limiting.
+*   **Fix**: Fixed issues where analysis results were incomplete in certain situations.
+*   **Fix**: Improved error handling mechanisms, providing clearer error messages.
+*   **UI**: Fine-tuned UI component styles, enhancing visual effects.
+*   **Performance**: Optimized caching mechanisms, improving response speed for repeated queries.
 
 ### v0.2.0 (2024-01-03) - Deep Analysis and Context Awareness
 *   **Feature**: Added context-aware functionality, automatically filtering user's relevant answers based on current browsing question.

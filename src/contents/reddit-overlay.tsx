@@ -37,6 +37,7 @@ const RedditOverlay = () => {
   const [progressPercentage, setProgressPercentage] = useState<number | undefined>(undefined)
   const [error, setError] = useState<string | undefined>()
   const rootRef = useRef<Root | null>(null)
+  const messageListenerRef = useRef<any>(null);
 
   useEffect(() => {
     // Initialize I18n
@@ -60,6 +61,9 @@ const RedditOverlay = () => {
       }
     }
     
+    // Store reference to remove later
+    messageListenerRef.current = messageListener;
+    
     // 安全地添加消息监听器
     try {
       chrome.runtime.onMessage.addListener(messageListener)
@@ -70,7 +74,10 @@ const RedditOverlay = () => {
     // 安全地清理事件监听器
     return () => {
       try {
-        chrome.runtime.onMessage.removeListener(messageListener)
+        if (messageListenerRef.current) {
+          chrome.runtime.onMessage.removeListener(messageListenerRef.current)
+          messageListenerRef.current = null;
+        }
       } catch (e) {
         // 忽略上下文失效错误
         console.debug("Extension context may have been invalidated, ignoring error:", e)
@@ -202,6 +209,7 @@ const RedditOverlay = () => {
   useEffect(() => {
     let observer: MutationObserver | null = null;
     let isEnabled = false;
+    let storageListenerRef: ((changes: any, area: string) => void) | null = null;
 
     // 清理函数：停止观察并移除所有已注入的元素
     const cleanup = () => {
@@ -434,6 +442,9 @@ const RedditOverlay = () => {
       }
     };
     
+    // Store reference to remove later
+    storageListenerRef = storageListener;
+    
     // Safely add storage listener
     try {
       chrome.storage.onChanged.addListener(storageListener);
@@ -443,7 +454,10 @@ const RedditOverlay = () => {
 
     return () => {
       try {
-        chrome.storage.onChanged.removeListener(storageListener);
+        if (storageListenerRef) {
+          chrome.storage.onChanged.removeListener(storageListenerRef);
+          storageListenerRef = null;
+        }
       } catch (e) {
         // 忽略上下文失效错误
         console.debug("Extension context may have been invalidated, ignoring storage listener removal error:", e);

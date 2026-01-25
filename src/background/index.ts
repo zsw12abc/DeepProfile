@@ -28,6 +28,9 @@ chrome.action.onClicked.addListener(() => {
   chrome.runtime.openOptionsPage();
 });
 
+// Track active intervals to prevent leaks
+const activeIntervals = new Set<NodeJS.Timeout>();
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === "ANALYZE_PROFILE") {
     const tabId = sender.tab?.id
@@ -239,12 +242,17 @@ async function sendPeriodicProgress(tabId: number | undefined, startTime: number
     
     if (elapsed >= estimatedTime) {
       clearInterval(interval);
+      activeIntervals.delete(interval); // Clean up reference
     }
   }, 1000); // Update every second
+  
+  // Add interval to our tracking set
+  activeIntervals.add(interval);
   
   // Clear interval after estimated time
   setTimeout(() => {
     clearInterval(interval);
+    activeIntervals.delete(interval); // Clean up reference
   }, estimatedTime);
   
   return interval;
@@ -316,12 +324,17 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
     
     if (elapsed >= estimatedTime) {
       clearInterval(progressInterval);
+      activeIntervals.delete(progressInterval); // Clean up reference
     }
   }, 1000);
+  
+  // Add interval to our tracking set
+  activeIntervals.add(progressInterval);
   
   // Clear interval after estimated time + buffer
   setTimeout(() => {
     clearInterval(progressInterval);
+    activeIntervals.delete(progressInterval); // Clean up reference
   }, estimatedTime + 5000);
   
   try {
@@ -428,8 +441,20 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
       
       throw new Error(msg);
   } finally {
+    // Clean up any remaining intervals in the finally block
     if (progressInterval) {
       clearInterval(progressInterval);
+      activeIntervals.delete(progressInterval);
     }
   }
+}
+
+// Clean up all intervals when service worker is terminated (only if API is available)
+if (chrome.runtime && chrome.runtime.onSuspend) {
+  chrome.runtime.onSuspend.addListener(() => {
+    activeIntervals.forEach(interval => {
+      clearInterval(interval);
+    });
+    activeIntervals.clear();
+  });
 }
