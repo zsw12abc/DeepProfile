@@ -1,5 +1,7 @@
 import { ZhihuClient } from "./ZhihuClient";
 import { RedditClient } from "./RedditClient";
+import { TwitterClient } from "./TwitterClient";
+import { QuoraClient } from "./QuoraClient";
 import type { ZhihuContent, UserProfile } from "./ZhihuClient";
 import { ConfigService } from "./ConfigService";
 import type { SupportedPlatform } from "~types";
@@ -33,6 +35,17 @@ export class ProfileService {
           platform: 'reddit'
         };
       case 'twitter':
+        const twitterResult = await TwitterClient.fetchUserContent(userId, limit, context);
+        return {
+          ...twitterResult,
+          platform: 'twitter'
+        };
+      case 'quora':
+        const quoraResult = await QuoraClient.fetchUserContent(userId, limit, context);
+        return {
+          ...quoraResult,
+          platform: 'quora'
+        };
       case 'weibo':
       default:
         throw new Error(`Platform ${platform} is not implemented yet`);
@@ -49,6 +62,9 @@ export class ProfileService {
       case 'reddit':
         return await RedditClient.fetchUserProfile(userId);
       case 'twitter':
+        return await TwitterClient.fetchUserProfile(userId);
+      case 'quora':
+        return await QuoraClient.fetchUserProfile(userId);
       case 'weibo':
       default:
         throw new Error(`Platform ${platform} is not implemented yet`);
@@ -62,8 +78,10 @@ export class ProfileService {
       return 'zhihu';
     } else if (url.includes('reddit.com') && config.enabledPlatforms.reddit) {
       return 'reddit';
-    } else if (url.includes('twitter.com') && config.enabledPlatforms.twitter) {
+    } else if ((url.includes('twitter.com') || url.includes('x.com')) && config.enabledPlatforms.twitter) {
       return 'twitter';
+    } else if (url.includes('quora.com') && config.enabledPlatforms.quora) {
+      return 'quora';
     } else if (url.includes('weibo.com') && config.enabledPlatforms.weibo) {
       return 'weibo';
     }
@@ -91,6 +109,11 @@ export class ProfileService {
           text += 'This user has no public posts or comments.';
           break;
         case 'twitter':
+          text += 'This user has no public tweets or replies.';
+          break;
+        case 'quora':
+          text += 'This user has no public answers or questions.';
+          break;
         case 'weibo':
         default:
           text += 'This user has no public content.';
@@ -134,6 +157,10 @@ export class ProfileService {
             typeTag = item.type === 'answer' ? '【Answer】' : (item.type === 'article' ? '【Article】' : '【Activity】');
         } else if (platform === 'reddit') {
             typeTag = item.type === 'article' ? '【Post】' : '【Comment】';
+        } else if (platform === 'twitter') {
+            typeTag = item.type === 'article' ? '【Tweet】' : '【Reply】';
+        } else if (platform === 'quora') {
+            typeTag = item.type === 'answer' ? '【Answer】' : '【Question】';
         }
         
         return `[ID:${item.id}] ${actionTag}${typeTag} Title: 【${item.title}】\nContent: ${content}`;

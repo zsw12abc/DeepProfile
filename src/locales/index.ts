@@ -75,6 +75,7 @@ export type LocaleKey =
   | 'error_network'
   | 'error_zhihu_403'
   | 'error_user_not_found'
+  | 'error_content_filter'
   
   // Categories
   | 'category_politics'
@@ -176,6 +177,18 @@ export type LocaleKey =
   | 'comment_analysis_failed'
   
   // Reddit Overlay
-  | 'deep_profile_analysis';
+  | 'deep_profile_analysis'
+
+  // Progress Messages
+  | 'reading_user_profile'
+  | 'reading_content'
+  | 'ai_analyzing'
+
+  // Settings
+  | 'settings_twitter'
+  | 'settings_quora'
+
+  // Errors
+  | 'error_extension_context';
 
 export type LocaleDict = Record<LocaleKey, string>;

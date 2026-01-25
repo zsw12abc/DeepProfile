@@ -344,10 +344,17 @@ interface PlatformSpecificSettingsProps {
 }
 
 export const PlatformSpecificSettings: React.FC<PlatformSpecificSettingsProps> = ({ config, setConfig, platform }) => {
-  const platformName = platform === 'zhihu' ? I18nService.t('settings_zhihu') : I18nService.t('settings_reddit');
+  const platformName = platform === 'zhihu' ? I18nService.t('settings_zhihu') : 
+                   platform === 'reddit' ? I18nService.t('settings_reddit') :
+                   platform === 'twitter' ? I18nService.t('settings_twitter') : 
+                   I18nService.t('settings_quora');
   const platformIcon = platform === 'zhihu' 
     ? <img src="https://static.zhihu.com/heifetz/assets/apple-touch-icon-152.a53ae37b.png" alt="Zhihu" style={{ width: "24px", height: "24px", borderRadius: "4px", objectFit: "contain" }} />
-    : <img src="https://www.redditstatic.com/desktop2x/img/favicon/apple-icon-120x120.png" alt="Reddit" style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "contain" }} />;
+    : platform === 'reddit' 
+      ? <img src="https://www.redditstatic.com/desktop2x/img/favicon/apple-icon-120x120.png" alt="Reddit" style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "contain" }} />
+      : platform === 'twitter'
+        ? <img src="https://abs.twimg.com/icons/apple-touch-icon-192x192.png" alt="Twitter" style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "contain" }} />
+        : <img src="https://qsf.fs.quoracdn.net/-4-ans_frontend_assets.favicon-new.ico-26-e7e93fe0a7fbc991.ico" alt="Quora" style={{ width: "24px", height: "24px", objectFit: "contain" }} />;
 
   return (
     <Card title={platformName} icon={platformIcon}>

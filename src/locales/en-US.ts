@@ -21,6 +21,8 @@ export const enUS: LocaleDict = {
   settings_general: "General Settings",
   settings_zhihu: "Zhihu Settings",
   settings_reddit: "Reddit Settings",
+  settings_twitter: "Twitter Settings",
+  settings_quora: "Quora Settings",
   debug_mode: "Debug Mode",
   debug_mode_desc: "Enable detailed logging",
   settings_history: "History",
@@ -89,6 +91,7 @@ export const enUS: LocaleDict = {
   error_zhihu_403: "Access Denied by Zhihu (403) 🚧. Please try refreshing the page or logging in.",
   error_user_not_found: "User data not found 🕵️‍♂️. The account might be banned or set to private.",
   error_extension_context: "Extension context invalidated. Please refresh the page to retry.",
+  error_content_filter: "Content Safety Review Failed: The input content was flagged by the AI provider as potentially inappropriate. Please try switching to a different model like DeepSeek or OpenAI.",
 
   // Export
   click_jump: "Click to Jump",
@@ -192,9 +195,21 @@ export const enUS: LocaleDict = {
 // DeepProfile Current Version Changelog
 export const enUSChangelog = `# DeepProfile Current Version Changelog
 
-## Current Version: v0.7.1 (Beta)
+## Current Version: v0.8.0 (Beta)
 
 ### ✅ Features Achieved
+
+### Core Feature (v0.8.0) - Twitter and Quora Platform Support
+- ✅ **Twitter Platform Support**: Added user profile analysis support for Twitter(X) platform, including content scraping and analysis features.
+- ✅ **Quora Platform Support**: Added user profile analysis support for Quora platform, including content scraping and analysis features.
+- ✅ **Multi-platform Architecture**: Extended underlying architecture to support multiple platforms, facilitating addition of more social platforms in the future.
+- ✅ **Interface Integration**: Added Twitter and Quora settings entries in the options page, along with corresponding icons.
+- ✅ **Permission Configuration**: Updated manifest file to include access permissions for Twitter and Quora.
+
+`;
+
+// DeepProfile Version History
+export const enUSVersionHistory = `# DeepProfile Version History
 
 ### Core Feature (v0.7.1) - Label Display & LLM Output Optimization
 - ✅ **Label Display Fix**: Resolved issues where certain labels (e.g., \`competition_vs_equality\`, \`speculation_vs_value\`) were not displaying correctly in the frontend.
@@ -207,10 +222,6 @@ export const enUSChangelog = `# DeepProfile Current Version Changelog
 - ✅ **Consistency Verification Mechanism**: Added ConsistencyService to verify and fix summary-label consistency
 - ✅ **Label-Summary Association**: High-scoring labels will be explicitly reflected in summaries
 - ✅ **Evidence Support**: Ensure analysis evidence matches label scores
-`;
-
-// DeepProfile Version History
-export const enUSVersionHistory = `# DeepProfile Version History
 
 ### Core Feature (v0.6.3) - Analysis Progress Visualization & Label Display Optimization
 - ✅ **Progress Estimation**: Display estimated remaining time based on analysis mode (e.g., "Analyzing... (15s)")

@@ -21,6 +21,8 @@ export const zhCN: LocaleDict = {
   settings_general: "通用设置",
   settings_zhihu: "知乎设置",
   settings_reddit: "Reddit 设置",
+  settings_twitter: "Twitter 设置",
+  settings_quora: "Quora 设置",
   debug_mode: "调试模式",
   debug_mode_desc: "启用详细日志记录",
   settings_history: "历史记录",
@@ -89,6 +91,7 @@ export const zhCN: LocaleDict = {
   error_zhihu_403: "哎呀，被知乎拦截了 (403) 🚧。请试着刷新一下知乎页面，或者确认是否登录了哦～",
   error_user_not_found: "哎呀，找不到这个用户的数据 🕵️‍♂️，可能是账号被封禁或设置了隐私保护。",
   error_extension_context: "扩展上下文已失效，请刷新页面重试。",
+  error_content_filter: "内容安全审查失败：输入内容被AI服务商标记为可能不当。请尝试切换到DeepSeek或OpenAI等模型。",
 
   // Export
   click_jump: "点击跳转",
@@ -192,9 +195,21 @@ export const zhCN: LocaleDict = {
 // DeepProfile 当前版本更新日志
 export const zhCNChangelog = `# DeepProfile 当前版本更新日志
 
-## 当前版本: v0.7.1 (Beta)
+## 当前版本: v0.8.0 (Beta)
 
 ### ✅ 已达成功能
+
+### 核心功能 (v0.8.0) - Twitter与Quora平台支持
+- ✅ **Twitter平台支持**: 添加了对Twitter(X)平台的用户画像分析支持，包括内容抓取和分析功能。
+- ✅ **Quora平台支持**: 添加了对Quora平台的用户画像分析支持，包括内容抓取和分析功能。
+- ✅ **多平台架构**: 扩展了底层架构以支持多平台，便于未来添加更多社交平台。
+- ✅ **界面集成**: 在选项页面中添加了Twitter和Quora的设置入口，以及相应的图标。
+- ✅ **权限配置**: 更新了manifest文件以包含Twitter和Quora的访问权限。
+
+`;
+
+// DeepProfile 版本历史记录
+export const zhCNVersionHistory = `# DeepProfile 版本历史
 
 ### 核心功能 (v0.7.1) - 标签显示与LLM输出优化
 - ✅ **标签显示修复**: 解决了部分标签（如 \`competition_vs_equality\`, \`speculation_vs_value\` 等）在前端无法正确显示的问题。
@@ -207,11 +222,6 @@ export const zhCNChangelog = `# DeepProfile 当前版本更新日志
 - ✅ **一致性验证机制**: 新增ConsistencyService验证并修复摘要与标签的一致性
 - ✅ **标签-摘要关联**: 高分标签会在摘要中得到明确体现
 - ✅ **证据支撑**: 确保分析证据与标签分数相匹配
-
-`;
-
-// DeepProfile 版本历史记录
-export const zhCNVersionHistory = `# DeepProfile 版本历史
 
 ### 核心功能 (v0.6.3) - 分析进度可视化与标签显示优化
 - ✅ **进度预估**: 根据分析模式显示预估剩余时间 (例如: "正在分析... (15s)")
