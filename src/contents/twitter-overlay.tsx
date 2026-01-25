@@ -199,6 +199,43 @@ const TwitterOverlay = () => {
     }
   }, [targetUser, profileData, loading, statusMessage, error, initialNickname, currentContext, progressPercentage]);
 
+  // 监听来自后台脚本的消息
+  useEffect(() => {
+    const handleMessageFromBackground = async (request: any, sender: any, sendResponse: (response: any) => void) => {
+      if (request && request.type === 'TWITTER_CONTENT_REQUEST') {
+        const { requestId, username, limit, url } = request;
+        
+        // 从页面中抓取Twitter内容
+        const scrapedContent = await scrapeTwitterContent(username, limit);
+        
+        // 发送响应回后台脚本
+        chrome.runtime.sendMessage({
+          type: 'TWITTER_CONTENT_RESPONSE',
+          requestId,
+          content: scrapedContent
+        }).catch(error => {
+          console.warn('Failed to send response to background script:', error);
+        });
+      }
+    };
+
+    // 安全地添加消息监听器
+    try {
+      chrome.runtime.onMessage.addListener(handleMessageFromBackground);
+    } catch (e) {
+      console.warn("Failed to add message listener, extension context may be invalidated:", e);
+    }
+
+    return () => {
+      // 安全地清理事件监听器
+      try {
+        chrome.runtime.onMessage.removeListener(handleMessageFromBackground);
+      } catch (e) {
+        console.warn("Failed to remove message listener, extension context may be invalidated:", e);
+      }
+    };
+  }, []);
+
   useEffect(() => {
     let observer: MutationObserver | null = null;
     let isEnabled = false;
@@ -221,7 +258,7 @@ const TwitterOverlay = () => {
       try {
         document.querySelectorAll('.deep-profile-btn').forEach(btn => {
             const prev = btn.previousElementSibling as HTMLAnchorElement | null;
-            if (!prev || prev.tagName !== 'A' || !prev.href.includes('/')) {
+            if (!prev || prev.tagName !== 'A') {
                 btn.remove();
             }
         });
@@ -245,10 +282,21 @@ const TwitterOverlay = () => {
       }
 
       // 3. 注入新按钮
-      let links;
+      let links: Element[] = [];
       try {
-        // 查找用户资料链接
-        links = document.querySelectorAll('a[href*="/"], a[data-testid="UserCell"]');
+        // 使用更精确的选择器，只针对用户名显示
+        // 1. [data-testid="User-Name"] a:not([tabindex="-1"]): 推文流中的用户名，排除handle链接
+        // 2. [data-testid="UserCell"] a:not([tabindex="-1"]): 用户列表中的用户名，排除handle链接
+        const candidates = document.querySelectorAll(
+            '[data-testid="User-Name"] a:not([tabindex="-1"]), ' + 
+            '[data-testid="UserCell"] a:not([tabindex="-1"])'
+        );
+        
+        links = Array.from(candidates).filter(link => {
+            const href = link.getAttribute('href') || '';
+            // 再次确保不包含 status 或 photo 链接
+            return !href.includes('/status/') && !href.includes('/photo/');
+        });
       } catch (e) {
         console.warn('Failed to query user links, document may not be available:', e);
         return; // Exit early if document operations fail
@@ -296,6 +344,14 @@ const TwitterOverlay = () => {
         if (!link.textContent?.trim()) return
         if (link.closest('.avatar') || link.closest('[aria-label*="avatar"]')) return
 
+        // 在注入新按钮之前，先检查该链接是否已经有按钮但未标记为已注入
+        const existingBtn = link.nextElementSibling as HTMLElement | null;
+        if (existingBtn && existingBtn.classList.contains('deep-profile-btn')) {
+          // 如果已有按钮但链接未标记为已注入，标记它并返回
+          link.setAttribute("data-deep-profile-injected", "true");
+          return;
+        }
+
         const btn = document.createElement("span")
         btn.innerHTML = " 🔍"  // Using innerHTML to properly render emoji
         btn.style.cursor = "pointer"
@@ -303,7 +359,9 @@ const TwitterOverlay = () => {
         btn.style.marginLeft = "4px"
         btn.style.color = "#8590a6"
         btn.style.verticalAlign = "middle"
+        // 最简样式确保与Twitter用户名在同一行
         btn.style.display = "inline-block"
+        btn.style.whiteSpace = "nowrap"
         try {
           btn.title = I18nService.t('deep_profile_analysis')
         } catch (e) {
@@ -372,6 +430,7 @@ const TwitterOverlay = () => {
 
         link.setAttribute("data-deep-profile-injected", "true")
         
+        // 使用原始的插入方式，避免复杂逻辑导致的问题
         if (link.parentNode) {
             link.parentNode.insertBefore(btn, link.nextSibling)
         }
@@ -507,6 +566,166 @@ const TwitterOverlay = () => {
       setLoading(false)
     }
   }
+
+  // 从页面中抓取Twitter内容
+  const scrapeTwitterContent = async (username: string, limit: number = 15): Promise<any[]> => {
+    try {
+      // 获取当前页面的URL以确定是否是用户主页
+      const currentUrl = window.location.href;
+      const contentItems: any[] = [];
+      const seenContent = new Set<string>();
+      
+      // Decode username for better matching
+      const decodedUsername = decodeURIComponent(username);
+      const usernameLower = username.toLowerCase();
+      const decodedUsernameLower = decodedUsername.toLowerCase();
+      
+      console.log(`Scraping Twitter content for ${username} (${decodedUsername}) on ${currentUrl}`);
+
+      // Helper to check if an element contains user link
+      const hasUserLink = (el: Element): boolean => {
+          const links = el.querySelectorAll('a');
+          for (const link of Array.from(links)) {
+              const href = link.getAttribute('href');
+              if (href) {
+                  const hrefLower = href.toLowerCase();
+                  if (hrefLower.includes(`/${usernameLower}`) || 
+                      hrefLower.includes(`/${decodedUsernameLower}`)) {
+                      return true;
+                  }
+              }
+          }
+          return false;
+      };
+
+      let attempts = 0;
+      const maxAttempts = 8; // Try scrolling a few times
+      
+      while (contentItems.length < limit && attempts < maxAttempts) {
+        // Broad selection of potential item containers
+        let containers = Array.from(document.querySelectorAll(
+            '[data-testid="tweet"], ' + 
+            '[data-testid="cellInnerDiv"], ' + 
+            'article[role="article"]'
+        ));
+        
+        for (const container of containers) {
+            if (contentItems.length >= limit) break;
+            
+            // Skip promoted content
+            if (container.textContent?.includes('Promoted') || container.querySelector('[data-testid="placementTracking"]')) continue;
+
+            // Must have some text
+            if (!container.textContent || container.textContent.length < 10) continue;
+
+            // Determine if this is user's content
+            let isUserContent = false;
+            
+            // If we are on the specific user's profile page
+            if (currentUrl.toLowerCase().includes(`/${usernameLower}`) || 
+                currentUrl.toLowerCase().includes(`/${decodedUsernameLower}`)) {
+                
+                // On profile page, we assume content is relevant unless it's clearly someone else's
+                // Check for "Retweeted" label or similar indicators if needed
+                // But generally, tweets on profile timeline are relevant
+                isUserContent = true;
+            } else {
+                // Not on profile page, must have explicit link/handle match
+                // Check if the tweet author is the target user
+                const userLink = container.querySelector('[data-testid="User-Name"] a');
+                if (userLink) {
+                    const href = userLink.getAttribute('href');
+                    if (href && (href.toLowerCase().includes(`/${usernameLower}`) || 
+                                 href.toLowerCase().includes(`/${decodedUsernameLower}`))) {
+                        isUserContent = true;
+                    }
+                }
+            }
+
+            if (!isUserContent) continue;
+
+            // Extract Content
+            let content = '';
+            const contentEl = container.querySelector('[data-testid="tweetText"]');
+            
+            if (contentEl) {
+                content = contentEl.textContent?.trim() || '';
+            } else {
+                // Fallback
+                const textBlocks = container.querySelectorAll('div[lang]');
+                for (const block of Array.from(textBlocks)) {
+                    const text = block.textContent?.trim() || '';
+                    if (text.length > content.length) {
+                        content = text;
+                    }
+                }
+            }
+
+            // Final cleanup
+            if (content) {
+                // If content is very short, ignore
+                if (content.length < 5) continue;
+                
+                // Safe content hash for deduplication
+                const safeContent = content.substring(0, Math.min(100, content.length)).toLowerCase();
+                let hash = 0;
+                for (let i = 0; i < safeContent.length; i++) {
+                    hash = ((hash << 5) - hash) + safeContent.charCodeAt(i);
+                    hash |= 0;
+                }
+                const contentHash = "h" + Math.abs(hash).toString(36);
+
+                if (!seenContent.has(contentHash)) {
+                    seenContent.add(contentHash);
+                    
+                    // Try to find a specific URL for this item
+                    let itemUrl = currentUrl;
+                    const timeLink = container.querySelector('time')?.closest('a');
+                    
+                    if (timeLink) itemUrl = timeLink.href;
+                    
+                    // Check if it's a reply
+                    const isReply = container.textContent?.includes('Replying to');
+                    
+                    // Try to get timestamp
+                    let timestamp = Date.now();
+                    const timeEl = container.querySelector('time');
+                    if (timeEl) {
+                        const dt = timeEl.getAttribute('datetime');
+                        if (dt) timestamp = new Date(dt).getTime();
+                    }
+                    
+                    contentItems.push({
+                        id: `twitter-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+                        title: isReply ? 'Reply' : 'Tweet',
+                        excerpt: content.substring(0, 200),
+                        content: content,
+                        created_time: timestamp,
+                        url: itemUrl,
+                        action_type: 'created',
+                        type: isReply ? 'answer' : 'article', // Map to generic types
+                        is_relevant: true
+                    });
+                }
+            }
+        }
+
+        if (contentItems.length >= limit) break;
+
+        // Scroll down to load more content
+        console.log(`Found ${contentItems.length}/${limit} items. Scrolling...`);
+        window.scrollTo(0, document.body.scrollHeight);
+        await new Promise(r => setTimeout(r, 2000)); // Wait for load
+        attempts++;
+      }
+      
+      console.log(`Scraped ${contentItems.length} items`);
+      return contentItems;
+    } catch (error) {
+      console.error('Error scraping Twitter content:', error);
+      return [];
+    }
+  };
 
   // 不渲染任何内容，因为overlay是通过DOM操作渲染的
   // 但是需要返回一个空的div来保持组件挂载，这样按钮注入逻辑才能持续运行

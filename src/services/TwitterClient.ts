@@ -53,22 +53,20 @@ export class TwitterClient {
     return null;
   }
 
-  // 使用模拟数据获取用户推文内容
-  // 实际实现需要使用 Twitter API v2 或其他方式获取数据
+  // 获取用户的公开内容（推文、回复等）
   static async fetchUserContent(username: string, limit: number = 15, context?: string): Promise<FetchResult> {
     try {
-      // 由于 Twitter API 访问限制，这里返回空数据作为占位符
-      // 实际部署时应使用官方 API 或其他数据源
-      console.log(`Attempting to fetch Twitter content for user: ${username}`);
+      console.log(`Attempting to fetch Twitter content for user: ${username} via content script`);
       
-      // 返回示例数据结构
-      const sampleContent: ZhihuContent[] = [];
+      // Twitter用户主页URL格式: https://twitter.com/用户名
+      const twitterProfileUrl = `https://twitter.com/${encodeURIComponent(username)}`;
+
+      // 通过Chrome扩展API与内容脚本通信
+      const contentFromTab = await this.fetchContentFromTab(username, limit, twitterProfileUrl);
       
-      // 如果有实际的API访问方式，可以在这里实现
-      // 目前由于Twitter API限制，返回空数组
       return {
-        items: sampleContent,
-        totalFetched: 0,
+        items: contentFromTab,
+        totalFetched: contentFromTab.length,
         totalRelevant: 0
       };
     } catch (error) {
@@ -81,10 +79,66 @@ export class TwitterClient {
     }
   }
 
-  // 从Twitter API获取推文详情
+  // 通过Chrome扩展API与内容脚本通信获取数据
+  private static async fetchContentFromTab(username: string, limit: number, url: string): Promise<ZhihuContent[]> {
+    return new Promise((resolve) => {
+      // 获取当前活动标签页
+      if (typeof chrome !== 'undefined' && chrome.tabs) {
+        chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+          const activeTab = tabs[0];
+          
+          if (activeTab && activeTab.id) {
+            // 生成一个唯一的请求ID以便处理响应
+            const requestId = `twitter_fetch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            
+            // 监听来自内容脚本的响应
+            const responseCallback = (response: any) => {
+              if (response && response.type === 'TWITTER_CONTENT_RESPONSE' && response.requestId === requestId) {
+                // 清理消息监听器
+                chrome.runtime.onMessage.removeListener(responseCallback);
+                resolve(response.content || []);
+              }
+            };
+            
+            // 添加消息监听器
+            chrome.runtime.onMessage.addListener(responseCallback);
+            
+            // 向内容脚本发送消息请求数据
+            chrome.tabs.sendMessage(activeTab.id, {
+              type: 'TWITTER_CONTENT_REQUEST',
+              requestId,
+              username,
+              limit,
+              url
+            }).catch(error => {
+              console.warn('Failed to send message to content script:', error);
+              // 清理监听器
+              chrome.runtime.onMessage.removeListener(responseCallback);
+              resolve([]); // 返回空数组
+            });
+            
+            // 设置超时
+            setTimeout(() => {
+              chrome.runtime.onMessage.removeListener(responseCallback);
+              console.warn('Twitter content fetch timed out');
+              resolve([]);
+            }, 15000); // 15秒超时
+          } else {
+            console.warn('No active tab found');
+            resolve([]);
+          }
+        });
+      } else {
+        console.warn('Chrome API not available');
+        resolve([]);
+      }
+    });
+  }
+
+  // 从Twitter API或网页获取推文详情
   static async fetchDetailContent(id: string, type: 'tweet' | 'reply' = 'tweet'): Promise<string | null> {
     try {
-      // 同样，由于API限制，这里返回空值
+      // 由于API限制，这里返回空值
       // 实际实现需要使用官方API
       return null;
     } catch (error) {
@@ -95,7 +149,9 @@ export class TwitterClient {
 
   // 实现内容相关性排序
   private static sortByRelevance(items: ZhihuContent[], context: string): ZhihuContent[] {
-    const keywords = context.split('|').map(s => s.trim().toLowerCase()).filter(s => s.length > 1);
+    if (!context || items.length === 0) return items;
+    
+    const keywords = context.toLowerCase().split('|').map(s => s.trim()).filter(s => s.length > 1);
     
     const titlePart = keywords[0] || "";
     const bigrams = new Set<string>();
@@ -104,12 +160,12 @@ export class TwitterClient {
     }
 
     const getScore = (item: ZhihuContent) => {
-      const text = (item.title + item.excerpt).toLowerCase();
+      const text = (item.title + ' ' + item.excerpt + ' ' + (item.content || '')).toLowerCase();
       let score = 0;
       
       let keywordMatches = 0;
       keywords.forEach(kw => {
-        if (text.includes(kw)) keywordMatches++;
+        if (text.includes(kw.toLowerCase())) keywordMatches++;
       });
       score += keywordMatches * 500;
 
