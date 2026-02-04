@@ -262,6 +262,7 @@ export class LabelService {
   private static instance: LabelService;
   private labels: LabelDefinition[] = [];
   private labelMap: Map<string, LabelDefinition> = new Map();
+  private static CORE_CATEGORY_IDS: Array<LabelGroup["id"]> = ["politics", "society"];
 
   private constructor() {
     this.initializeLabels();
@@ -309,8 +310,8 @@ export class LabelService {
   }
 
   public getLabelsForContext(category: MacroCategory, mode: AnalysisMode = 'balanced'): string {
-    // 获取基础标签
-    const baseLabels = this.getBaseLabels();
+    // 获取基础标签（核心标签）
+    const baseLabels = this.getCoreLabels();
     
     // 根据类别获取特定标签
     const categoryLabels = this.getCategoryLabels(category);
@@ -339,8 +340,12 @@ export class LabelService {
     return result;
   }
   
-  private getBaseLabels(): LabelDefinition[] {
-    return this.labels;
+  private getCoreLabels(): LabelDefinition[] {
+    const coreLabels: LabelDefinition[] = [];
+    for (const categoryId of LabelService.CORE_CATEGORY_IDS) {
+      coreLabels.push(...this.getLabelsByCategory(categoryId));
+    }
+    return coreLabels;
   }
   
   private getCategoryLabels(category: MacroCategory): LabelDefinition[] {

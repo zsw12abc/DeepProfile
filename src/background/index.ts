@@ -227,37 +227,6 @@ function estimateAnalysisTime(mode: string): number {
   }
 }
 
-// Function to send periodic progress updates
-async function sendPeriodicProgress(tabId: number | undefined, startTime: number, estimatedTime: number, initialMessage: string) {
-  if (!tabId) return;
-  
-  const interval = setInterval(async () => {
-    const elapsed = Date.now() - startTime;
-    const progress = Math.min(95, Math.floor((elapsed / estimatedTime) * 100)); // Cap at 95% until actual completion
-    
-    const remainingSeconds = Math.ceil((estimatedTime - elapsed) / 1000);
-    const formattedMessage = `${initialMessage}`;
-    
-    await sendProgress(tabId, formattedMessage, progress);
-    
-    if (elapsed >= estimatedTime) {
-      clearInterval(interval);
-      activeIntervals.delete(interval); // Clean up reference
-    }
-  }, 1000); // Update every second
-  
-  // Add interval to our tracking set
-  activeIntervals.add(interval);
-  
-  // Clear interval after estimated time
-  setTimeout(() => {
-    clearInterval(interval);
-    activeIntervals.delete(interval); // Clean up reference
-  }, estimatedTime);
-  
-  return interval;
-}
-
 async function handleAnalysis(userId: string, context?: string, tabId?: number, platform: SupportedPlatform = 'zhihu', forceRefresh: boolean = false) {
   // Ensure I18n is initialized with current config
   await I18nService.init();
