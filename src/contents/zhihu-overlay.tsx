@@ -172,6 +172,8 @@ const ZhihuOverlay = () => {
     let observer: MutationObserver | null = null;
     let isEnabled = false;
     let storageListenerRef: ((changes: any, area: string) => void) | null = null;
+    let injectionTimer: number | null = null;
+    const pendingRoots = new Set<ParentNode>();
 
     // 清理函数：停止观察并移除所有已注入的元素
     const cleanup = () => {
@@ -179,33 +181,43 @@ const ZhihuOverlay = () => {
         observer.disconnect();
         observer = null;
       }
+      if (injectionTimer !== null) {
+        window.clearTimeout(injectionTimer);
+        injectionTimer = null;
+      }
+      pendingRoots.clear();
       document.querySelectorAll('.deep-profile-btn').forEach(el => el.remove());
       document.querySelectorAll('[data-deep-profile-injected]').forEach(el => el.removeAttribute('data-deep-profile-injected'));
     };
 
     // 注入逻辑
-    const injectButtons = () => {
-      if (!isEnabled) return;
+    const injectButtons = (root?: ParentNode) => {
+      if (!isEnabled || typeof document === 'undefined') return;
 
-      // 1. 清理孤儿按钮
-      document.querySelectorAll('.deep-profile-btn').forEach(btn => {
-          const prev = btn.previousElementSibling as HTMLAnchorElement | null;
-          if (!prev || prev.tagName !== 'A' || !prev.href.includes('www.zhihu.com/people/')) {
-              btn.remove();
-          }
-      });
+      const scope = root && 'querySelectorAll' in root ? root : document;
+      const isFullScan = scope === document;
 
-      // 2. 检查并重置状态
-      const injectedLinks = document.querySelectorAll('a[data-deep-profile-injected="true"]');
-      injectedLinks.forEach(link => {
-          const next = link.nextElementSibling;
-          if (!next || !next.classList.contains('deep-profile-btn')) {
-              link.removeAttribute('data-deep-profile-injected');
-          }
-      });
+      if (isFullScan) {
+        // 1. 清理孤儿按钮
+        document.querySelectorAll('.deep-profile-btn').forEach(btn => {
+            const prev = btn.previousElementSibling as HTMLAnchorElement | null;
+            if (!prev || prev.tagName !== 'A' || !prev.href.includes('www.zhihu.com/people/')) {
+                btn.remove();
+            }
+        });
+
+        // 2. 检查并重置状态
+        const injectedLinks = document.querySelectorAll('a[data-deep-profile-injected="true"]');
+        injectedLinks.forEach(link => {
+            const next = link.nextElementSibling;
+            if (!next || !next.classList.contains('deep-profile-btn')) {
+                link.removeAttribute('data-deep-profile-injected');
+            }
+        });
+      }
 
       // 3. 注入新按钮
-      const links = document.querySelectorAll('a[href*="www.zhihu.com/people/"]')
+      const links = scope.querySelectorAll('a[href*="www.zhihu.com/people/"]')
       
       links.forEach((element) => {
         const link = element as HTMLAnchorElement
@@ -271,13 +283,39 @@ const ZhihuOverlay = () => {
       })
     }
 
+    const scheduleInjection = (roots?: ParentNode[]) => {
+      if (roots && roots.length > 0) {
+        roots.forEach(root => pendingRoots.add(root));
+      }
+      if (injectionTimer !== null) return;
+      injectionTimer = window.setTimeout(() => {
+        injectionTimer = null;
+        const rootsToProcess = Array.from(pendingRoots);
+        pendingRoots.clear();
+        if (rootsToProcess.length === 0) {
+          injectButtons();
+          return;
+        }
+        rootsToProcess.forEach(root => injectButtons(root));
+      }, 200);
+    };
+
     const startInjection = () => {
       if (observer) return; // Already running
       
-      injectButtons();
+      scheduleInjection();
       
-      observer = new MutationObserver(() => {
-        if (isEnabled) injectButtons();
+      observer = new MutationObserver((mutations) => {
+        if (!isEnabled) return;
+        const roots: ParentNode[] = [];
+        mutations.forEach(mutation => {
+          mutation.addedNodes.forEach(node => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              roots.push(node as ParentNode);
+            }
+          });
+        });
+        scheduleInjection(roots);
       });
       
       observer.observe(document.body, {

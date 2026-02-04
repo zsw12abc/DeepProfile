@@ -239,6 +239,8 @@ const TwitterOverlay = () => {
   useEffect(() => {
     let observer: MutationObserver | null = null;
     let isEnabled = false;
+    let injectionTimer: number | null = null;
+    const pendingRoots = new Set<ParentNode>();
 
     // 清理函数：停止观察并移除所有已注入的元素
     const cleanup = () => {
@@ -246,39 +248,49 @@ const TwitterOverlay = () => {
         observer.disconnect();
         observer = null;
       }
+      if (injectionTimer !== null) {
+        window.clearTimeout(injectionTimer);
+        injectionTimer = null;
+      }
+      pendingRoots.clear();
       document.querySelectorAll('.deep-profile-btn').forEach(el => el.remove());
       document.querySelectorAll('[data-deep-profile-injected]').forEach(el => el.removeAttribute('data-deep-profile-injected'));
     };
 
     // 注入逻辑
-    const injectButtons = () => {
+    const injectButtons = (root?: ParentNode) => {
       if (!isEnabled || typeof document === 'undefined') return;
 
-      // 1. 清理孤儿按钮
-      try {
-        document.querySelectorAll('.deep-profile-btn').forEach(btn => {
-            const prev = btn.previousElementSibling as HTMLAnchorElement | null;
-            if (!prev || prev.tagName !== 'A') {
-                btn.remove();
-            }
-        });
-      } catch (e) {
-        console.warn('Failed to clean orphaned buttons, document may not be available:', e);
-        return; // Exit early if document operations fail
-      }
+      const scope = root && 'querySelectorAll' in root ? root : document;
+      const isFullScan = scope === document;
 
-      // 2. 检查并重置状态
-      try {
-        const injectedLinks = document.querySelectorAll('a[data-deep-profile-injected="true"]');
-        injectedLinks.forEach(link => {
-            const next = link.nextElementSibling;
-            if (!next || !next.classList.contains('deep-profile-btn')) {
-                link.removeAttribute('data-deep-profile-injected');
-            }
-        });
-      } catch (e) {
-        console.warn('Failed to reset button states, document may not be available:', e);
-        return; // Exit early if document operations fail
+      if (isFullScan) {
+        // 1. 清理孤儿按钮
+        try {
+          document.querySelectorAll('.deep-profile-btn').forEach(btn => {
+              const prev = btn.previousElementSibling as HTMLAnchorElement | null;
+              if (!prev || prev.tagName !== 'A') {
+                  btn.remove();
+              }
+          });
+        } catch (e) {
+          console.warn('Failed to clean orphaned buttons, document may not be available:', e);
+          return; // Exit early if document operations fail
+        }
+
+        // 2. 检查并重置状态
+        try {
+          const injectedLinks = document.querySelectorAll('a[data-deep-profile-injected="true"]');
+          injectedLinks.forEach(link => {
+              const next = link.nextElementSibling;
+              if (!next || !next.classList.contains('deep-profile-btn')) {
+                  link.removeAttribute('data-deep-profile-injected');
+              }
+          });
+        } catch (e) {
+          console.warn('Failed to reset button states, document may not be available:', e);
+          return; // Exit early if document operations fail
+        }
       }
 
       // 3. 注入新按钮
@@ -287,7 +299,7 @@ const TwitterOverlay = () => {
         // 使用更精确的选择器，只针对用户名显示
         // 1. [data-testid="User-Name"] a:not([tabindex="-1"]): 推文流中的用户名，排除handle链接
         // 2. [data-testid="UserCell"] a:not([tabindex="-1"]): 用户列表中的用户名，排除handle链接
-        const candidates = document.querySelectorAll(
+        const candidates = scope.querySelectorAll(
             '[data-testid="User-Name"] a:not([tabindex="-1"]), ' + 
             '[data-testid="UserCell"] a:not([tabindex="-1"])'
         );
@@ -437,13 +449,39 @@ const TwitterOverlay = () => {
       })
     }
 
+    const scheduleInjection = (roots?: ParentNode[]) => {
+      if (roots && roots.length > 0) {
+        roots.forEach(root => pendingRoots.add(root));
+      }
+      if (injectionTimer !== null) return;
+      injectionTimer = window.setTimeout(() => {
+        injectionTimer = null;
+        const rootsToProcess = Array.from(pendingRoots);
+        pendingRoots.clear();
+        if (rootsToProcess.length === 0) {
+          injectButtons();
+          return;
+        }
+        rootsToProcess.forEach(root => injectButtons(root));
+      }, 200);
+    };
+
     const startInjection = () => {
       if (observer) return; // Already running
       
-      injectButtons();
+      scheduleInjection();
       
-      observer = new MutationObserver(() => {
-        if (isEnabled) injectButtons();
+      observer = new MutationObserver((mutations) => {
+        if (!isEnabled) return;
+        const roots: ParentNode[] = [];
+        mutations.forEach(mutation => {
+          mutation.addedNodes.forEach(node => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              roots.push(node as ParentNode);
+            }
+          });
+        });
+        scheduleInjection(roots);
       });
       
       observer.observe(document.body, {
