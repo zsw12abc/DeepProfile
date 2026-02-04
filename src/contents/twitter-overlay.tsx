@@ -7,6 +7,7 @@ import { I18nService } from "../services/I18nService"
 import type { ZhihuContent, UserProfile, UserHistoryRecord, SupportedPlatform } from "../services/ZhihuClient"
 import type { ProfileData } from "../types"
 import { DEFAULT_CONFIG } from "../types"
+import { createInjectionScheduler } from "./injection-utils"
 
 export const config: PlasmoCSConfig = {
   matches: ["https://twitter.com/*", "https://*.twitter.com/*", "https://x.com/*", "https://*.x.com/*"]
@@ -237,22 +238,11 @@ const TwitterOverlay = () => {
   }, []);
 
   useEffect(() => {
-    let observer: MutationObserver | null = null;
     let isEnabled = false;
-    let injectionTimer: number | null = null;
-    const pendingRoots = new Set<ParentNode>();
 
     // 清理函数：停止观察并移除所有已注入的元素
     const cleanup = () => {
-      if (observer) {
-        observer.disconnect();
-        observer = null;
-      }
-      if (injectionTimer !== null) {
-        window.clearTimeout(injectionTimer);
-        injectionTimer = null;
-      }
-      pendingRoots.clear();
+      scheduler.stop();
       document.querySelectorAll('.deep-profile-btn').forEach(el => el.remove());
       document.querySelectorAll('[data-deep-profile-injected]').forEach(el => el.removeAttribute('data-deep-profile-injected'));
     };
@@ -449,45 +439,14 @@ const TwitterOverlay = () => {
       })
     }
 
-    const scheduleInjection = (roots?: ParentNode[]) => {
-      if (roots && roots.length > 0) {
-        roots.forEach(root => pendingRoots.add(root));
-      }
-      if (injectionTimer !== null) return;
-      injectionTimer = window.setTimeout(() => {
-        injectionTimer = null;
-        const rootsToProcess = Array.from(pendingRoots);
-        pendingRoots.clear();
-        if (rootsToProcess.length === 0) {
-          injectButtons();
-          return;
-        }
-        rootsToProcess.forEach(root => injectButtons(root));
-      }, 200);
-    };
+    const scheduler = createInjectionScheduler({
+      injectButtons,
+      shouldProcess: () => isEnabled,
+      debounceMs: 200
+    });
 
     const startInjection = () => {
-      if (observer) return; // Already running
-      
-      scheduleInjection();
-      
-      observer = new MutationObserver((mutations) => {
-        if (!isEnabled) return;
-        const roots: ParentNode[] = [];
-        mutations.forEach(mutation => {
-          mutation.addedNodes.forEach(node => {
-            if (node.nodeType === Node.ELEMENT_NODE) {
-              roots.push(node as ParentNode);
-            }
-          });
-        });
-        scheduleInjection(roots);
-      });
-      
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true
-      });
+      scheduler.start(document.body);
     };
 
     const checkConfig = async () => {
@@ -505,9 +464,8 @@ const TwitterOverlay = () => {
           } else {
             cleanup();
           }
-        } else if (isEnabled && !observer) {
-            // If enabled but observer died for some reason
-            startInjection();
+        } else if (isEnabled) {
+          startInjection();
         }
       } catch (e) {
         console.warn("Failed to get config, extension context may be invalidated:", e);
