@@ -228,6 +228,9 @@ ${context}`;
         return 'general';
       }
     } catch (error) {
+      if ((error as any)?.isMissingApiKey) {
+        return 'general';
+      }
       console.error('LLM classification failed:', error);
       return 'general';
     }

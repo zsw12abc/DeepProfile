@@ -14,6 +14,17 @@ import { normalizeLabelId } from "./LLMLabelNormalizer"
 import { withRetry, withTimeout } from "./LLMRetry"
 import { Logger } from "./Logger"
 
+const isLocalBaseUrl = (baseUrl?: string): boolean => {
+  if (!baseUrl) return false;
+  try {
+    const url = new URL(baseUrl);
+    const host = url.hostname;
+    return host === "localhost" || host === "127.0.0.1" || host === "0.0.0.0";
+  } catch (e) {
+    return baseUrl.includes("localhost") || baseUrl.includes("127.0.0.1") || baseUrl.includes("0.0.0.0");
+  }
+};
+
 export interface LLMResponse {
   content: any;
   usage?: {
@@ -43,6 +54,7 @@ export class LLMService {
 
   static async generateProfile(text: string, category: MacroCategory): Promise<LLMResponse> {
     const config = await ConfigService.getConfig()
+    this.ensureProviderConfigured(config.selectedProvider, config);
     
     // 对输入文本进行清理，防止触发内容过滤器
     const sanitizedText = this.sanitizeInputText(text);
@@ -70,6 +82,7 @@ export class LLMService {
 
   static async generateProfileForPlatform(text: string, category: MacroCategory, platform: string): Promise<LLMResponse> {
     const config = await ConfigService.getConfig()
+    this.ensureProviderConfigured(config.selectedProvider, config);
     
     // Use platform-specific analysis mode if available, otherwise fallback to default
     const mode = config.platformAnalysisModes?.[platform] || config.analysisMode || 'balanced';
@@ -84,6 +97,7 @@ export class LLMService {
 
   static async generateRawText(prompt: string): Promise<string> {
     const config = await ConfigService.getConfig();
+    this.ensureProviderConfigured(config.selectedProvider, config);
     const provider = this.getProviderInstance(config.selectedProvider, config);
     return provider.generateRawText(prompt);
   }
@@ -223,6 +237,20 @@ export class LLMService {
         throw new Error(`Unsupported provider: ${type}`)
     }
   }
+
+  private static ensureProviderConfigured(type: AIProvider, config: any): void {
+    if (type === "ollama") return;
+
+    const apiKey = config.apiKeys?.[type];
+    const baseUrl = config.customBaseUrls?.[type];
+    const localBaseUrl = isLocalBaseUrl(baseUrl);
+
+    if (!apiKey && !localBaseUrl) {
+      const error = new Error(I18nService.t('error_missing_api_key'));
+      (error as any).isMissingApiKey = true;
+      throw error;
+    }
+  }
 }
 
 class LangChainProvider implements LLMProvider {
@@ -289,7 +317,7 @@ class LangChainProvider implements LLMProvider {
   }
 
   async generateProfile(text: string, mode: AnalysisMode, category: MacroCategory): Promise<LLMResponse> {
-    if (!this.apiKey && !this.baseUrl?.includes("localhost")) {
+    if (!this.apiKey && !isLocalBaseUrl(this.baseUrl)) {
       throw new Error("API Key is required")
     }
 
