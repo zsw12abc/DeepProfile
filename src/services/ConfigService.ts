@@ -4,6 +4,8 @@ export class ConfigService {
   private static STORAGE_KEY = "deep_profile_config"
   private static cachedConfig: ExtendedAppConfig | null = null
   private static cacheInitialized = false
+  private static configPromise: Promise<ExtendedAppConfig> | null = null
+  private static pendingWrite: Promise<void> | null = null
 
   static async getConfig(): Promise<ExtendedAppConfig> {
     try {
@@ -17,25 +19,24 @@ export class ConfigService {
       if (this.cachedConfig) {
         return this.cachedConfig;
       }
-      
-      const result = await chrome.storage.local.get(this.STORAGE_KEY)
-      const storedConfig = result[this.STORAGE_KEY] as Partial<ExtendedAppConfig> || {}
-      
-      // Merge stored config with default config to ensure all fields exist
-      //特别注意合并themes字段，保留新增的主题
-      const mergedThemes = {
-        ...DEFAULT_CONFIG.themes,
-        ...(storedConfig.themes || {})
-      };
-      
-      const mergedConfig = { 
-        ...DEFAULT_CONFIG, 
-        ...storedConfig,
-        themes: mergedThemes
-      } as ExtendedAppConfig
 
-      this.cachedConfig = mergedConfig;
-      return mergedConfig;
+      if (this.configPromise) {
+        return await this.configPromise;
+      }
+
+      this.configPromise = (async () => {
+        try {
+          const result = await chrome.storage.local.get(this.STORAGE_KEY)
+          const storedConfig = result[this.STORAGE_KEY] as Partial<ExtendedAppConfig> || {}
+          const mergedConfig = this.mergeConfig(storedConfig);
+          this.cachedConfig = mergedConfig;
+          return mergedConfig;
+        } finally {
+          this.configPromise = null;
+        }
+      })();
+
+      return await this.configPromise;
     } catch (error) {
       console.error("Failed to get config:", error)
       return DEFAULT_CONFIG as ExtendedAppConfig
@@ -43,13 +44,31 @@ export class ConfigService {
   }
 
   static async saveConfig(config: ExtendedAppConfig): Promise<void> {
+    let currentWrite: Promise<void> | null = null;
     try {
       this.initCacheSync();
-      await chrome.storage.local.set({ [this.STORAGE_KEY]: config })
-      this.cachedConfig = config;
+      if (this.configPromise) {
+        await this.configPromise;
+      }
+
+      const write = async () => {
+        await chrome.storage.local.set({ [this.STORAGE_KEY]: config })
+        this.cachedConfig = config;
+      };
+
+      currentWrite = this.pendingWrite
+        ? this.pendingWrite.then(write, write)
+        : write();
+
+      this.pendingWrite = currentWrite;
+      await currentWrite;
     } catch (error) {
       console.error("Failed to save config:", error)
       throw error
+    } finally {
+      if (currentWrite && this.pendingWrite === currentWrite) {
+        this.pendingWrite = null;
+      }
     }
   }
 
@@ -91,5 +110,62 @@ export class ConfigService {
   static clearCache(): void {
     this.cachedConfig = null;
     this.cacheInitialized = false;
+    this.configPromise = null;
+    this.pendingWrite = null;
+  }
+
+  private static mergeConfig(storedConfig: Partial<ExtendedAppConfig>): ExtendedAppConfig {
+    const mergedThemes = {
+      ...DEFAULT_CONFIG.themes,
+      ...(storedConfig.themes || {})
+    };
+
+    const mergedApiKeys = {
+      ...DEFAULT_CONFIG.apiKeys,
+      ...(storedConfig.apiKeys || {})
+    };
+
+    const mergedCustomBaseUrls = {
+      ...DEFAULT_CONFIG.customBaseUrls,
+      ...(storedConfig.customBaseUrls || {})
+    };
+
+    const mergedCustomModelNames = {
+      ...DEFAULT_CONFIG.customModelNames,
+      ...(storedConfig.customModelNames || {})
+    };
+
+    const mergedEnabledPlatforms = {
+      ...DEFAULT_CONFIG.enabledPlatforms,
+      ...(storedConfig.enabledPlatforms || {})
+    };
+
+    const mergedPlatformAnalysisModes = {
+      ...DEFAULT_CONFIG.platformAnalysisModes,
+      ...(storedConfig.platformAnalysisModes || {})
+    };
+
+    const mergedPlatformConfigs: ExtendedAppConfig["platformConfigs"] = {
+      ...DEFAULT_CONFIG.platformConfigs
+    };
+
+    for (const [platform, config] of Object.entries(storedConfig.platformConfigs || {})) {
+      mergedPlatformConfigs[platform as keyof ExtendedAppConfig["platformConfigs"]] = {
+        ...(DEFAULT_CONFIG.platformConfigs as Record<string, any>)[platform],
+        ...config
+      };
+    }
+
+    return {
+      ...DEFAULT_CONFIG,
+      ...storedConfig,
+      apiKeys: mergedApiKeys,
+      customBaseUrls: mergedCustomBaseUrls,
+      customModelNames: mergedCustomModelNames,
+      enabledPlatforms: mergedEnabledPlatforms,
+      platformAnalysisModes: mergedPlatformAnalysisModes,
+      platformConfigs: mergedPlatformConfigs,
+      themes: mergedThemes
+    } as ExtendedAppConfig;
   }
 }

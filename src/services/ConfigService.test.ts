@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ConfigService } from './ConfigService';
-import { DEFAULT_CONFIG } from '../types';
+import { DEFAULT_CONFIG, type ExtendedAppConfig } from '../types';
 
 // Mock chrome.storage.local
 const storageMock = {
@@ -13,6 +13,18 @@ global.chrome = {
     local: storageMock,
   },
 } as any;
+
+const buildConfig = (overrides: Partial<ExtendedAppConfig>): ExtendedAppConfig => ({
+  ...DEFAULT_CONFIG,
+  ...overrides,
+  apiKeys: { ...DEFAULT_CONFIG.apiKeys, ...(overrides.apiKeys || {}) },
+  customBaseUrls: { ...DEFAULT_CONFIG.customBaseUrls, ...(overrides.customBaseUrls || {}) },
+  customModelNames: { ...DEFAULT_CONFIG.customModelNames, ...(overrides.customModelNames || {}) },
+  enabledPlatforms: { ...DEFAULT_CONFIG.enabledPlatforms, ...(overrides.enabledPlatforms || {}) },
+  platformAnalysisModes: { ...DEFAULT_CONFIG.platformAnalysisModes, ...(overrides.platformAnalysisModes || {}) },
+  platformConfigs: { ...DEFAULT_CONFIG.platformConfigs, ...(overrides.platformConfigs || {}) },
+  themes: { ...DEFAULT_CONFIG.themes, ...(overrides.themes || {}) }
+});
 
 describe('ConfigService', () => {
   beforeEach(() => {
@@ -28,16 +40,11 @@ describe('ConfigService', () => {
   });
 
   it('should return stored config when available', async () => {
-    const storedConfig = {
+    const storedConfig = buildConfig({
       selectedProvider: 'deepseek',
       apiKeys: { deepseek: 'test-key' },
       customBaseUrls: {},
       customModelNames: {},
-      globalEnabled: true,
-      language: 'zh-CN',
-      analysisMode: 'balanced',
-      analyzeLimit: 15,
-      enableDebug: false,
       redactSensitiveMode: 'sensitive-providers',
       enabledPlatforms: {
         zhihu: true,
@@ -76,23 +83,18 @@ describe('ConfigService', () => {
       // Include theme-related fields to make the config complete
       themeId: 'zhihu-white',
       themes: DEFAULT_CONFIG.themes
-    };
+    });
     storageMock.get.mockResolvedValue({ deep_profile_config: storedConfig });
     const config = await ConfigService.getConfig();
     expect(config).toEqual(storedConfig);
   });
 
   it('should save config correctly', async () => {
-    const newConfig = {
+    const newConfig = buildConfig({
       selectedProvider: 'gemini',
       apiKeys: { gemini: 'gemini-key' },
       customBaseUrls: {},
       customModelNames: {},
-      globalEnabled: true,
-      language: 'zh-CN',
-      analysisMode: 'balanced',
-      analyzeLimit: 15,
-      enableDebug: false,
       redactSensitiveMode: 'sensitive-providers',
       enabledPlatforms: {
         zhihu: true,
@@ -130,22 +132,17 @@ describe('ConfigService', () => {
       },
       themeId: 'zhihu-white',
       themes: DEFAULT_CONFIG.themes
-    };
+    });
     await ConfigService.saveConfig(newConfig as any);
     expect(storageMock.set).toHaveBeenCalledWith({ deep_profile_config: newConfig });
   });
 
   it('should update api key correctly', async () => {
-    const initialConfig = {
+    const initialConfig = buildConfig({
       selectedProvider: 'openai',
       apiKeys: { openai: 'old-key' },
       customBaseUrls: {},
       customModelNames: {},
-      globalEnabled: true,
-      language: 'zh-CN',
-      analysisMode: 'balanced',
-      analyzeLimit: 15,
-      enableDebug: false,
       redactSensitiveMode: 'sensitive-providers',
       enabledPlatforms: {
         zhihu: true,
@@ -183,7 +180,7 @@ describe('ConfigService', () => {
       },
       themeId: 'zhihu-white',
       themes: DEFAULT_CONFIG.themes
-    };
+    });
     storageMock.get.mockResolvedValue({ deep_profile_config: initialConfig });
 
     await ConfigService.updateApiKey('openai', 'new-key');
