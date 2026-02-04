@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ConfigService } from './ConfigService';
-import { DEFAULT_CONFIG, type ExtendedAppConfig } from '../types';
+import { CONFIG_VERSION, DEFAULT_CONFIG, type ExtendedAppConfig } from '../types';
 
 // Mock chrome.storage.local
 const storageMock = {
@@ -190,5 +190,22 @@ describe('ConfigService', () => {
       apiKeys: { openai: 'new-key' },
     };
     expect(storageMock.set).toHaveBeenCalledWith({ deep_profile_config: expectedConfig });
+  });
+
+  it('should migrate older config versions and fill missing defaults', async () => {
+    const legacyConfig = {
+      configVersion: 0,
+      selectedProvider: 'openai',
+      apiKeys: { openai: 'legacy-key' },
+      enabledPlatforms: { zhihu: true }
+    };
+
+    storageMock.get.mockResolvedValue({ deep_profile_config: legacyConfig });
+    const config = await ConfigService.getConfig();
+
+    expect(config.configVersion).toBe(CONFIG_VERSION);
+    expect(config.redactSensitiveMode).toBe(DEFAULT_CONFIG.redactSensitiveMode);
+    expect(config.enabledPlatforms.quora).toBe(DEFAULT_CONFIG.enabledPlatforms.quora);
+    expect(config.platformConfigs.quora).toEqual(DEFAULT_CONFIG.platformConfigs.quora);
   });
 });

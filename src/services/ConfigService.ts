@@ -1,4 +1,4 @@
-import { DEFAULT_CONFIG, type ExtendedAppConfig } from "../types"
+import { CONFIG_VERSION, DEFAULT_CONFIG, type ExtendedAppConfig } from "../types"
 
 export class ConfigService {
   private static STORAGE_KEY = "deep_profile_config"
@@ -26,7 +26,7 @@ export class ConfigService {
 
       this.configPromise = (async () => {
         try {
-          const result = await chrome.storage.local.get(this.STORAGE_KEY)
+        const result = (await chrome.storage.local.get(this.STORAGE_KEY)) || {}
           const storedConfig = result[this.STORAGE_KEY] as Partial<ExtendedAppConfig> || {}
           const mergedConfig = this.mergeConfig(storedConfig);
           this.cachedConfig = mergedConfig;
@@ -115,41 +115,42 @@ export class ConfigService {
   }
 
   private static mergeConfig(storedConfig: Partial<ExtendedAppConfig>): ExtendedAppConfig {
+    const migratedConfig = this.migrateConfig(storedConfig);
     const mergedThemes = {
       ...DEFAULT_CONFIG.themes,
-      ...(storedConfig.themes || {})
+      ...(migratedConfig.themes || {})
     };
 
     const mergedApiKeys = {
       ...DEFAULT_CONFIG.apiKeys,
-      ...(storedConfig.apiKeys || {})
+      ...(migratedConfig.apiKeys || {})
     };
 
     const mergedCustomBaseUrls = {
       ...DEFAULT_CONFIG.customBaseUrls,
-      ...(storedConfig.customBaseUrls || {})
+      ...(migratedConfig.customBaseUrls || {})
     };
 
     const mergedCustomModelNames = {
       ...DEFAULT_CONFIG.customModelNames,
-      ...(storedConfig.customModelNames || {})
+      ...(migratedConfig.customModelNames || {})
     };
 
     const mergedEnabledPlatforms = {
       ...DEFAULT_CONFIG.enabledPlatforms,
-      ...(storedConfig.enabledPlatforms || {})
+      ...(migratedConfig.enabledPlatforms || {})
     };
 
     const mergedPlatformAnalysisModes = {
       ...DEFAULT_CONFIG.platformAnalysisModes,
-      ...(storedConfig.platformAnalysisModes || {})
+      ...(migratedConfig.platformAnalysisModes || {})
     };
 
     const mergedPlatformConfigs: ExtendedAppConfig["platformConfigs"] = {
       ...DEFAULT_CONFIG.platformConfigs
     };
 
-    for (const [platform, config] of Object.entries(storedConfig.platformConfigs || {})) {
+    for (const [platform, config] of Object.entries(migratedConfig.platformConfigs || {})) {
       mergedPlatformConfigs[platform as keyof ExtendedAppConfig["platformConfigs"]] = {
         ...(DEFAULT_CONFIG.platformConfigs as Record<string, any>)[platform],
         ...config
@@ -158,7 +159,8 @@ export class ConfigService {
 
     return {
       ...DEFAULT_CONFIG,
-      ...storedConfig,
+      ...migratedConfig,
+      configVersion: CONFIG_VERSION,
       apiKeys: mergedApiKeys,
       customBaseUrls: mergedCustomBaseUrls,
       customModelNames: mergedCustomModelNames,
@@ -167,5 +169,40 @@ export class ConfigService {
       platformConfigs: mergedPlatformConfigs,
       themes: mergedThemes
     } as ExtendedAppConfig;
+  }
+
+  private static migrateConfig(storedConfig: Partial<ExtendedAppConfig>): Partial<ExtendedAppConfig> {
+    const currentVersion = storedConfig.configVersion ?? 0;
+    let migrated = { ...storedConfig };
+
+    if (currentVersion < 1) {
+      migrated = {
+        ...migrated,
+        redactSensitiveMode: migrated.redactSensitiveMode ?? DEFAULT_CONFIG.redactSensitiveMode
+      };
+    }
+
+    if (currentVersion < 2) {
+      migrated = {
+        ...migrated,
+        enabledPlatforms: {
+          ...DEFAULT_CONFIG.enabledPlatforms,
+          ...(migrated.enabledPlatforms || {})
+        },
+        platformAnalysisModes: {
+          ...DEFAULT_CONFIG.platformAnalysisModes,
+          ...(migrated.platformAnalysisModes || {})
+        },
+        platformConfigs: {
+          ...DEFAULT_CONFIG.platformConfigs,
+          ...(migrated.platformConfigs || {})
+        }
+      };
+    }
+
+    return {
+      ...migrated,
+      configVersion: CONFIG_VERSION
+    };
   }
 }

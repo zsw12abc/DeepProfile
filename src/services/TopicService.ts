@@ -62,7 +62,11 @@ const CATEGORY_KEYWORDS: Record<MacroCategory, string[]> = {
   general: []
 };
 
+const LLM_CLASSIFICATION_CACHE_TTL_MS = 5 * 60 * 1000;
+const LLM_CLASSIFICATION_CACHE_MAX = 200;
+
 export class TopicService {
+  private static llmCache = new Map<string, { category: MacroCategory; expiresAt: number }>();
   
   static classify(context: any): MacroCategory {
     if (!context) return 'general';
@@ -197,6 +201,14 @@ export class TopicService {
 
   static async classifyWithLLM(context: string): Promise<MacroCategory> {
     if (!context) return 'general';
+
+    const cacheKey = context.trim().toLowerCase();
+    const cached = this.llmCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.category;
+    } else if (cached) {
+      this.llmCache.delete(cacheKey);
+    }
     
     // 使用 LLM 进行更智能的分类
     const prompt = `请将以下文本内容归类到以下8个领域之一：
@@ -221,12 +233,12 @@ ${context}`;
       const category = response.trim().toLowerCase();
       
       // 验证返回的类别是否有效
-      if (CATEGORIES.includes(category as MacroCategory)) {
-        return category as MacroCategory;
-      } else {
-        // 如果 LLM 返回无效类别，默认返回 general
-        return 'general';
-      }
+      const resolved = CATEGORIES.includes(category as MacroCategory)
+        ? (category as MacroCategory)
+        : 'general';
+
+      this.updateCache(cacheKey, resolved);
+      return resolved;
     } catch (error) {
       if ((error as any)?.isMissingApiKey) {
         return 'general';
@@ -234,5 +246,23 @@ ${context}`;
       console.error('LLM classification failed:', error);
       return 'general';
     }
+  }
+
+  static clearLLMCache(): void {
+    this.llmCache.clear();
+  }
+
+  private static updateCache(cacheKey: string, category: MacroCategory): void {
+    if (this.llmCache.size >= LLM_CLASSIFICATION_CACHE_MAX) {
+      const oldestKey = this.llmCache.keys().next().value;
+      if (oldestKey) {
+        this.llmCache.delete(oldestKey);
+      }
+    }
+
+    this.llmCache.set(cacheKey, {
+      category,
+      expiresAt: Date.now() + LLM_CLASSIFICATION_CACHE_TTL_MS
+    });
   }
 }

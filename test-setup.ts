@@ -1,5 +1,15 @@
 import '@testing-library/jest-dom';
 
+if (typeof window !== 'undefined') {
+  if (!window.alert) {
+    Object.defineProperty(window, 'alert', { value: vi.fn(), writable: true });
+  }
+
+  if (typeof HTMLAnchorElement !== 'undefined') {
+    HTMLAnchorElement.prototype.click = vi.fn();
+  }
+}
+
 // Mock chrome API for tests
 const mockChrome = {
   runtime: {

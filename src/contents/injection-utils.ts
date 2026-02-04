@@ -17,6 +17,8 @@ export const createInjectionScheduler = (
   let observer: MutationObserver | null = null;
   let injectionTimer: number | null = null;
   const pendingRoots = new Set<ParentNode>();
+  let observedRoot: ParentNode | null = null;
+  let visibilityHandler: (() => void) | null = null;
 
   const flush = () => {
     if (!options.shouldProcess()) {
@@ -40,6 +42,10 @@ export const createInjectionScheduler = (
       return;
     }
 
+    if (document.hidden) {
+      return;
+    }
+
     if (roots && roots.length > 0) {
       roots.forEach(root => pendingRoots.add(root));
     }
@@ -51,13 +57,11 @@ export const createInjectionScheduler = (
     }, debounceMs);
   };
 
-  const start = (root: ParentNode) => {
+  const attachObserver = (root: ParentNode) => {
     if (observer) return;
-
-    schedule();
-
     observer = new MutationObserver((mutations) => {
       if (!options.shouldProcess()) return;
+      if (document.hidden) return;
       const roots: ParentNode[] = [];
       mutations.forEach(mutation => {
         mutation.addedNodes.forEach(node => {
@@ -75,6 +79,39 @@ export const createInjectionScheduler = (
     });
   };
 
+  const start = (root: ParentNode) => {
+    observedRoot = root;
+    if (!visibilityHandler) {
+      visibilityHandler = () => {
+        if (document.hidden) {
+          if (observer) {
+            observer.disconnect();
+            observer = null;
+          }
+          if (injectionTimer !== null) {
+            window.clearTimeout(injectionTimer);
+            injectionTimer = null;
+          }
+          pendingRoots.clear();
+          return;
+        }
+
+        if (observedRoot) {
+          attachObserver(observedRoot);
+          schedule();
+        }
+      };
+      document.addEventListener("visibilitychange", visibilityHandler);
+    }
+
+    if (document.hidden) {
+      return;
+    }
+
+    schedule();
+    attachObserver(root);
+  };
+
   const stop = () => {
     if (observer) {
       observer.disconnect();
@@ -85,6 +122,11 @@ export const createInjectionScheduler = (
       injectionTimer = null;
     }
     pendingRoots.clear();
+    observedRoot = null;
+    if (visibilityHandler) {
+      document.removeEventListener("visibilitychange", visibilityHandler);
+      visibilityHandler = null;
+    }
   };
 
   return { start, stop, schedule };

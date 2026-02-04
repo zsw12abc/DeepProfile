@@ -27,6 +27,7 @@ export interface PlatformConfig {
 }
 
 export interface AppConfig {
+  configVersion: number;
   globalEnabled: boolean; // Master switch
   language: Language; // Default 'zh-CN'
   selectedProvider: AIProvider;
@@ -341,7 +342,10 @@ export const REDDIT_BLACK_THEME: ThemeConfig = {
 
 
 
+export const CONFIG_VERSION = 2;
+
 export const DEFAULT_CONFIG: ExtendedAppConfig = {
+  configVersion: CONFIG_VERSION,
   globalEnabled: true,
   language: 'zh-CN',
   selectedProvider: 'openai',
