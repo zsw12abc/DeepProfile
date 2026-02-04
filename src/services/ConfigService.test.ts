@@ -17,6 +17,7 @@ global.chrome = {
 describe('ConfigService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    ConfigService.clearCache();
   });
 
   it('should return default config when storage is empty', async () => {

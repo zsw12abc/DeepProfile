@@ -12,6 +12,7 @@ import { buildSystemPrompt, getParserInstructions } from "./LLMPromptBuilder"
 import { normalizeAndFixResponse } from "./LLMResponseNormalizer"
 import { normalizeLabelId } from "./LLMLabelNormalizer"
 import { withRetry, withTimeout } from "./LLMRetry"
+import { Logger } from "./Logger"
 
 export interface LLMResponse {
   content: any;
@@ -48,9 +49,9 @@ export class LLMService {
     
     // 这里的日志现在会更详细
     if (config.enableDebug) {
-      console.log("【LANGCHAIN REQUEST】Mode:", config.analysisMode || 'balanced');
-      console.log("【LANGCHAIN REQUEST】Original text:", text);
-      console.log("【LANGCHAIN REQUEST】Sanitized text:", sanitizedText);
+      Logger.info("【LANGCHAIN REQUEST】Mode:", config.analysisMode || 'balanced');
+      Logger.info("【LANGCHAIN REQUEST】Original text:", text);
+      Logger.info("【LANGCHAIN REQUEST】Sanitized text:", sanitizedText);
       // 注意：这里我们不直接调用 getSystemPrompt，因为那是私有的或者静态的，
       // 但我们在 Provider 内部会调用它。为了调试，我们可以在 Provider 内部打印。
     }
@@ -302,8 +303,8 @@ class LangChainProvider implements LLMProvider {
       // 增强日志：打印完整的 System Prompt
       const config = await ConfigService.getConfig();
       if (config.enableDebug) {
-        console.log("【LANGCHAIN SYSTEM PROMPT】", systemPrompt);
-        console.log("【LANGCHAIN USER INPUT】", text);
+        Logger.info("【LANGCHAIN SYSTEM PROMPT】", systemPrompt);
+        Logger.info("【LANGCHAIN USER INPUT】", text);
       }
 
       const parser = StructuredOutputService.getParserForMode(mode);
@@ -322,7 +323,7 @@ class LangChainProvider implements LLMProvider {
           try {
             return await withTimeout(chain.invoke({}), timeout);
           } catch (error: any) {
-            console.error(`LangChain API Error (attempt ${attempt + 1}):`, error);
+            Logger.error(`LangChain API Error (attempt ${attempt + 1}):`, error);
 
             if (error.message && error.message.includes('400') && error.message.includes('Input data may contain inappropriate content')) {
               const userFriendlyError = new Error(I18nService.t('error_content_filter'));
@@ -331,7 +332,7 @@ class LangChainProvider implements LLMProvider {
             }
 
             if (attempt === 0 && this.shouldRetryOnError(error)) {
-              console.log("Attempting error correction with feedback...");
+              Logger.warn("Attempting error correction with feedback...");
               const corrected = await this.retryWithErrorFeedback(text, mode, category, error.message);
               if (corrected) {
                 return corrected;
@@ -386,8 +387,8 @@ class LangChainProvider implements LLMProvider {
       };
       
       if (config.enableDebug) {
-        console.log("【LANGCHAIN LABEL SCORES】LLM Scores：", consistentProfile.value_orientation);
-        console.log("【CONSISTENCY REPORT】", ConsistencyService.generateConsistencyReport(consistentProfile));
+        Logger.info("【LANGCHAIN LABEL SCORES】LLM Scores：", consistentProfile.value_orientation);
+        Logger.info("【CONSISTENCY REPORT】", ConsistencyService.generateConsistencyReport(consistentProfile));
       }
       
       return {
@@ -416,7 +417,7 @@ class LangChainProvider implements LLMProvider {
         };
       }
 
-      console.error("LangChain API Error:", error);
+      Logger.error("LangChain API Error:", error);
       // 其他错误保持原有逻辑
       if (error.message && (error.message.includes('inappropriate content') || error.message.includes('data_inspection_failed'))) {
         const defaultResponse = {
@@ -485,7 +486,7 @@ Now, please analyze the following text again:` + "\n\n" + text;
       const parser = StructuredOutputService.getParserForMode(mode);
       return await parser.parse(result.content || result);
     } catch (e) {
-      console.error("Error correction attempt failed:", e);
+      Logger.error("Error correction attempt failed:", e);
       return null;
     }
   }
@@ -524,7 +525,7 @@ class OllamaProvider implements LLMProvider {
     
     const config = await ConfigService.getConfig();
     if (config.enableDebug) {
-      console.log("【LANGCHAIN REQUEST】Sending to LLM:", prompt);
+      Logger.info("【LANGCHAIN REQUEST】Sending to LLM:", prompt);
     }
     
     const timeout = 600000; // 10 minutes
@@ -559,7 +560,7 @@ class OllamaProvider implements LLMProvider {
 
           if (!response.ok) {
             const errorText = await response.text();
-            console.error(`Ollama API Error (attempt ${attempt + 1}): ${response.status}`, errorText);
+            Logger.error(`Ollama API Error (attempt ${attempt + 1}): ${response.status}`, errorText);
             
             if (errorText.includes('inappropriate') || errorText.includes('data_inspection_failed')) {
               const defaultResponse = {
@@ -611,7 +612,7 @@ class OllamaProvider implements LLMProvider {
       };
 
       if (config.enableDebug) {
-        console.log("【LANGCHAIN RESPONSE】LLM JSON:", data.response);
+        Logger.info("【LANGCHAIN RESPONSE】LLM JSON:", data.response);
       }
 
       const content = data.response || "{}";
@@ -652,8 +653,8 @@ class OllamaProvider implements LLMProvider {
       
       const debugConfig = await ConfigService.getConfig();
       if (debugConfig.enableDebug) {
-        console.log("【LANGCHAIN LABEL SCORES】LLM Scores:", consistentProfile.value_orientation);
-        console.log("【CONSISTENCY REPORT】", ConsistencyService.generateConsistencyReport(consistentProfile));
+        Logger.info("【LANGCHAIN LABEL SCORES】LLM Scores:", consistentProfile.value_orientation);
+        Logger.info("【CONSISTENCY REPORT】", ConsistencyService.generateConsistencyReport(consistentProfile));
       }
       
       return {
