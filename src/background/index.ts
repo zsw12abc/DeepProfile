@@ -340,7 +340,14 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
         }
     }
 
-    let cleanText = ProfileService.cleanContentData(platform, items, userProfile)
+    const sensitiveProviders = new Set(['openai', 'gemini', 'deepseek', 'qwen', 'custom']);
+    const shouldRedactSensitiveContent =
+      config.redactSensitiveMode === 'always' ||
+      (config.redactSensitiveMode === 'sensitive-providers' && sensitiveProviders.has(config.selectedProvider));
+
+    let cleanText = ProfileService.cleanContentData(platform, items, userProfile, {
+      redactSensitive: shouldRedactSensitiveContent
+    })
     
     if (contextForLLM) {
         cleanText = contextForLLM + cleanText;

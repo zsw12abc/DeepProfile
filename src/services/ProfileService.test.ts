@@ -47,6 +47,7 @@ vi.mock('./ConfigService', async () => {
     customModelNames: {},
     analyzeLimit: 15,
     enableDebug: false,
+    redactSensitiveMode: 'never',
     analysisMode: 'balanced',
     platformAnalysisModes: {
       zhihu: 'balanced',

@@ -14,6 +14,10 @@ export interface FetchResult {
   platform: SupportedPlatform;
 }
 
+interface CleanContentOptions {
+  redactSensitive?: boolean;
+}
+
 export class ProfileService {
   static async fetchUserContent(
     platform: SupportedPlatform,
@@ -92,7 +96,8 @@ export class ProfileService {
   static cleanContentData(
     platform: SupportedPlatform,
     items: ZhihuContent[],
-    userProfile?: UserProfile | null
+    userProfile?: UserProfile | null,
+    options: CleanContentOptions = {}
   ): string {
     let text = `Platform: ${platform}\n`;
     
@@ -144,8 +149,10 @@ export class ProfileService {
           content = item.excerpt || '';
         }
         
-        // 增加敏感内容过滤
-        content = this.filterSensitiveContent(content);
+        // 增加敏感内容过滤（可配置）
+        if (options.redactSensitive) {
+          content = this.filterSensitiveContent(content);
+        }
         
         // Increase content length to capture more meaningful content
         content = content.slice(0, 1000); 
@@ -190,23 +197,30 @@ export class ProfileService {
   private static filterSensitiveContent(content: string): string {
     if (!content) return content;
     
-    // 定义敏感词列表，这些词可能会触发AI的安全过滤机制
+    // 仅对高风险内容进行替换，避免过度削弱语义
     const sensitivePatterns = [
-      // 政治敏感词
-      /中国政治|政治体制|政府政策|国家领导人|政治改革|政治制度|政治体制|政治问题/gi,
-      /政治敏感|敏感话题|禁忌话题|敏感内容|审查内容/gi,
-      // 违法犯罪相关
-      /违法|犯罪|非法|禁品|危险品|管制刀具|毒品|枪支|爆炸物/gi,
-      // 暴力血腥
-      /血腥|暴力|恐怖|极端|自残|自杀|杀人|凶杀|枪击|爆炸/gi,
-      // 色情低俗
-      /色情|低俗|下流|黄色|成人|性|露骨|暴露/gi,
-      // 诈骗相关
-      /诈骗|赌博|非法集资|传销|洗钱|套现|刷单|虚假/gi,
-      // 侵犯隐私
-      /隐私|个人信息|身份证|电话号码|地址|住址/gi,
-      // 其他可能触发过滤的词汇
-      /禁言|封号|举报|投诉|屏蔽|过滤|敏感|违规/gi
+      // 自伤/自杀
+      /自杀|自残/gi,
+      /\b(suicide|self-harm|self harm)\b/gi,
+      // 暴力与恐怖活动
+      /恐怖主义|恐怖袭击/gi,
+      /\b(terrorism|terrorist)\b/gi,
+      /爆炸物|炸弹/gi,
+      /\b(explosive|bomb)\b/gi,
+      /枪支|枪械/gi,
+      /\b(firearm|gun)\b/gi,
+      /屠杀|大屠杀/gi,
+      /\b(genocide|massacre)\b/gi,
+      /谋杀|杀人|杀害/gi,
+      /\b(murder|homicide)\b/gi,
+      // 性暴力/儿童性剥削
+      /强奸|性侵/gi,
+      /\b(rape|sexual assault)\b/gi,
+      /儿童色情/gi,
+      /\b(child porn|child pornography)\b/gi,
+      // 毒品与制毒贩毒
+      /毒品|制毒|贩毒/gi,
+      /\b(drug trafficking|cocaine|heroin|meth)\b/gi
     ];
     
     let filteredContent = content;

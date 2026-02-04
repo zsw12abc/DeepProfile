@@ -6,6 +6,8 @@ export type SupportedPlatform = 'zhihu' | 'reddit' | 'twitter' | 'quora' | 'weib
 
 export type Language = 'zh-CN' | 'en-US';
 
+export type RedactSensitiveMode = 'always' | 'sensitive-providers' | 'never';
+
 export type MacroCategory = 
   | 'politics'       // 政治 (Politics)
   | 'economy'        // 经济 (Economy)
@@ -33,6 +35,7 @@ export interface AppConfig {
   customModelNames: Record<string, string>; // e.g. { openai: 'gpt-4' }
   analyzeLimit: number; // Default 15
   enableDebug: boolean;
+  redactSensitiveMode: RedactSensitiveMode;
   analysisMode: AnalysisMode; // Default analysis mode for all platforms
   platformAnalysisModes: Record<SupportedPlatform, AnalysisMode>; // Platform-specific analysis modes
   enabledPlatforms: Record<SupportedPlatform, boolean>;
@@ -347,6 +350,7 @@ export const DEFAULT_CONFIG: ExtendedAppConfig = {
   customModelNames: {},
   analyzeLimit: 15,
   enableDebug: false,
+  redactSensitiveMode: 'sensitive-providers',
   analysisMode: 'balanced',
   platformAnalysisModes: {
     zhihu: 'balanced',

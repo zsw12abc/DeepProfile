@@ -37,6 +37,7 @@ describe('ConfigService', () => {
       analysisMode: 'balanced',
       analyzeLimit: 15,
       enableDebug: false,
+      redactSensitiveMode: 'sensitive-providers',
       enabledPlatforms: {
         zhihu: true,
         twitter: false,
@@ -91,6 +92,7 @@ describe('ConfigService', () => {
       analysisMode: 'balanced',
       analyzeLimit: 15,
       enableDebug: false,
+      redactSensitiveMode: 'sensitive-providers',
       enabledPlatforms: {
         zhihu: true,
         twitter: false,
@@ -143,6 +145,7 @@ describe('ConfigService', () => {
       analysisMode: 'balanced',
       analyzeLimit: 15,
       enableDebug: false,
+      redactSensitiveMode: 'sensitive-providers',
       enabledPlatforms: {
         zhihu: true,
         twitter: false,
