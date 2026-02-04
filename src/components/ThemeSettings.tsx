@@ -27,6 +27,11 @@ const getLocalizedThemeInfo = (themeId: string) => {
         name: I18nService.t('theme_reddit_black_name'),
         description: I18nService.t('theme_reddit_black_desc')
       };
+    case 'neo-tech':
+      return {
+        name: I18nService.t('theme_neo_tech_name'),
+        description: I18nService.t('theme_neo_tech_desc')
+      };
     default:
       return null;
   }
@@ -110,7 +115,7 @@ const ThemeSettings: React.FC<ThemeSettingsProps> = ({ config, setConfig }) => {
   };
 
   const handleEditTheme = (theme: ThemeConfig) => {
-    if (theme.id === 'zhihu-white' || theme.id === 'zhihu-black' || theme.id === 'reddit-white' || theme.id === 'reddit-black') {
+    if (theme.id === 'neo-tech' || theme.id === 'zhihu-white' || theme.id === 'zhihu-black' || theme.id === 'reddit-white' || theme.id === 'reddit-black') {
       // 为内置主题创建副本进行编辑
       const localizedInfo = getLocalizedThemeInfo(theme.id);
       const newThemeId = `${theme.id}_custom`;
@@ -127,7 +132,7 @@ const ThemeSettings: React.FC<ThemeSettingsProps> = ({ config, setConfig }) => {
   };
 
   const handleDeleteTheme = async (themeId: string) => {
-    if (themeId === 'zhihu-white' || themeId === 'zhihu-black' || themeId === 'reddit-white' || themeId === 'reddit-black') {
+    if (themeId === 'neo-tech' || themeId === 'zhihu-white' || themeId === 'zhihu-black' || themeId === 'reddit-white' || themeId === 'reddit-black') {
       setStatus({ type: 'error', message: I18nService.t('cannot_delete_builtin_theme') });
       return;
     }
@@ -277,7 +282,7 @@ const ThemeSettings: React.FC<ThemeSettingsProps> = ({ config, setConfig }) => {
                   <div style={{ width: "20px", height: "20px", backgroundColor: theme.colors.warning, borderRadius: "4px" }}></div>
                 </div>
                 <div style={{ marginTop: "8px", display: "flex", gap: "8px" }}>
-                  {!(theme.id === 'zhihu-white' || theme.id === 'zhihu-black' || theme.id === 'reddit-white' || theme.id === 'reddit-black') && (
+                  {!(theme.id === 'neo-tech' || theme.id === 'zhihu-white' || theme.id === 'zhihu-black' || theme.id === 'reddit-white' || theme.id === 'reddit-black') && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -296,7 +301,7 @@ const ThemeSettings: React.FC<ThemeSettingsProps> = ({ config, setConfig }) => {
                       {I18nService.t('edit')}
                     </button>
                   )}
-                  {!(theme.id === 'zhihu-white' || theme.id === 'zhihu-black' || theme.id === 'reddit-white' || theme.id === 'reddit-black') && (
+                  {!(theme.id === 'neo-tech' || theme.id === 'zhihu-white' || theme.id === 'zhihu-black' || theme.id === 'reddit-white' || theme.id === 'reddit-black') && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -482,7 +487,7 @@ const ThemeSettings: React.FC<ThemeSettingsProps> = ({ config, setConfig }) => {
                 type="text"
                 value={editingTheme.id}
                 onChange={(e) => handleThemeFieldChange('id', e.target.value)}
-                disabled={editingTheme.id === 'zhihu-white' || editingTheme.id === 'zhihu-black' || editingTheme.id === 'reddit-white' || editingTheme.id === 'reddit-black'}
+                disabled={editingTheme.id === 'neo-tech' || editingTheme.id === 'zhihu-white' || editingTheme.id === 'zhihu-black' || editingTheme.id === 'reddit-white' || editingTheme.id === 'reddit-black'}
                 style={{
                   width: "100%",
                   padding: "8px 12px",

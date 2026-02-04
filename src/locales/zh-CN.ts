@@ -133,6 +133,8 @@ export const zhCN: LocaleDict = {
   theme_reddit_white_desc: "Reddit风格的浅色主题，橙蓝点缀",
   theme_reddit_black_name: "Reddit黑主题",
   theme_reddit_black_desc: "Reddit风格的深色主题，橙蓝点缀",
+  theme_neo_tech_name: "未来科技主题",
+  theme_neo_tech_desc: "玻璃质感与霓虹点缀的现代科技风格",
   failed_load_themes: "加载主题失败",
   failed_apply_theme: "应用主题失败",
   failed_create_theme: "创建主题失败",
@@ -190,7 +192,9 @@ export const zhCN: LocaleDict = {
   // Progress Messages
   reading_user_profile: "正在读取用户资料",
   reading_content: "正在读取用户内容",
-  ai_analyzing: "AI 正在分析中"
+  ai_analyzing: "AI 正在分析中",
+  progress_eta: "预计剩余",
+  progress_overdue: "已超过预估"
 };
 
 // DeepProfile 当前版本更新日志

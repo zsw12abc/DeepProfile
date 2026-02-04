@@ -547,9 +547,10 @@ export default function Options() {
   return (
     <div style={{ 
         minHeight: "100vh",
-        padding: "30px 20px", 
+        padding: "36px 20px", 
         fontFamily: "var(--theme-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif)",
         backgroundColor: "var(--theme-background, #f9fafb)",
+        backgroundImage: "radial-gradient(circle at top left, rgba(37, 99, 235, 0.12), transparent 45%), radial-gradient(circle at 20% 20%, rgba(34, 211, 238, 0.15), transparent 40%), radial-gradient(circle at 85% 10%, rgba(56, 189, 248, 0.12), transparent 30%)",
         color: "var(--theme-text, #4a5568)",
         display: "flex",
         flexDirection: "column"
@@ -563,13 +564,13 @@ export default function Options() {
             <div style={{
               width: "70px",
               height: "70px",
-              backgroundColor: "var(--theme-primary, #3498db)",
+              background: "linear-gradient(135deg, var(--theme-primary, #3498db), var(--theme-secondary, #22d3ee))",
               borderRadius: "18px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               margin: "0 auto 16px",
-              boxShadow: "0 6px 12px rgba(52, 152, 219, 0.2)"
+              boxShadow: "0 14px 30px rgba(37, 99, 235, 0.25)"
             }}>
               <img src={icon} alt="DeepProfile Icon" style={{ width: "48px", height: "48px" }} />
             </div>
@@ -589,20 +590,25 @@ export default function Options() {
             }}>{I18nService.t('app_description')}</p>
         </header>
         
-        <div style={{
-          display: "flex",
-          flexDirection: "row",
-          gap: "24px",
-          flexWrap: "nowrap"
-        }}>
+        <div
+          className="dp-options-layout"
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            gap: "24px",
+            flexWrap: "wrap"
+          }}>
           {/* 左侧平台导航栏 */}
-          <div style={{
+          <div
+            className="dp-options-nav"
+            style={{
             minWidth: "240px",
             backgroundColor: "var(--theme-surface, white)",
             borderRadius: "var(--theme-border-radius-large, 16px)",
             padding: "20px",
-            boxShadow: "var(--theme-shadow-medium, 0 10px 30px rgba(0,0,0,0.05))",
+            boxShadow: "var(--theme-shadow-medium, 0 10px 30px rgba(15, 23, 42, 0.12))",
             border: "1px solid var(--theme-border, #f0f0f0)",
+            backdropFilter: "blur(12px)",
             height: "fit-content"
           }}>
             <h3 style={{
@@ -633,8 +639,8 @@ export default function Options() {
                         padding: "14px 16px",
                         borderRadius: "var(--theme-border-radius-medium, 10px)",
                         border: "none",
-                        backgroundColor: activePlatform === platform.id 
-                          ? "var(--theme-primary, #e1f0fa)" 
+                        background: activePlatform === platform.id 
+                          ? "linear-gradient(135deg, var(--theme-primary, #2563eb), var(--theme-secondary, #22d3ee))" 
                           : "transparent",
                         color: activePlatform === platform.id 
                           ? "var(--theme-primary-text, #ffffff)" 
@@ -648,7 +654,7 @@ export default function Options() {
                         transition: "all 0.2s",
                         ...(activePlatform === platform.id 
                           ? { 
-                              boxShadow: "var(--theme-shadow-small, 0 4px 8px rgba(52, 152, 219, 0.15))",
+                              boxShadow: "0 10px 20px rgba(37, 99, 235, 0.2)",
                               transform: "translateX(4px)"
                             } 
                           : {})
@@ -664,7 +670,7 @@ export default function Options() {
           </div>
           
           {/* 右侧内容区域 */}
-          <div style={{ flex: 1 }}>
+          <div className="dp-options-content" style={{ flex: 1 }}>
             {renderPlatformSettings(activePlatform)}
             
 
@@ -677,11 +683,11 @@ export default function Options() {
                 bottom: "90px", 
                 left: "50%", 
                 transform: "translateX(-50%)",
-                backgroundColor: "var(--theme-surface, #2d3748)",
-                color: "var(--theme-text, white)",
+                background: "linear-gradient(135deg, var(--theme-primary, #2563eb), var(--theme-secondary, #22d3ee))",
+                color: "var(--theme-primary-text, #ffffff)",
                 padding: "14px 28px",
                 borderRadius: "30px",
-                boxShadow: "var(--theme-shadow-medium, 0 6px 20px rgba(0,0,0,0.15))",
+                boxShadow: "0 12px 30px rgba(37, 99, 235, 0.35)",
                 fontWeight: "600",
                 fontSize: "var(--theme-font-size-medium, 15px)",
                 animation: "slideIn 0.4s ease-out forwards, fadeOut 0.5s ease-out 2.5s forwards",
@@ -699,6 +705,18 @@ export default function Options() {
           @keyframes fadeOut {
             from { opacity: 1; }
             to { opacity: 0; }
+          }
+          @media (max-width: 980px) {
+            .dp-options-layout {
+              flex-direction: column;
+            }
+            .dp-options-nav {
+              width: 100%;
+              min-width: unset;
+            }
+            .dp-options-content {
+              width: 100%;
+            }
           }
         `}</style>
       </div>

@@ -6,7 +6,7 @@ export class ThemeService {
   private currentTheme: ThemeConfig;
 
   private constructor() {
-    this.currentTheme = DEFAULT_CONFIG.themes['zhihu-white'] || Object.values(DEFAULT_CONFIG.themes)[0];
+    this.currentTheme = DEFAULT_CONFIG.themes['neo-tech'] || Object.values(DEFAULT_CONFIG.themes)[0];
   }
 
   public static getInstance(): ThemeService {
@@ -33,7 +33,7 @@ export class ThemeService {
       
       if (!theme) {
         console.warn(`Theme ${themeId} not found, falling back to default`);
-        this.currentTheme = config.themes['zhihu-white'] || DEFAULT_CONFIG.themes['zhihu-white'] || Object.values(DEFAULT_CONFIG.themes)[0];
+        this.currentTheme = config.themes['neo-tech'] || DEFAULT_CONFIG.themes['neo-tech'] || Object.values(DEFAULT_CONFIG.themes)[0];
       } else {
         this.currentTheme = theme;
       }
@@ -163,7 +163,7 @@ export class ThemeService {
    * 删除主题
    */
   public async deleteTheme(themeId: string): Promise<void> {
-    if (themeId === 'zhihu-white' || themeId === 'zhihu-black' || themeId === 'reddit-white' || themeId === 'reddit-black') {
+    if (themeId === 'neo-tech' || themeId === 'zhihu-white' || themeId === 'zhihu-black' || themeId === 'reddit-white' || themeId === 'reddit-black') {
       throw new Error("Cannot delete built-in themes");
     }
 
@@ -174,8 +174,8 @@ export class ThemeService {
     // 如果删除的是当前主题，切换回默认主题
     let newThemeId = config.themeId;
     if (config.themeId === themeId) {
-      newThemeId = 'zhihu-white';
-      this.currentTheme = config.themes['zhihu-white'] || DEFAULT_CONFIG.themes['zhihu-white'] || Object.values(DEFAULT_CONFIG.themes)[0];
+      newThemeId = 'neo-tech';
+      this.currentTheme = config.themes['neo-tech'] || DEFAULT_CONFIG.themes['neo-tech'] || Object.values(DEFAULT_CONFIG.themes)[0];
       this.applyThemeToPage(this.currentTheme);
     }
 
@@ -208,9 +208,9 @@ export class ThemeService {
         this.currentTheme = theme;
       } else {
         // 如果配置的主题不存在，使用默认主题
-        this.currentTheme = updatedConfig.themes['zhihu-white'] || DEFAULT_CONFIG.themes['zhihu-white'] || Object.values(DEFAULT_CONFIG.themes)[0];
+        this.currentTheme = updatedConfig.themes['neo-tech'] || DEFAULT_CONFIG.themes['neo-tech'] || Object.values(DEFAULT_CONFIG.themes)[0];
         // 同时更新配置
-        await this.updateConfig({ ...updatedConfig, themeId: 'zhihu-white' });
+        await this.updateConfig({ ...updatedConfig, themeId: 'neo-tech' });
       }
       
       // 应用当前主题到页面
@@ -243,7 +243,7 @@ export class ThemeService {
       });
       
       // 确保内置主题存在
-      const builtinThemes = ['zhihu-white', 'zhihu-black', 'reddit-white', 'reddit-black'];
+      const builtinThemes = ['neo-tech', 'zhihu-white', 'zhihu-black', 'reddit-white', 'reddit-black'];
       builtinThemes.forEach(id => {
         if (!newThemes[id]) {
           newThemes[id] = DEFAULT_CONFIG.themes[id];
@@ -254,7 +254,7 @@ export class ThemeService {
       // 如果当前主题是旧主题，切换到新默认主题
       let newThemeId = config.themeId;
       if (oldThemeIds.includes(config.themeId)) {
-        newThemeId = 'zhihu-white';
+        newThemeId = 'neo-tech';
         console.log(`当前主题为旧主题，切换到默认主题: ${newThemeId}`);
       }
       

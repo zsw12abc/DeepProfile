@@ -121,6 +121,8 @@ export type LocaleKey =
   | 'theme_reddit_white_desc'
   | 'theme_reddit_black_name'
   | 'theme_reddit_black_desc'
+  | 'theme_neo_tech_name'
+  | 'theme_neo_tech_desc'
   | 'failed_load_themes'
   | 'failed_apply_theme'
   | 'failed_create_theme'
@@ -184,6 +186,8 @@ export type LocaleKey =
   | 'reading_user_profile'
   | 'reading_content'
   | 'ai_analyzing'
+  | 'progress_eta'
+  | 'progress_overdue'
 
   // Settings
   | 'settings_twitter'

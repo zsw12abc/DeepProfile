@@ -13,6 +13,7 @@ import {
   type ThemeConfig, 
   type UserHistoryRecord, 
   type ProfileData,
+  type AnalysisProgress,
   type SupportedPlatform,
   ZHIHU_WHITE_THEME
 } from "../types";
@@ -42,7 +43,7 @@ interface ProfileCardProps {
   onRefresh?: () => void
   onClose?: () => void
   onExport?: () => void
-  progressPercentage?: number // 添加进度百分比参数
+  progressInfo?: AnalysisProgress
 }
 
 const ProfileCard: React.FC<ProfileCardProps> = ({ 
@@ -54,7 +55,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   onRefresh, 
   onClose, 
   onExport,
-  progressPercentage
+  progressInfo
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [theme, setTheme] = useState<ThemeConfig>(ZHIHU_WHITE_THEME);
@@ -308,48 +309,63 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     // 如果既没有加载状态也没有状态消息，则不显示
     if (!isLoading && !statusMessage) return null;
     
+    const percentage = progressInfo?.percentage;
+    const hasPercentage = typeof percentage === 'number';
+    const overdue = progressInfo?.overdue;
+    const elapsedMs = progressInfo?.elapsedMs;
+    const estimatedMs = progressInfo?.estimatedMs;
+    const displayWidth = hasPercentage ? Math.max(2, Math.min(99, percentage as number)) : 0;
+    const etaSeconds = (!overdue && elapsedMs !== undefined && estimatedMs !== undefined)
+      ? Math.max(1, Math.ceil((estimatedMs - elapsedMs) / 1000))
+      : null;
+    const overdueSeconds = (overdue && elapsedMs !== undefined && estimatedMs !== undefined)
+      ? Math.max(1, Math.ceil((elapsedMs - estimatedMs) / 1000))
+      : null;
+
     return (
       <div style={{ 
         marginBottom: theme.spacing.md, 
         fontSize: theme.typography.fontSizeBase, 
         color: theme.colors.textSecondary 
       }}>
-        {/* 左上角状态消息 - 告诉用户当前在做什么 */}
         <div style={{
-          marginBottom: theme.spacing.sm,
-          fontWeight: theme.typography.fontWeightBold,
-          color: theme.colors.primary,
-          fontSize: '16px'  // 设置字体大小，符合您提到的样式
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: theme.spacing.sm,
+          marginBottom: theme.spacing.sm
         }}>
-          {statusMessage || I18nService.t('analyzing')}
-          {progressPercentage !== undefined && progressPercentage < 100 && (
-            <span> ({Math.max(1, Math.ceil((100 - progressPercentage) * 0.25))}s)</span>
-          )}
+          <div style={{
+            fontWeight: theme.typography.fontWeightBold,
+            color: theme.colors.primary,
+            fontSize: '16px'
+          }}>
+            {statusMessage || I18nService.t('analyzing')}
+          </div>
+          <div style={{ display: "flex", gap: theme.spacing.xs }}>
+            {etaSeconds !== null && (
+              <span className="dp-chip dp-chip--info">
+                {I18nService.t('progress_eta')} {etaSeconds}s
+              </span>
+            )}
+            {overdueSeconds !== null && (
+              <span className="dp-chip dp-chip--warn">
+                {I18nService.t('progress_overdue')} +{overdueSeconds}s
+              </span>
+            )}
+          </div>
         </div>
         
-        {/* 中间进度条 - 占据最大部分，根据分析模式调整速度 */}
-        {progressPercentage !== undefined && progressPercentage < 100 && (
-          <div style={{
-            height: "8px",
-            backgroundColor: theme.colors.border,
-            borderRadius: "4px",
-            overflow: "hidden",
-            position: "relative",
-            margin: `${theme.spacing.sm} 0`
-          }}>
-            {/* 进度条：从左到右填充 */}
-            <div 
+        {hasPercentage && percentage < 100 && (
+          <div className="dp-progress-track" style={{ backgroundColor: theme.colors.border }}>
+            <div
+              className={`dp-progress-fill${overdue ? " dp-progress-fill--overdue" : ""}`}
               style={{
-                height: "100%",
-                width: `${progressPercentage}%`,
-                backgroundColor: theme.colors.primary,
-                transition: "width 0.3s ease",
-                borderRadius: "4px",
-                position: "absolute",
-                left: 0,
-                top: 0
+                width: `${displayWidth}%`,
+                background: `linear-gradient(90deg, ${theme.colors.primary}, ${theme.colors.accent})`
               }}
             />
+            {overdue && <div className="dp-progress-shimmer" />}
           </div>
         )}
       </div>
@@ -414,6 +430,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     );
   }
 
+  const cardAccent = `linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.secondary})`;
+  const cardBackground = `linear-gradient(180deg, ${theme.colors.surface} 0%, ${theme.colors.background} 100%)`;
+
   return (
     <div
       ref={cardRef}
@@ -421,18 +440,81 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         position: "fixed",
         bottom: theme.spacing.lg,
         right: theme.spacing.lg,
-        width: "380px",
+        width: "min(380px, 92vw)",
         maxHeight: "80vh",
         overflowY: "auto",
-        backgroundColor: theme.colors.surface,
+        background: cardBackground,
         boxShadow: theme.shadows.large,
         borderRadius: theme.borderRadius.large,
         padding: theme.spacing.lg,
+        border: `1px solid ${theme.colors.border}`,
+        backdropFilter: "blur(10px)",
         zIndex: 9999,
         fontFamily: theme.typography.fontFamily,
         fontSize: theme.typography.fontSizeBase,
         color: theme.colors.text
       }}>
+      <style>{`
+        .dp-progress-track {
+          position: relative;
+          height: 8px;
+          border-radius: 999px;
+          overflow: hidden;
+          margin: ${theme.spacing.sm} 0;
+        }
+        .dp-progress-fill {
+          height: 100%;
+          border-radius: 999px;
+          transition: width 0.4s ease;
+          box-shadow: 0 0 12px rgba(37, 99, 235, 0.35);
+        }
+        .dp-progress-fill--overdue {
+          animation: dp-pulse 1.4s ease-in-out infinite;
+        }
+        .dp-progress-shimmer {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.4) 50%, transparent 100%);
+          animation: dp-shimmer 1.2s linear infinite;
+        }
+        .dp-chip {
+          display: inline-flex;
+          align-items: center;
+          padding: 4px 10px;
+          border-radius: 999px;
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: 0.02em;
+          background: rgba(37, 99, 235, 0.08);
+          color: ${theme.colors.primary};
+        }
+        .dp-chip--info {
+          background: rgba(37, 99, 235, 0.08);
+          color: ${theme.colors.primary};
+        }
+        .dp-chip--warn {
+          background: rgba(245, 158, 11, 0.12);
+          color: ${theme.colors.warning};
+        }
+        @keyframes dp-shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+        @keyframes dp-pulse {
+          0% { opacity: 0.6; }
+          50% { opacity: 1; }
+          100% { opacity: 0.6; }
+        }
+      `}</style>
+      <div style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        height: "3px",
+        borderRadius: `${theme.borderRadius.large} ${theme.borderRadius.large} 0 0`,
+        background: cardAccent
+      }} />
       <div
         style={{
           display: "flex",

@@ -133,6 +133,8 @@ export const enUS: LocaleDict = {
   theme_reddit_white_desc: "Reddit-inspired light theme with orange-blue accents",
   theme_reddit_black_name: "Reddit Dark Theme",
   theme_reddit_black_desc: "Reddit-inspired dark theme with orange-blue accents",
+  theme_neo_tech_name: "Neo Tech Theme",
+  theme_neo_tech_desc: "Futuristic glassy theme with neon accents",
   failed_load_themes: "Failed to load themes",
   failed_apply_theme: "Failed to apply theme",
   failed_create_theme: "Failed to create theme",
@@ -190,7 +192,9 @@ export const enUS: LocaleDict = {
   // Progress Messages
   reading_user_profile: "Reading user profile",
   reading_content: "Reading user content",
-  ai_analyzing: "AI is analyzing"
+  ai_analyzing: "AI is analyzing",
+  progress_eta: "ETA",
+  progress_overdue: "Overdue"
 };
 
 // DeepProfile Current Version Changelog

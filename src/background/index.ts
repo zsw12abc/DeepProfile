@@ -197,7 +197,14 @@ async function listModels(provider: string, apiKey: string, baseUrl: string): Pr
     }
 }
 
-async function sendProgress(tabId: number | undefined, message: string, percentage?: number) {
+type ProgressMeta = {
+  elapsedMs?: number;
+  estimatedMs?: number;
+  overdue?: boolean;
+  phase?: 'estimate' | 'overtime' | 'finalizing';
+};
+
+async function sendProgress(tabId: number | undefined, message: string, percentage?: number, meta?: ProgressMeta) {
   if (tabId) {
     try {
       const messageObj: any = {
@@ -207,6 +214,12 @@ async function sendProgress(tabId: number | undefined, message: string, percenta
       if (percentage !== undefined) {
         messageObj.type = "ANALYSIS_PROGRESS_ESTIMATE";
         messageObj.percentage = percentage;
+      }
+      if (meta) {
+        messageObj.elapsedMs = meta.elapsedMs;
+        messageObj.estimatedMs = meta.estimatedMs;
+        messageObj.overdue = meta.overdue;
+        messageObj.phase = meta.phase;
       }
       await chrome.tabs.sendMessage(tabId, messageObj)
     } catch (e) {
@@ -225,6 +238,29 @@ function estimateAnalysisTime(mode: string): number {
     default:
       return 40000; // 25 + 15 seconds for balanced mode
   }
+}
+
+function getProgressSnapshot(elapsedMs: number, estimatedMs: number) {
+  const safeEstimate = Math.max(estimatedMs, 10000);
+  let percentage = 0;
+
+  if (elapsedMs <= safeEstimate) {
+    percentage = Math.floor((elapsedMs / safeEstimate) * 85);
+  } else if (elapsedMs <= safeEstimate * 2) {
+    percentage = 85 + Math.floor(((elapsedMs - safeEstimate) / safeEstimate) * 8);
+  } else if (elapsedMs <= safeEstimate * 4) {
+    percentage = 93 + Math.floor(((elapsedMs - safeEstimate * 2) / (safeEstimate * 2)) * 4);
+  } else {
+    percentage = 97 + Math.floor(((elapsedMs - safeEstimate * 4) / (safeEstimate * 4)) * 2);
+  }
+
+  percentage = Math.min(99, Math.max(1, percentage));
+
+  return {
+    percentage,
+    overdue: elapsedMs > safeEstimate,
+    phase: elapsedMs > safeEstimate * 3 ? 'finalizing' : (elapsedMs > safeEstimate ? 'overtime' : 'estimate')
+  } as const;
 }
 
 async function handleAnalysis(userId: string, context?: string, tabId?: number, platform: SupportedPlatform = 'zhihu', forceRefresh: boolean = false) {
@@ -286,25 +322,21 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
   // Custom periodic progress function that uses the current message variable
   const progressInterval = setInterval(async () => {
     const elapsed = Date.now() - startTime;
-    const progress = Math.min(95, Math.floor((elapsed / estimatedTime) * 100)); // Cap at 95%
-    
-    // Send current message with progress
-    await sendProgress(tabId, currentMessage, progress);
-    
-    if (elapsed >= estimatedTime) {
-      clearInterval(progressInterval);
-      activeIntervals.delete(progressInterval); // Clean up reference
-    }
+    const snapshot = getProgressSnapshot(elapsed, estimatedTime);
+
+    // Send current message with progress and timing context
+    await sendProgress(tabId, currentMessage, snapshot.percentage, {
+      elapsedMs: elapsed,
+      estimatedMs: estimatedTime,
+      overdue: snapshot.overdue,
+      phase: snapshot.phase
+    });
   }, 1000);
   
   // Add interval to our tracking set
   activeIntervals.add(progressInterval);
   
-  // Clear interval after estimated time + buffer
-  setTimeout(() => {
-    clearInterval(progressInterval);
-    activeIntervals.delete(progressInterval); // Clean up reference
-  }, estimatedTime + 5000);
+  // Keep interval running until analysis finishes; cleanup happens in finally.
   
   try {
     const userProfile = await ProfileService.fetchUserProfile(platform, userId)

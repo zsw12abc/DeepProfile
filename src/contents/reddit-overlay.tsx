@@ -5,7 +5,7 @@ import { ProfileCard } from "../components/ProfileCard"
 import { ConfigService } from "../services/ConfigService"
 import { I18nService } from "../services/I18nService"
 import type { ZhihuContent, UserProfile, UserHistoryRecord, SupportedPlatform } from "../services/ZhihuClient"
-import type { ProfileData } from "../types"
+import type { AnalysisProgress, ProfileData } from "../types"
 import { DEFAULT_CONFIG } from "../types"
 import { createInjectionScheduler } from "./injection-utils"
 
@@ -35,7 +35,7 @@ const RedditOverlay = () => {
       return 'Loading...';
     }
   })
-  const [progressPercentage, setProgressPercentage] = useState<number | undefined>(undefined)
+  const [progressInfo, setProgressInfo] = useState<AnalysisProgress | undefined>(undefined)
   const [error, setError] = useState<string | undefined>()
   const rootRef = useRef<Root | null>(null)
   const messageListenerRef = useRef<any>(null);
@@ -52,13 +52,22 @@ const RedditOverlay = () => {
     const messageListener = (request: any) => {
       if (request.type === "ANALYSIS_PROGRESS") {
         setStatusMessage(request.message)
-        // Do not reset progress percentage to avoid flickering
-        // setProgressPercentage(undefined) 
+        setProgressInfo((prev) => ({
+          percentage: prev?.percentage,
+          elapsedMs: request.elapsedMs ?? prev?.elapsedMs,
+          estimatedMs: request.estimatedMs ?? prev?.estimatedMs,
+          overdue: request.overdue ?? prev?.overdue,
+          phase: request.phase ?? prev?.phase
+        }))
       } else if (request.type === "ANALYSIS_PROGRESS_ESTIMATE") {
         setStatusMessage(request.message)
-        if (request.percentage !== undefined) {
-          setProgressPercentage(request.percentage)
-        }
+        setProgressInfo({
+          percentage: request.percentage,
+          elapsedMs: request.elapsedMs,
+          estimatedMs: request.estimatedMs,
+          overdue: request.overdue,
+          phase: request.phase
+        })
       }
     }
     
@@ -163,7 +172,7 @@ const RedditOverlay = () => {
             platform={'reddit'}
             isLoading={loading}
             statusMessage={statusMessage}
-            progressPercentage={progressPercentage}
+            progressInfo={progressInfo}
             error={error}
             onRefresh={() => {
               if (targetUser) {
@@ -205,7 +214,7 @@ const RedditOverlay = () => {
       // 当没有目标用户时，移除容器
       removeOverlayContainer();
     }
-  }, [targetUser, profileData, loading, statusMessage, error, initialNickname, currentContext, progressPercentage]);
+  }, [targetUser, profileData, loading, statusMessage, error, initialNickname, currentContext, progressInfo]);
 
   useEffect(() => {
     let isEnabled = false;
@@ -279,13 +288,22 @@ const RedditOverlay = () => {
         if (link.closest('.avatar') || link.closest('[aria-label*="avatar"]')) return
 
         const btn = document.createElement("span")
-        btn.innerHTML = " 🔍"  // Using innerHTML to properly render emoji
+        btn.innerHTML = "⚡"
         btn.style.cursor = "pointer"
-        btn.style.fontSize = "14px"
-        btn.style.marginLeft = "4px"
-        btn.style.color = "#8590a6"
+        btn.style.fontSize = "12px"
+        btn.style.marginLeft = "6px"
+        btn.style.color = "#2563eb"
         btn.style.verticalAlign = "middle"
-        btn.style.display = "inline-block"
+        btn.style.display = "inline-flex"
+        btn.style.alignItems = "center"
+        btn.style.justifyContent = "center"
+        btn.style.width = "22px"
+        btn.style.height = "22px"
+        btn.style.borderRadius = "999px"
+        btn.style.border = "1px solid rgba(37, 99, 235, 0.25)"
+        btn.style.background = "linear-gradient(135deg, rgba(37, 99, 235, 0.18), rgba(34, 211, 238, 0.18))"
+        btn.style.boxShadow = "0 4px 12px rgba(37, 99, 235, 0.18)"
+        btn.style.transition = "all 0.2s ease"
         try {
           btn.title = I18nService.t('deep_profile_analysis')
         } catch (e) {
@@ -294,8 +312,18 @@ const RedditOverlay = () => {
         }
         btn.className = "deep-profile-btn"
         
-        btn.onmouseover = () => { btn.style.color = "#0084ff" }
-        btn.onmouseout = () => { btn.style.color = "#8590a6" }
+        btn.onmouseover = () => {
+          btn.style.color = "#ffffff"
+          btn.style.background = "linear-gradient(135deg, #2563eb, #22d3ee)"
+          btn.style.boxShadow = "0 6px 16px rgba(37, 99, 235, 0.35)"
+          btn.style.transform = "translateY(-1px)"
+        }
+        btn.onmouseout = () => {
+          btn.style.color = "#2563eb"
+          btn.style.background = "linear-gradient(135deg, rgba(37, 99, 235, 0.18), rgba(34, 211, 238, 0.18))"
+          btn.style.boxShadow = "0 4px 12px rgba(37, 99, 235, 0.18)"
+          btn.style.transform = "translateY(0)"
+        }
 
         btn.onclick = (e) => {
           e.preventDefault()
@@ -476,7 +504,13 @@ const RedditOverlay = () => {
         setProfileData(null)
     }
     // Initialize progress to 0 to show the bar immediately
-    setProgressPercentage(0)
+    setProgressInfo({
+      percentage: 0,
+      elapsedMs: 0,
+      estimatedMs: undefined,
+      overdue: false,
+      phase: 'estimate'
+    })
 
     try {
       // Safe API call with context validation

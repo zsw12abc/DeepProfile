@@ -167,13 +167,13 @@ const CommentAnalysisPanel = ({ contextTitle, containerElement, answerId }: { co
   if (error) {
       if (error.includes('Extension context invalidated') || error === I18nService.t('extension_context_invalidated')) {
           return (
-              <div style={{ padding: '12px 16px', background: '#fff1f0', border: '1px solid #ffa39e', borderRadius: 4, marginBottom: 12, fontSize: 13, color: '#cf1322' }}>
+              <div style={{ padding: '14px 16px', background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.35)', borderRadius: 12, marginBottom: 12, fontSize: 13, color: '#b91c1c', boxShadow: '0 10px 24px rgba(239, 68, 68, 0.12)' }}>
                   <strong>{I18nService.t('extension_context_invalidated_title')}：</strong> {I18nService.t('extension_context_invalidated_desc')}
               </div>
           )
       } else {
           return (
-              <div style={{ padding: '12px 16px', background: '#fff1f0', border: '1px solid #ffa39e', borderRadius: 4, marginBottom: 12, fontSize: 13, color: '#cf1322' }}>
+              <div style={{ padding: '14px 16px', background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.35)', borderRadius: 12, marginBottom: 12, fontSize: 13, color: '#b91c1c', boxShadow: '0 10px 24px rgba(239, 68, 68, 0.12)' }}>
                   <strong>{I18nService.t('comment_analysis_failed')}：</strong> {error}
               </div>
           )
@@ -182,8 +182,8 @@ const CommentAnalysisPanel = ({ contextTitle, containerElement, answerId }: { co
 
   if (loading) {
       return (
-          <div style={{ padding: '12px 16px', background: '#f0f5ff', border: '1px solid #adc6ff', borderRadius: 4, marginBottom: 12, fontSize: 13, color: '#2f54eb', display: 'flex', alignItems: 'center' }}>
-              <div style={{ marginRight: 8, width: 16, height: 16, border: '2px solid #2f54eb', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+          <div style={{ padding: '14px 16px', background: 'rgba(37, 99, 235, 0.08)', border: '1px solid rgba(37, 99, 235, 0.35)', borderRadius: 12, marginBottom: 12, fontSize: 13, color: '#1d4ed8', display: 'flex', alignItems: 'center', boxShadow: '0 10px 24px rgba(37, 99, 235, 0.12)' }}>
+              <div style={{ marginRight: 10, width: 16, height: 16, border: '2px solid #2563eb', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
               <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
               {status}
           </div>
@@ -193,29 +193,29 @@ const CommentAnalysisPanel = ({ contextTitle, containerElement, answerId }: { co
   if (!result) return null;
 
   return (
-    <div style={{ padding: '16px', background: '#f6f6f6', borderRadius: 8, marginBottom: 16, border: '1px solid #ebebeb' }}>
+    <div style={{ padding: '18px', background: 'linear-gradient(180deg, #ffffff, #f7fbff)', borderRadius: 16, marginBottom: 16, border: '1px solid #e2e8f0', boxShadow: '0 16px 40px rgba(15, 23, 42, 0.12)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
           <div style={{ flex: 1 }}>
               <h3 style={{ margin: '0 0 8px 0', fontSize: 15, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
                   {I18nService.t('comment_analysis_summary')}
-                  <span style={{ fontSize: 12, fontWeight: 400, color: '#8590a6', marginLeft: 8, background: '#fff', padding: '2px 6px', borderRadius: 4 }}>{I18nService.t('comment_analysis_ai_generated')}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: '#1d4ed8', marginLeft: 8, background: 'rgba(37, 99, 235, 0.12)', padding: '4px 8px', borderRadius: 999, letterSpacing: '0.02em' }}>{I18nService.t('comment_analysis_ai_generated')}</span>
               </h3>
-              <div style={{ fontSize: 14, lineHeight: '1.6', color: '#121212' }}>
+              <div style={{ fontSize: 14, lineHeight: '1.6', color: '#0f172a' }}>
                   {result.summary}
               </div>
           </div>
       </div>
 
       <div style={{ marginBottom: 16 }}>
-          <div style={{ display: 'flex', height: 8, borderRadius: 4, overflow: 'hidden', marginBottom: 6 }}>
-              <div style={{ width: `${(result.stance_ratio?.support || 0) * 100}%`, background: '#52c41a' }} title={`${I18nService.t('sentiment_support')} ${Math.round((result.stance_ratio?.support || 0) * 100)}%`} />
-              <div style={{ width: `${(result.stance_ratio?.neutral || 0) * 100}%`, background: '#faad14' }} title={`${I18nService.t('sentiment_neutral')} ${Math.round((result.stance_ratio?.neutral || 0) * 100)}%`} />
-              <div style={{ width: `${(result.stance_ratio?.oppose || 0) * 100}%`, background: '#ff4d4f' }} title={`${I18nService.t('sentiment_oppose')} ${Math.round((result.stance_ratio?.oppose || 0) * 100)}%`} />
+          <div style={{ display: 'flex', height: 8, borderRadius: 999, overflow: 'hidden', marginBottom: 6, background: '#e2e8f0' }}>
+              <div style={{ width: `${(result.stance_ratio?.support || 0) * 100}%`, background: 'linear-gradient(90deg, #22c55e, #16a34a)' }} title={`${I18nService.t('sentiment_support')} ${Math.round((result.stance_ratio?.support || 0) * 100)}%`} />
+              <div style={{ width: `${(result.stance_ratio?.neutral || 0) * 100}%`, background: 'linear-gradient(90deg, #f59e0b, #fbbf24)' }} title={`${I18nService.t('sentiment_neutral')} ${Math.round((result.stance_ratio?.neutral || 0) * 100)}%`} />
+              <div style={{ width: `${(result.stance_ratio?.oppose || 0) * 100}%`, background: 'linear-gradient(90deg, #ef4444, #f97316)' }} title={`${I18nService.t('sentiment_oppose')} ${Math.round((result.stance_ratio?.oppose || 0) * 100)}%`} />
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#8590a6' }}>
-              <span style={{ display: 'flex', alignItems: 'center' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#52c41a', marginRight: 4 }}></span>{I18nService.t('sentiment_support')} {Math.round((result.stance_ratio?.support || 0) * 100)}%</span>
-              <span style={{ display: 'flex', alignItems: 'center' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#faad14', marginRight: 4 }}></span>{I18nService.t('sentiment_neutral')} {Math.round((result.stance_ratio?.neutral || 0) * 100)}%</span>
-              <span style={{ display: 'flex', alignItems: 'center' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#ff4d4f', marginRight: 4 }}></span>{I18nService.t('sentiment_oppose')} {Math.round((result.stance_ratio?.oppose || 0) * 100)}%</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#64748b' }}>
+              <span style={{ display: 'flex', alignItems: 'center' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e', marginRight: 4 }}></span>{I18nService.t('sentiment_support')} {Math.round((result.stance_ratio?.support || 0) * 100)}%</span>
+              <span style={{ display: 'flex', alignItems: 'center' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#f59e0b', marginRight: 4 }}></span>{I18nService.t('sentiment_neutral')} {Math.round((result.stance_ratio?.neutral || 0) * 100)}%</span>
+              <span style={{ display: 'flex', alignItems: 'center' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444', marginRight: 4 }}></span>{I18nService.t('sentiment_oppose')} {Math.round((result.stance_ratio?.oppose || 0) * 100)}%</span>
           </div>
       </div>
 
@@ -224,7 +224,7 @@ const CommentAnalysisPanel = ({ contextTitle, containerElement, answerId }: { co
             onClick={() => setIsExpanded(!isExpanded)}
             style={{ 
                 fontSize: 13, 
-                color: '#8590a6', 
+                color: '#64748b', 
                 cursor: 'pointer', 
                 display: 'flex', 
                 alignItems: 'center',
@@ -244,25 +244,25 @@ const CommentAnalysisPanel = ({ contextTitle, containerElement, answerId }: { co
           </div>
           
           {isExpanded && (
-              <div style={{ marginTop: 12, borderTop: '1px solid #ebebeb', paddingTop: 12 }}>
+              <div style={{ marginTop: 12, borderTop: '1px solid #e2e8f0', paddingTop: 12 }}>
                   {result.key_points && result.key_points.map((point, i) => (
                       <div key={i} style={{ marginBottom: 12, fontSize: 13 }}>
-                          <div style={{ fontWeight: 500, marginBottom: 4, color: '#444' }}>
+                          <div style={{ fontWeight: 600, marginBottom: 4, color: '#0f172a' }}>
                               {point.type === 'support' ? '🟢' : point.type === 'oppose' ? '🔴' : '⚪'} {point.point}
                           </div>
                           {point.example_quotes && point.example_quotes.map((quote, j) => (
-                              <div key={j} style={{ fontSize: 12, color: '#8590a6', paddingLeft: 10, borderLeft: '3px solid #eee', marginTop: 4, fontStyle: 'italic' }}>
+                              <div key={j} style={{ fontSize: 12, color: '#64748b', paddingLeft: 10, borderLeft: '3px solid #e2e8f0', marginTop: 4, fontStyle: 'italic' }}>
                                   "{quote}"
                               </div>
                           ))}
                       </div>
                   ))}
                   {result.deep_analysis && result.deep_analysis.has_fallacy && (
-                    <div style={{ marginTop: 12, borderTop: '1px solid #ebebeb', paddingTop: 12, fontSize: 13 }}>
-                        <div style={{ fontWeight: 500, marginBottom: 4, color: '#444' }}>
+                    <div style={{ marginTop: 12, borderTop: '1px solid #e2e8f0', paddingTop: 12, fontSize: 13 }}>
+                        <div style={{ fontWeight: 600, marginBottom: 4, color: '#0f172a' }}>
                             {I18nService.t('deep_insight')}
                         </div>
-                        <div style={{ fontSize: 12, color: '#8590a6' }}>
+                        <div style={{ fontSize: 12, color: '#64748b' }}>
                             {`${I18nService.t('logic_fallacy')}: ${result.deep_analysis.fallacy_type || I18nService.t('unknown_type')}`}
                             {result.deep_analysis.example && ` (${I18nService.t('example_quote')}: "${result.deep_analysis.example}")`}
                         </div>
@@ -319,19 +319,31 @@ const ZhihuComments = () => {
                 btn.innerText = I18nService.t('comment_summary_btn');
                 btn.style.marginLeft = '12px';
                 btn.style.marginRight = '12px';
-                btn.style.border = '1px solid #0084ff';
-                btn.style.color = '#0084ff';
-                btn.style.background = 'transparent';
-                btn.style.borderRadius = '4px';
-                btn.style.padding = '0 12px';
+                btn.style.border = '1px solid rgba(37, 99, 235, 0.35)';
+                btn.style.color = '#2563eb';
+                btn.style.background = 'linear-gradient(135deg, rgba(37, 99, 235, 0.14), rgba(34, 211, 238, 0.14))';
+                btn.style.borderRadius = '999px';
+                btn.style.padding = '0 14px';
                 btn.style.fontSize = '12px';
-                btn.style.height = '28px';
-                btn.style.lineHeight = '26px';
+                btn.style.height = '30px';
+                btn.style.lineHeight = '28px';
                 btn.style.cursor = 'pointer';
-                btn.style.fontWeight = '500';
+                btn.style.fontWeight = '600';
+                btn.style.boxShadow = '0 8px 18px rgba(37, 99, 235, 0.18)';
+                btn.style.transition = 'all 0.2s ease';
                 
-                btn.onmouseover = () => { btn.style.background = 'rgba(0, 132, 255, 0.08)'; };
-                btn.onmouseout = () => { btn.style.background = 'transparent'; };
+                btn.onmouseover = () => { 
+                    btn.style.background = 'linear-gradient(135deg, #2563eb, #22d3ee)'; 
+                    btn.style.color = '#ffffff';
+                    btn.style.boxShadow = '0 10px 24px rgba(37, 99, 235, 0.3)';
+                    btn.style.transform = 'translateY(-1px)';
+                };
+                btn.onmouseout = () => { 
+                    btn.style.background = 'linear-gradient(135deg, rgba(37, 99, 235, 0.14), rgba(34, 211, 238, 0.14))'; 
+                    btn.style.color = '#2563eb';
+                    btn.style.boxShadow = '0 8px 18px rgba(37, 99, 235, 0.18)';
+                    btn.style.transform = 'translateY(0)';
+                };
                 
                 btn.onclick = (e) => {
                     e.stopPropagation(); 

@@ -116,6 +116,61 @@ export interface ExtendedAppConfig extends AppConfig {
   themes: Record<string, ThemeConfig>;
 }
 
+export const NEO_TECH_THEME: ThemeConfig = {
+  id: 'neo-tech',
+  name: 'Neo Tech',
+  description: 'Futuristic glassy theme with neon accents',
+  colors: {
+    primary: '#2563eb',
+    secondary: '#22d3ee',
+    background: '#f5f7fb',
+    surface: '#ffffff',
+    text: '#0f172a',
+    textSecondary: '#475569',
+    border: '#e2e8f0',
+    success: '#16a34a',
+    successBg: '#dcfce7',
+    successText: '#166534',
+    successBorder: '#86efac',
+    warning: '#f59e0b',
+    error: '#ef4444',
+    errorBg: '#fee2e2',
+    errorText: '#991b1b',
+    errorBorder: '#fecaca',
+    accent: '#38bdf8',
+    primaryText: '#ffffff',
+    warningText: '#0f172a'
+  },
+  typography: {
+    fontFamily: "'Space Grotesk', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
+    fontSizeBase: '14px',
+    fontSizeSmall: '12px',
+    fontSizeMedium: '16px',
+    fontSizeLarge: '18px',
+    fontWeightNormal: 450,
+    fontWeightBold: 650,
+    lineHeight: 1.55
+  },
+  spacing: {
+    xs: '6px',
+    sm: '10px',
+    md: '18px',
+    lg: '26px',
+    xl: '34px',
+    xxl: '52px'
+  },
+  borderRadius: {
+    small: '8px',
+    medium: '14px',
+    large: '20px'
+  },
+  shadows: {
+    small: '0 4px 12px rgba(15, 23, 42, 0.08)',
+    medium: '0 10px 30px rgba(15, 23, 42, 0.12)',
+    large: '0 20px 50px rgba(15, 23, 42, 0.18)'
+  }
+};
+
 export const ZHIHU_WHITE_THEME: ThemeConfig = {
   id: 'zhihu-white',
   name: 'Zhihu White Theme',
@@ -397,8 +452,9 @@ export const DEFAULT_CONFIG: ExtendedAppConfig = {
       apiEndpoint: 'https://api.weibo.com'
     }
   },
-  themeId: 'zhihu-white',
+  themeId: 'neo-tech',
   themes: {
+    'neo-tech': NEO_TECH_THEME,
     'zhihu-white': ZHIHU_WHITE_THEME,
     'zhihu-black': ZHIHU_BLACK_THEME,
     'reddit-white': REDDIT_WHITE_THEME,
@@ -461,6 +517,14 @@ export interface ProfileData {
     source_title: string
     source_id?: string
   }>
+}
+
+export interface AnalysisProgress {
+  percentage?: number;
+  elapsedMs?: number;
+  estimatedMs?: number;
+  overdue?: boolean;
+  phase?: 'estimate' | 'overtime' | 'finalizing';
 }
 
 // --- Comment Analysis Types ---
