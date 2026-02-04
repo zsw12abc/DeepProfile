@@ -133,6 +133,23 @@ describe("LLMService", () => {
     });
   });
 
+  describe("provider configuration", () => {
+    it("should throw missing api key error before creating provider", async () => {
+      (ConfigService.getConfig as any).mockResolvedValue({
+        selectedProvider: "openai",
+        apiKeys: {},
+        customBaseUrls: {},
+        customModelNames: {},
+        analysisMode: "balanced",
+        enableDebug: false,
+        platformAnalysisModes: {},
+      });
+      (I18nService.t as any).mockReturnValue("missing key");
+
+      await expect(LLMService.generateRawText("test")).rejects.toThrow("missing key");
+    });
+  });
+
   describe("normalizeLabelId", () => {
     it("should normalize common label variations correctly", () => {
       const testCases = [

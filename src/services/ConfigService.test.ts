@@ -208,4 +208,25 @@ describe('ConfigService', () => {
     expect(config.enabledPlatforms.quora).toBe(DEFAULT_CONFIG.enabledPlatforms.quora);
     expect(config.platformConfigs.quora).toEqual(DEFAULT_CONFIG.platformConfigs.quora);
   });
+
+  it('should cache config after first load', async () => {
+    storageMock.get.mockResolvedValue({ deep_profile_config: buildConfig({ selectedProvider: 'openai' }) });
+
+    const first = await ConfigService.getConfig();
+    const second = await ConfigService.getConfig();
+
+    expect(first).toEqual(second);
+    expect(storageMock.get).toHaveBeenCalledTimes(1);
+  });
+
+  it('should return cached config after save without extra read', async () => {
+    storageMock.get.mockResolvedValue({});
+    const saved = buildConfig({ selectedProvider: 'gemini', apiKeys: { gemini: 'test' } });
+
+    await ConfigService.saveConfig(saved);
+    const config = await ConfigService.getConfig();
+
+    expect(config).toEqual(saved);
+    expect(storageMock.get).not.toHaveBeenCalled();
+  });
 });

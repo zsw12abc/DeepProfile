@@ -7,6 +7,7 @@ vi.mock("./LLMService");
 describe("TopicService", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    TopicService.clearLLMCache();
   });
 
   describe("classify", () => {
@@ -112,6 +113,17 @@ describe("TopicService", () => {
       
       const result = await TopicService.classifyWithLLM("AI technology discussion");
       expect(result).toBe("technology");
+    });
+
+    it("should cache LLM classification results", async () => {
+      const spy = vi.spyOn(LLMService, 'generateRawText').mockResolvedValue("technology");
+
+      const first = await TopicService.classifyWithLLM("AI technology discussion");
+      const second = await TopicService.classifyWithLLM("AI technology discussion");
+
+      expect(first).toBe("technology");
+      expect(second).toBe("technology");
+      expect(spy).toHaveBeenCalledTimes(1);
     });
   });
 });
