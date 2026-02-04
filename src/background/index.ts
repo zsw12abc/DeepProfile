@@ -346,7 +346,10 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
       (config.redactSensitiveMode === 'sensitive-providers' && sensitiveProviders.has(config.selectedProvider));
 
     let cleanText = ProfileService.cleanContentData(platform, items, userProfile, {
-      redactSensitive: shouldRedactSensitiveContent
+      redactSensitive: shouldRedactSensitiveContent,
+      minRelevantRatio: 0.8,
+      includeMetadata: true,
+      includeExcerpt: analysisMode !== 'fast'
     })
     
     if (contextForLLM) {

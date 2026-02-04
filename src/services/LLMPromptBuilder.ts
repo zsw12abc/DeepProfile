@@ -23,7 +23,10 @@ export const buildSystemPrompt = (
   const formatInstructions = getParserInstructions(mode);
 
   const exampleService = ExampleService.getInstance();
-  const dynamicExamples = inputText ? exampleService.getRelevantExamples(inputText, category, mode, 2) : [];
+  const exampleCount = mode === 'fast' ? 0 : (mode === 'balanced' ? 1 : 2);
+  const dynamicExamples = inputText && exampleCount > 0
+    ? exampleService.getRelevantExamples(inputText, category, mode, exampleCount)
+    : [];
   const dynamicFewShotExamples = dynamicExamples.length > 0
     ? exampleService.formatExamplesAsPrompt(dynamicExamples, mode)
     : (isEn ? `
@@ -65,6 +68,8 @@ ${formatInstructions}
 7. Content Safety: If the input content contains sensitive information, please analyze the user's value orientation based on their expression style, language habits, and topic preferences, without directly repeating sensitive content.
 8. CRITICAL CONSISTENCY RULE: The summary should reflect the user's overall personality, writing style, and expressed opinions naturally. Do NOT include explicit statements about specific label scores (e.g., "the user shows X% tendency toward..."). The summary should organically reflect the user's value orientations without stating them directly.
 9. ABSOLUTE SAFETY RULE: Under NO circumstances should the output contain explicit, offensive, or inappropriate language. If the input text contains such content, analyze the user's communication style and attitude rather than repeating the content.
+10. Length: Keep summary within 2 sentences to reduce tokens.
+11. Output Order: Fill value_orientation first, then summary, then remaining fields. Output JSON only.
 
 ${dynamicFewShotExamples}
 
@@ -87,6 +92,9 @@ ${formatInstructions}
 7. 【Output Language】 The output content (summary, analysis, etc.) MUST be in ${isEn ? 'English' : 'Simplified Chinese'}.
 8. 【Content Safety】 If the input content contains sensitive information, please analyze the user's value orientation based on their expression style, language habits, and topic preferences, without directly repeating sensitive content.
 9. 【CRITICAL CONSISTENCY RULE】 The summary should reflect the user's overall personality, writing style, and expressed opinions naturally. Do NOT include explicit statements about specific label scores (e.g., "the user shows X% tendency toward..."). The summary should organically reflect the user's value orientations without stating them directly.
+10. 【Alignment Hint】 The summary should clearly reflect the direction of the top labels using natural language (e.g., "more inclined to X"), without numeric scores.
+11. 【Length】 Balanced: 3-4 sentences. Deep: 4-6 sentences.
+12. 【Output Order】 Fill value_orientation first, then summary, then evidence. Output JSON only.
 
 ${dynamicFewShotExamples}
 

@@ -262,6 +262,7 @@ describe('ProfileService', () => {
       expect(result).toContain('Content 1');
       expect(result).toContain('Title 2');
       expect(result).toContain('Content 2');
+      expect(result).toContain('Meta:');
     });
 
     it('should clean content data for Reddit platform', () => {
@@ -279,6 +280,7 @@ describe('ProfileService', () => {
       // The content depends on how the formatItem function processes the data
       expect(result).toContain('Content 1');
       expect(result).toContain('Comment 1');
+      expect(result).toContain('Meta:');
     });
 
     it('should clean content data for Twitter platform', () => {
@@ -294,6 +296,7 @@ describe('ProfileService', () => {
       expect(result).toContain('Test User');
       expect(result).toContain('Tweet 1');
       expect(result).toContain('Retweet 1');
+      expect(result).toContain('Meta:');
     });
 
     it('should clean content data for Quora platform', () => {
@@ -309,6 +312,32 @@ describe('ProfileService', () => {
       expect(result).toContain('Test User');
       expect(result).toContain('Answer 1');
       expect(result).toContain('Question 1');
+      expect(result).toContain('Meta:');
+    });
+
+    it('should deduplicate repeated content', () => {
+      const mockItems = [
+        { action_type: 'created', title: 'Same', content: 'Dup Content', is_relevant: true, id: '1', type: 'answer', excerpt: '' },
+        { action_type: 'created', title: 'Same', content: 'Dup Content', is_relevant: true, id: '2', type: 'answer', excerpt: '' }
+      ];
+      const result = ProfileService.cleanContentData('zhihu', mockItems as any, null);
+      const occurrences = result.split('Title: 【Same】').length - 1;
+      expect(occurrences).toBe(1);
+    });
+
+    it('should enforce minimum relevant ratio by trimming other items', () => {
+      const mockItems = [
+        { action_type: 'created', title: 'Relevant', content: 'Rel', is_relevant: true, id: '1', type: 'answer', excerpt: '' },
+        { action_type: 'created', title: 'Other1', content: 'O1', is_relevant: false, id: '2', type: 'answer', excerpt: '' },
+        { action_type: 'created', title: 'Other2', content: 'O2', is_relevant: false, id: '3', type: 'answer', excerpt: '' },
+        { action_type: 'created', title: 'Other3', content: 'O3', is_relevant: false, id: '4', type: 'answer', excerpt: '' }
+      ];
+
+      const result = ProfileService.cleanContentData('zhihu', mockItems as any, null, { minRelevantRatio: 0.8 });
+      expect(result).toContain('Title: 【Relevant】');
+      expect(result).not.toContain('Title: 【Other1】');
+      expect(result).not.toContain('Title: 【Other2】');
+      expect(result).not.toContain('Title: 【Other3】');
     });
   });
 

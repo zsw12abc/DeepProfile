@@ -1,6 +1,7 @@
 import { I18nService } from "./I18nService";
 import { calculateFinalLabel, parseLabelName } from "./LabelUtils";
 import { LabelService } from "./LabelService";
+import type { AnalysisMode } from "~types";
 
 export interface ProfileData {
   nickname?: string;
@@ -155,6 +156,202 @@ export class ConsistencyService {
     fixedProfile = this.validateAndFixEvidenceConsistency(fixedProfile);
     
     return fixedProfile;
+  }
+
+  /**
+   * Enforce summary alignment with top label directions, mode-aware.
+   * This adds short, non-numeric phrases only when summary lacks key label directions.
+   */
+  static enforceSummaryAlignment(profile: ProfileData, mode: AnalysisMode): ProfileData {
+    if (!profile.summary || !profile.value_orientation || profile.value_orientation.length === 0) {
+      return profile;
+    }
+
+    if (mode === "fast") {
+      return profile;
+    }
+
+    const maxLabels = mode === "deep" ? 3 : 2;
+    const threshold = mode === "deep" ? 0.3 : 0.3;
+    const isEn = I18nService.getLanguage() === "en-US";
+
+    const sorted = [...profile.value_orientation]
+      .filter(item => Math.abs(item.score) >= threshold)
+      .sort((a, b) => Math.abs(b.score) - Math.abs(a.score))
+      .slice(0, maxLabels);
+
+    if (sorted.length === 0) {
+      return profile;
+    }
+
+    let summary = profile.summary;
+    const labelService = LabelService.getInstance();
+    const additions: string[] = [];
+
+    for (const labelItem of sorted) {
+      const labelInfo = labelService.getLabelById(labelItem.label);
+      if (!labelInfo) continue;
+
+      const finalLabel = calculateFinalLabel(labelInfo.id, labelItem.score).label;
+      if (!finalLabel) continue;
+
+      const hasKeyword =
+        this.containsKeyword(summary, finalLabel) ||
+        this.containsKeyword(summary, labelInfo.name) ||
+        this.containsKeyword(summary, labelInfo.id);
+
+      if (hasKeyword) continue;
+
+      const intensity = this.getIntensityWord(labelItem.score, isEn);
+      additions.push(isEn
+        ? `${intensity} ${finalLabel}`
+        : `${intensity}${finalLabel}`
+      );
+    }
+
+    if (additions.length === 0) {
+      return profile;
+    }
+
+    const separator = isEn ? " " : "";
+    const clause = isEn
+      ? `Overall, the user is ${additions.join(" and ")}.`
+      : `整体上更偏向${additions.join("、")}。`;
+
+    if (!summary.endsWith("。") && !summary.endsWith(".") && !summary.endsWith("!") && !summary.endsWith("！")) {
+      summary += isEn ? ". " : "。";
+    } else {
+      summary += separator;
+    }
+
+    summary += clause;
+
+    return { ...profile, summary };
+  }
+
+  private static getIntensityWord(score: number, isEn: boolean): string {
+    const abs = Math.abs(score);
+    if (isEn) {
+      if (abs >= 0.7) return "strongly";
+      if (abs >= 0.5) return "clearly";
+      if (abs >= 0.3) return "slightly";
+      return "somewhat";
+    }
+
+    if (abs >= 0.7) return "明显";
+    if (abs >= 0.5) return "较为";
+    if (abs >= 0.3) return "略偏";
+    return "稍微";
+  }
+
+  static normalizeScores(profile: ProfileData, labelIds: string[]): ProfileData {
+    if (!profile.value_orientation || profile.value_orientation.length === 0) {
+      return profile;
+    }
+
+    const scoreMap = new Map<string, number>();
+    profile.value_orientation.forEach(item => {
+      const normalized = Math.max(-1, Math.min(1, item.score));
+      if (!scoreMap.has(item.label)) {
+        scoreMap.set(item.label, normalized);
+      } else {
+        const existing = scoreMap.get(item.label)!;
+        if (Math.abs(normalized) > Math.abs(existing)) {
+          scoreMap.set(item.label, normalized);
+        }
+      }
+    });
+
+    const fixed = labelIds.map(labelId => ({
+      label: labelId,
+      score: scoreMap.get(labelId) ?? 0
+    }));
+
+    return { ...profile, value_orientation: fixed };
+  }
+
+  static adjustScoresByEvidence(profile: ProfileData, labelIds: string[]): ProfileData {
+    if (!profile.value_orientation || profile.value_orientation.length === 0 || !profile.evidence) {
+      return profile;
+    }
+
+    const labelService = LabelService.getInstance();
+    const evidenceText = profile.evidence.map(e => `${e.quote} ${e.analysis}`).join(" ");
+    const updated = profile.value_orientation.map(item => {
+      const labelInfo = labelService.getLabelById(item.label);
+      if (!labelInfo) return item;
+
+      const finalLabel = calculateFinalLabel(labelInfo.id, item.score).label;
+      const hasSupport =
+        this.containsKeyword(evidenceText, labelInfo.name) ||
+        this.containsKeyword(evidenceText, labelInfo.id) ||
+        (finalLabel && this.containsKeyword(evidenceText, finalLabel));
+
+      const abs = Math.abs(item.score);
+      if (abs >= 0.7 && !hasSupport) {
+        return { ...item, score: item.score * 0.6 };
+      }
+      if (abs >= 0.4 && !hasSupport) {
+        return { ...item, score: item.score * 0.8 };
+      }
+      return item;
+    });
+
+    return { ...profile, value_orientation: updated };
+  }
+
+  static detectSummaryConflicts(profile: ProfileData): { label: string; conflict: boolean }[] {
+    if (!profile.value_orientation || !profile.summary) {
+      return [];
+    }
+
+    const labelService = LabelService.getInstance();
+    const summary = profile.summary;
+    return profile.value_orientation.map(item => {
+      const labelInfo = labelService.getLabelById(item.label);
+      if (!labelInfo) return { label: item.label, conflict: false };
+
+      const parsed = parseLabelName(labelInfo.name);
+      const expected = item.score >= 0 ? parsed.right : parsed.left;
+      const opposite = item.score >= 0 ? parsed.left : parsed.right;
+
+      const hasExpected = expected && this.containsKeyword(summary, expected);
+      const hasOpposite = opposite && this.containsKeyword(summary, opposite);
+
+      return { label: item.label, conflict: Boolean(hasOpposite && !hasExpected) };
+    });
+  }
+
+  static resolveSummaryConflicts(profile: ProfileData): ProfileData {
+    if (!profile.summary || !profile.value_orientation) {
+      return profile;
+    }
+
+    const conflicts = this.detectSummaryConflicts(profile);
+    const hasConflict = conflicts.some(c => c.conflict);
+    if (!hasConflict) return profile;
+
+    const isEn = I18nService.getLanguage() === "en-US";
+    let summary = profile.summary;
+    const labelService = LabelService.getInstance();
+
+    for (const conflict of conflicts) {
+      if (!conflict.conflict) continue;
+      const labelInfo = labelService.getLabelById(conflict.label);
+      if (!labelInfo) continue;
+      const parsed = parseLabelName(labelInfo.name);
+      const opposite = profile.value_orientation?.find(item => item.label === conflict.label)?.score ?? 0;
+      const oppositeKeyword = opposite >= 0 ? parsed.left : parsed.right;
+      if (oppositeKeyword) {
+        const escaped = oppositeKeyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        summary = summary.replace(new RegExp(escaped, "gi"), "");
+      }
+    }
+
+    const prefix = isEn ? "Summary alignment notice: " : "摘要一致性提示：";
+    summary = `${prefix}${summary.trim()}`;
+
+    return { ...profile, summary };
   }
   
   /**

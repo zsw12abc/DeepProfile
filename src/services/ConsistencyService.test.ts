@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ConsistencyService } from './ConsistencyService';
 import { ProfileData } from './ConsistencyService';
+import { I18nService } from './I18nService';
 
 describe('ConsistencyService', () => {
   let sampleProfile: ProfileData;
@@ -150,6 +151,96 @@ describe('ConsistencyService', () => {
       const report = ConsistencyService.generateConsistencyReport(incompleteProfile as any);
       
       expect(report).toContain('Profile data incomplete');
+    });
+  });
+
+  describe('enforceSummaryAlignment', () => {
+    it('should append alignment hints for balanced mode when missing', () => {
+      const profile = {
+        ...sampleProfile,
+        summary: 'This user has various views.',
+      };
+
+      const result = ConsistencyService.enforceSummaryAlignment(profile, 'balanced');
+
+      expect(result.summary).not.toBe('This user has various views.');
+    });
+
+    it('should not modify summary in fast mode', () => {
+      const profile = {
+        ...sampleProfile,
+        summary: 'This user has various views.'
+      };
+
+      const result = ConsistencyService.enforceSummaryAlignment(profile, 'fast');
+
+      expect(result.summary).toBe('This user has various views.');
+    });
+  });
+
+  describe('normalizeScores', () => {
+    it('should clamp scores and fill missing labels', () => {
+      const profile = {
+        ...sampleProfile,
+        value_orientation: [
+          { label: 'ideology', score: 2 },
+          { label: 'authority', score: -2 }
+        ]
+      };
+
+      const result = ConsistencyService.normalizeScores(profile, ['ideology', 'authority', 'change']);
+      expect(result.value_orientation).toHaveLength(3);
+      expect(result.value_orientation?.find(l => l.label === 'ideology')?.score).toBe(1);
+      expect(result.value_orientation?.find(l => l.label === 'authority')?.score).toBe(-1);
+      expect(result.value_orientation?.find(l => l.label === 'change')?.score).toBe(0);
+    });
+  });
+
+  describe('adjustScoresByEvidence', () => {
+    it('should dampen high scores without evidence support', () => {
+      const profile = {
+        ...sampleProfile,
+        value_orientation: [
+          { label: 'individualism_vs_collectivism', score: 0.9 }
+        ],
+        evidence: [
+          { quote: 'Unrelated quote', analysis: 'No label mentioned', source_title: 'Source', source_id: '1' }
+        ]
+      };
+
+      const result = ConsistencyService.adjustScoresByEvidence(profile, ['individualism_vs_collectivism']);
+      expect(result.value_orientation?.[0].score).toBeCloseTo(0.54, 2);
+    });
+  });
+
+  describe('detectSummaryConflicts', () => {
+    it('should flag conflicts when summary mentions opposite direction', () => {
+      I18nService.setLanguage('en-US');
+      const profile = {
+        ...sampleProfile,
+        value_orientation: [
+          { label: 'authority', score: 0.8 }
+        ],
+        summary: 'This user favors libertarian views.'
+      };
+
+      const conflicts = ConsistencyService.detectSummaryConflicts(profile);
+      expect(conflicts[0].conflict).toBe(true);
+    });
+  });
+
+  describe('resolveSummaryConflicts', () => {
+    it('should remove opposite direction keywords and prefix notice', () => {
+      I18nService.setLanguage('en-US');
+      const profile = {
+        ...sampleProfile,
+        value_orientation: [{ label: 'authority', score: 0.8 }],
+        summary: 'This user favors libertarian views.'
+      };
+
+      const result = ConsistencyService.resolveSummaryConflicts(profile);
+      expect(result.summary).toContain('Summary alignment notice');
+      expect(result.summary.toLowerCase()).not.toContain('libertarian');
     });
   });
 });

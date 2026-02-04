@@ -11,6 +11,7 @@ import { StructuredOutputService } from "./StructuredOutputService"
 import { buildSystemPrompt, getParserInstructions } from "./LLMPromptBuilder"
 import { normalizeAndFixResponse } from "./LLMResponseNormalizer"
 import { normalizeLabelId } from "./LLMLabelNormalizer"
+import { LabelService } from "./LabelService"
 import { withRetry, withTimeout } from "./LLMRetry"
 import { Logger } from "./Logger"
 
@@ -23,6 +24,19 @@ const isLocalBaseUrl = (baseUrl?: string): boolean => {
   } catch (e) {
     return baseUrl.includes("localhost") || baseUrl.includes("127.0.0.1") || baseUrl.includes("0.0.0.0");
   }
+};
+
+const normalizeLabelIdList = (labelsText: string): string[] => {
+  const lines = labelsText
+    .split("\n")
+    .map(line => line.trim())
+    .filter(line => line.startsWith("-"));
+  const ids = lines
+    .map(line => line.replace(/^-\s*/, ""))
+    .map(line => line.split(" ")[0])
+    .map(id => id.replace(/[^a-z0-9_]/gi, ""))
+    .filter(Boolean);
+  return Array.from(new Set(ids));
 };
 
 export interface LLMResponse {
@@ -413,14 +427,27 @@ class LangChainProvider implements LLMProvider {
         ...parsedContent,
         evidence: ConsistencyService.validateAndFixEvidenceConsistency(parsedContent).evidence
       };
+      const labelIds = normalizeLabelIdList(LabelService.getInstance().getLabelsForContext(category, mode));
+      const adjustedProfile = ConsistencyService.adjustScoresByEvidence(
+        consistentProfile,
+        labelIds
+      );
+      const normalizedProfile = ConsistencyService.normalizeScores(
+        adjustedProfile,
+        labelIds
+      );
+      const alignedProfile = ConsistencyService.enforceSummaryAlignment(
+        ConsistencyService.resolveSummaryConflicts(normalizedProfile),
+        mode
+      );
       
       if (config.enableDebug) {
-        Logger.info("【LANGCHAIN LABEL SCORES】LLM Scores：", consistentProfile.value_orientation);
-        Logger.info("【CONSISTENCY REPORT】", ConsistencyService.generateConsistencyReport(consistentProfile));
+        Logger.info("【LANGCHAIN LABEL SCORES】LLM Scores：", alignedProfile.value_orientation);
+        Logger.info("【CONSISTENCY REPORT】", ConsistencyService.generateConsistencyReport(alignedProfile));
       }
       
       return {
-          content: consistentProfile,
+          content: alignedProfile,
           usage: undefined,
           durationMs,
           model: this.model || "unknown"
@@ -678,15 +705,28 @@ class OllamaProvider implements LLMProvider {
         ...parsedContent,
         evidence: ConsistencyService.validateAndFixEvidenceConsistency(parsedContent).evidence
       };
+      const labelIds = normalizeLabelIdList(LabelService.getInstance().getLabelsForContext(category, mode));
+      const adjustedProfile = ConsistencyService.adjustScoresByEvidence(
+        consistentProfile,
+        labelIds
+      );
+      const normalizedProfile = ConsistencyService.normalizeScores(
+        adjustedProfile,
+        labelIds
+      );
+      const alignedProfile = ConsistencyService.enforceSummaryAlignment(
+        ConsistencyService.resolveSummaryConflicts(normalizedProfile),
+        mode
+      );
       
       const debugConfig = await ConfigService.getConfig();
       if (debugConfig.enableDebug) {
-        Logger.info("【LANGCHAIN LABEL SCORES】LLM Scores:", consistentProfile.value_orientation);
-        Logger.info("【CONSISTENCY REPORT】", ConsistencyService.generateConsistencyReport(consistentProfile));
+        Logger.info("【LANGCHAIN LABEL SCORES】LLM Scores:", alignedProfile.value_orientation);
+        Logger.info("【CONSISTENCY REPORT】", ConsistencyService.generateConsistencyReport(alignedProfile));
       }
       
       return {
-          content: consistentProfile,
+          content: alignedProfile,
           usage,
           durationMs,
           model: this.model

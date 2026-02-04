@@ -16,6 +16,9 @@ export interface FetchResult {
 
 interface CleanContentOptions {
   redactSensitive?: boolean;
+  minRelevantRatio?: number;
+  includeMetadata?: boolean;
+  includeExcerpt?: boolean;
 }
 
 export class ProfileService {
@@ -130,6 +133,14 @@ export class ProfileService {
     const relevantItems = items.filter(item => item.is_relevant);
     let otherItems = items.filter(item => !item.is_relevant);
 
+    const minRelevantRatio = options.minRelevantRatio ?? 0.8;
+    if (relevantItems.length > 0 && items.length > 0) {
+      const maxOther = Math.floor(relevantItems.length * (1 - minRelevantRatio) / minRelevantRatio);
+      if (otherItems.length > maxOther) {
+        otherItems = otherItems.slice(0, Math.max(0, maxOther));
+      }
+    }
+
     // --- Aggressive Filtering Strategy ---
     // If we have enough relevant items (e.g. >= 3), we drastically reduce the noise.
     // We only keep a few "other" items to give a hint of general personality, 
@@ -148,7 +159,7 @@ export class ProfileService {
         } else {
           content = item.excerpt || '';
         }
-        
+
         // 增加敏感内容过滤（可配置）
         if (options.redactSensitive) {
           content = this.filterSensitiveContent(content);
@@ -170,7 +181,20 @@ export class ProfileService {
             typeTag = item.type === 'answer' ? '【Answer】' : '【Question】';
         }
         
-        return `[ID:${item.id}] ${actionTag}${typeTag} Title: 【${item.title}】\nContent: ${content}`;
+        const includeMetadata = options.includeMetadata ?? true;
+        const includeExcerpt = options.includeExcerpt ?? true;
+        const metaParts: string[] = [];
+        if (includeMetadata) {
+          metaParts.push(`platform=${platform}`);
+          if (item.created_time) metaParts.push(`time=${item.created_time}`);
+          if (item.action_type) metaParts.push(`action=${item.action_type}`);
+          const votes = (item as any).voteup_count ?? (item as any).score ?? (item as any).ups;
+          if (typeof votes === 'number') metaParts.push(`votes=${votes}`);
+        }
+        const metaLine = includeMetadata ? `Meta: ${metaParts.join(', ')}\n` : '';
+        const excerpt = item.excerpt ? item.excerpt.slice(0, 120) : '';
+        const excerptLine = includeExcerpt && excerpt ? `Excerpt: ${excerpt}\n` : '';
+        return `[ID:${item.id}] ${actionTag}${typeTag} Title: 【${item.title}】\n${metaLine}${excerptLine}Content: ${content}`;
     };
 
     const MAX_TOTAL_CHARS = 20000;
@@ -196,8 +220,11 @@ export class ProfileService {
       }
     };
 
-    appendSection('--- RELEVANT CONTENT (★ Key Analysis) ---', relevantItems, RELEVANT_SLICE);
-    appendSection('--- OTHER RECENT CONTENT (For Personality Reference Only) ---', otherItems, OTHER_SLICE);
+    const uniqueRelevant = this.deduplicateItems(relevantItems);
+    const uniqueOthers = this.deduplicateItems(otherItems);
+
+    appendSection('--- RELEVANT CONTENT (★ Key Analysis) ---', uniqueRelevant, RELEVANT_SLICE);
+    appendSection('--- OTHER RECENT CONTENT (For Personality Reference Only) ---', uniqueOthers, OTHER_SLICE);
     
     return text + contentText;
   }
@@ -205,6 +232,20 @@ export class ProfileService {
   private static stripHtml(html: string): string {
     if (!html) return '';
     return html.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ');
+  }
+
+  private static deduplicateItems(items: ZhihuContent[]): ZhihuContent[] {
+    const seen = new Set<string>();
+    const result: ZhihuContent[] = [];
+    for (const item of items) {
+      const title = item.title || '';
+      const content = item.content || item.excerpt || '';
+      const signature = `${title.trim().toLowerCase()}|${content.trim().toLowerCase().slice(0, 200)}`;
+      if (seen.has(signature)) continue;
+      seen.add(signature);
+      result.push(item);
+    }
+    return result;
   }
   
   // 敏感内容过滤函数，移除或替换可能触发AI安全过滤的词汇
