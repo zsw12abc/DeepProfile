@@ -11,6 +11,7 @@ import { StructuredOutputService } from "./StructuredOutputService"
 import { buildSystemPrompt, getParserInstructions } from "./LLMPromptBuilder"
 import { normalizeAndFixResponse } from "./LLMResponseNormalizer"
 import { normalizeLabelId } from "./LLMLabelNormalizer"
+import { withRetry, withTimeout } from "./LLMRetry"
 
 export interface LLMResponse {
   content: any;
@@ -295,75 +296,57 @@ class LangChainProvider implements LLMProvider {
     
     try {
       const timeout = 600000; // 10 minutes
-      
+      const maxRetries = 1;
       const systemPrompt = LLMService.getSystemPrompt(mode, category, text);
-      
+
       // 增强日志：打印完整的 System Prompt
       const config = await ConfigService.getConfig();
       if (config.enableDebug) {
         console.log("【LANGCHAIN SYSTEM PROMPT】", systemPrompt);
         console.log("【LANGCHAIN USER INPUT】", text);
       }
-      
-      // Create structured output parser based on mode
+
       const parser = StructuredOutputService.getParserForMode(mode);
-      
-      // Create the chain with prompt -> LLM -> Parser
       const messages = [
         new SystemMessage(systemPrompt),
         new HumanMessage(text)
       ];
-      
-      // Create a runnable sequence with the parser
       const chain = RunnableSequence.from([
         () => messages,
         this.llm,
         parser
       ]);
-      
-      // 尝试最多两次生成，如果第一次失败则进行错误反馈重试
-      let result = null;
-      let attempt = 0;
-      let lastError = null;
-      
-      while (attempt < 2) {
-        try {
-          result = await Promise.race([
-            chain.invoke({}),
-            new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('LLM request timeout')), timeout)
-            )
-          ]);
-          break; // 成功则退出循环
-        } catch (error: any) {
-          lastError = error;
-          console.error(`LangChain API Error (attempt ${attempt + 1}):`, error);
 
-          // 如果是内容审查错误，立即失败并提示用户
-          if (error.message && error.message.includes('400') && error.message.includes('Input data may contain inappropriate content')) {
-            const userFriendlyError = new Error(I18nService.t('error_content_filter'));
-            (userFriendlyError as any).isContentFilter = true;
-            throw userFriendlyError;
-          }
-          
-          // 如果是第一次失败且错误是格式相关，尝试错误反馈重试
-          if (attempt === 0 && this.shouldRetryOnError(error)) {
-            console.log("Attempting error correction with feedback...");
-            result = await this.retryWithErrorFeedback(text, mode, category, error.message);
-            
-            if (result) {
-              break; // 重试成功则退出循环
+      const result = await withRetry(
+        async (attempt) => {
+          try {
+            return await withTimeout(chain.invoke({}), timeout);
+          } catch (error: any) {
+            console.error(`LangChain API Error (attempt ${attempt + 1}):`, error);
+
+            if (error.message && error.message.includes('400') && error.message.includes('Input data may contain inappropriate content')) {
+              const userFriendlyError = new Error(I18nService.t('error_content_filter'));
+              (userFriendlyError as any).isContentFilter = true;
+              throw userFriendlyError;
             }
+
+            if (attempt === 0 && this.shouldRetryOnError(error)) {
+              console.log("Attempting error correction with feedback...");
+              const corrected = await this.retryWithErrorFeedback(text, mode, category, error.message);
+              if (corrected) {
+                return corrected;
+              }
+            }
+
+            throw error;
           }
-          
-          attempt++;
+        },
+        {
+          retries: maxRetries,
+          baseDelayMs: 500,
+          shouldRetry: (error) => this.shouldRetryOnError(error)
         }
-      }
-      
-      // 如果多次尝试都失败，抛出最后一次错误
-      if (result === null) {
-        throw lastError;
-      }
+      );
       
       const durationMs = Date.now() - startTime;
 
@@ -545,58 +528,81 @@ class OllamaProvider implements LLMProvider {
     }
     
     const timeout = 600000; // 10 minutes
+    const maxRetries = 1;
     
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
     
     try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Connection": "keep-alive"
-        },
-        body: JSON.stringify({
-          model: this.model,
-          prompt: prompt,
-          format: "json", 
-          stream: false,
-          options: {
-            temperature: mode === 'fast' ? 0.3 : 0.5,
-            num_predict: mode === 'fast' ? 512 : 1024
-          }
-        }),
-        signal: controller.signal
-      })
-      
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`Ollama API Error: ${response.status}`, errorText);
-        
-        if (errorText.includes('inappropriate') || errorText.includes('data_inspection_failed')) {
-          const defaultResponse = {
-            nickname: "",
-            topic_classification: "Content Analysis",
-            value_orientation: [],
-            summary: "Content Safety Review Failed: the content may involve sensitive topics and was blocked by the AI provider. Please try switching to DeepSeek or OpenAI models.",
-            evidence: []
-          };
+      const data = await withRetry(
+        async (attempt) => {
+          const response = await fetch(url, {
+            method: "POST",
+            headers: { 
+              "Content-Type": "application/json",
+              "Connection": "keep-alive"
+            },
+            body: JSON.stringify({
+              model: this.model,
+              prompt: prompt,
+              format: "json", 
+              stream: false,
+              options: {
+                temperature: mode === 'fast' ? 0.3 : 0.5,
+                num_predict: mode === 'fast' ? 512 : 1024
+              }
+            }),
+            signal: controller.signal
+          })
           
-          const durationMs = Date.now() - startTime;
-          return {
-            content: defaultResponse,
-            usage: undefined,
-            durationMs,
-            model: this.model
-          };
+          clearTimeout(timeoutId);
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`Ollama API Error (attempt ${attempt + 1}): ${response.status}`, errorText);
+            
+            if (errorText.includes('inappropriate') || errorText.includes('data_inspection_failed')) {
+              const defaultResponse = {
+                nickname: "",
+                topic_classification: "Content Analysis",
+                value_orientation: [],
+                summary: "Content Safety Review Failed: the content may involve sensitive topics and was blocked by the AI provider. Please try switching to DeepSeek or OpenAI models.",
+                evidence: []
+              };
+              
+              const durationMs = Date.now() - startTime;
+              return {
+                _earlyReturn: {
+                  content: defaultResponse,
+                  usage: undefined,
+                  durationMs,
+                  model: this.model
+                }
+              };
+            }
+            
+            const error = new Error(`Ollama API Error: ${response.status} - ${errorText}`);
+            (error as any).status = response.status;
+            throw error;
+          }
+
+          return await response.json();
+        },
+        {
+          retries: maxRetries,
+          baseDelayMs: 500,
+          shouldRetry: (error) => {
+            if (error?.name === 'AbortError') return true;
+            const status = error?.status;
+            return typeof status === 'number' && status >= 500;
+          }
         }
-        
-        throw new Error(`Ollama API Error: ${response.status} - ${errorText}`)
+      );
+
+      if ((data as any)?._earlyReturn) {
+        return (data as any)._earlyReturn;
       }
 
-      const data = await response.json()
       const durationMs = Date.now() - startTime;
       const usage = {
           prompt_tokens: data.prompt_eval_count,

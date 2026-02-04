@@ -140,7 +140,7 @@ export class ProfileService {
         otherItems = otherItems.slice(0, 3);
     }
 
-    const formatItem = (item: ZhihuContent) => {
+    const formatItem = (item: ZhihuContent, maxContentLength: number) => {
         // Prefer full content, strip HTML, and take a longer slice (e.g. 1000 chars to capture more of the answer)
         let content = '';
         if (item.content) {
@@ -155,7 +155,7 @@ export class ProfileService {
         }
         
         // Increase content length to capture more meaningful content
-        content = content.slice(0, 1000); 
+        content = content.slice(0, maxContentLength); 
         
         const actionTag = item.action_type === 'voted' ? '【Upvoted】' : '【Original】';
         let typeTag = '';
@@ -173,17 +173,31 @@ export class ProfileService {
         return `[ID:${item.id}] ${actionTag}${typeTag} Title: 【${item.title}】\nContent: ${content}`;
     };
 
-    let contentText = '';
-    if (relevantItems.length > 0) {
-        contentText += '--- RELEVANT CONTENT (★ Key Analysis) ---\n';
-        contentText += relevantItems.map(formatItem).join('\n\n');
-        contentText += '\n\n';
-    }
+    const MAX_TOTAL_CHARS = 20000;
+    const RELEVANT_SLICE = 1000;
+    const OTHER_SLICE = 500;
 
-    if (otherItems.length > 0) {
-        contentText += '--- OTHER RECENT CONTENT (For Personality Reference Only) ---\n';
-        contentText += otherItems.map(formatItem).join('\n\n');
-    }
+    let contentText = '';
+    let remaining = MAX_TOTAL_CHARS;
+
+    const appendSection = (header: string, itemsToAdd: ZhihuContent[], sliceLimit: number) => {
+      if (itemsToAdd.length === 0 || remaining <= 0) return;
+      const headerWithNewline = header + '\n';
+      if (headerWithNewline.length > remaining) return;
+      contentText += headerWithNewline;
+      remaining -= headerWithNewline.length;
+
+      for (const item of itemsToAdd) {
+        const formatted = formatItem(item, sliceLimit);
+        const block = (contentText.endsWith('\n') ? '' : '\n') + formatted + '\n\n';
+        if (block.length > remaining) break;
+        contentText += block;
+        remaining -= block.length;
+      }
+    };
+
+    appendSection('--- RELEVANT CONTENT (★ Key Analysis) ---', relevantItems, RELEVANT_SLICE);
+    appendSection('--- OTHER RECENT CONTENT (For Personality Reference Only) ---', otherItems, OTHER_SLICE);
     
     return text + contentText;
   }
