@@ -228,6 +228,13 @@ export class LLMService {
           baseUrl || "https://dashscope.aliyuncs.com/compatible-mode/v1",
           customModel || "qwen-turbo"
         )
+      case "qwen-intl":
+        return new LangChainProvider(
+          "qwen",
+          apiKey,
+          baseUrl || "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+          customModel || "qwen-turbo"
+        )
       case "custom":
         return new LangChainProvider(
           "custom",

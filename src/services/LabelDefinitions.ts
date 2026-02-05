@@ -54,7 +54,7 @@ export const createLabelCategories = (): CategoryDefinition[] => {
       { id: "elite_vs_grassroots", name: isEn ? "Elite vs Grassroots" : "精英/奋斗 vs 草根/躺平", description: isEn ? "Wolf Culture/Meritocracy vs Anti-Involution/Lying Flat" : "狼性文化/慕强 vs 反内卷/摆烂", category: "society", scoreRange: [-1, 1] },
       { id: "feminism_vs_patriarchy", name: isEn ? "Feminism vs Patriarchy" : "女权 vs 父权", description: isEn ? "Gender Equality/Radical Feminism vs Traditional Family/RedPill" : "性别平权/激进女权 vs 传统家庭观/红药丸(RedPill)", category: "society", scoreRange: [-1, 1] },
       { id: "urban_vs_rural", name: isEn ? "Urban vs Rural" : "城市 vs 乡土", description: isEn ? "Metropolitan/Centralized vs Small Town/Decentralized" : "一线城市/中心化视角 vs 小镇青年/下沉市场视角", category: "society", scoreRange: [-1, 1] },
-      { id: "generational_conflict", name: isEn ? "Generational Conflict" : "代际冲突", description: isEn ? "Gen Z/Rebellion vs Boomer/Hard Work" : "后浪/Z世代/整顿职场 vs 前浪/老一辈/吃苦耐劳", category: "society", scoreRange: [-1, 1] }
+      { id: "generational_conflict", name: isEn ? "Gen Z vs Boomer" : "后浪 vs 前浪", description: isEn ? "Gen Z/Rebellion vs Boomer/Hard Work" : "后浪/Z世代/整顿职场 vs 前浪/老一辈/吃苦耐劳", category: "society", scoreRange: [-1, 1] }
     ]
   },
   {

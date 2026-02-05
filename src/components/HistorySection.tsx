@@ -139,6 +139,7 @@ export const HistorySection: React.FC<HistorySectionProps> = ({
                   const categoryName = TopicService.getCategoryName(profile.category as MacroCategory);
                   const summary = profile.profileData.summary;
                   const labels = profile.profileData.value_orientation || profile.profileData.political_leaning || [];
+                  const visibleLabels = labels.filter((item: { label: string; score: number }) => Math.abs(item.score) > 1e-6);
 
                   return (
                     <details key={profile.category} style={{ fontSize: "13px", color: "var(--theme-text, #4a5568)", padding: "8px", borderRadius: "6px", backgroundColor: "var(--theme-surface, #f8fafc)" }}>
@@ -212,7 +213,7 @@ export const HistorySection: React.FC<HistorySectionProps> = ({
                       <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px dashed var(--theme-border, #e2e8f0)" }}>
                         <p style={{ margin: "0 0 10px 0", fontStyle: "italic" }}>"{summary}"</p>
                         <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                          {labels.map((item: { label: string; score: number }, index: number) => {
+                          {visibleLabels.map((item: { label: string; score: number }, index: number) => {
                             const parsedLabel = parseLabelName(item.label);
                             const leftLabel = parsedLabel.left;
                             const rightLabel = parsedLabel.right;

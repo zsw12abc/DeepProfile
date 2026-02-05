@@ -12,6 +12,7 @@ export const getBaseUrlPlaceholder = (provider: AIProvider) => {
   switch(provider) {
     case 'ollama': return "http://localhost:11434";
     case 'qwen': return "https://dashscope.aliyuncs.com/compatible-mode/v1";
+    case 'qwen-intl': return "https://dashscope-intl.aliyuncs.com/compatible-mode/v1";
     case 'deepseek': return "https://api.deepseek.com/v1";
     case 'custom': return "https://api.example.com/v1";
     default: return "https://api.openai.com/v1";
@@ -23,6 +24,7 @@ export const shouldShowBaseUrlInput = (provider: AIProvider) => {
   return provider === "ollama" || 
          provider === "custom" || 
          provider === "qwen" ||
+         provider === "qwen-intl" ||
          provider === "deepseek" ||
          provider === "openai";
 };

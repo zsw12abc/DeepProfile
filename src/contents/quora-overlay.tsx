@@ -420,7 +420,9 @@ const QuoraOverlay = () => {
     });
 
     const startInjection = () => {
-      scheduler.start(document.body);
+      const root = document.body || document.documentElement;
+      if (!root) return;
+      scheduler.start(root);
     };
 
     const checkConfig = async () => {

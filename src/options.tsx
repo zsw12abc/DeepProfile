@@ -181,7 +181,7 @@ export default function Options() {
       const nickname = userInfo?.name || profileData.nickname || `${I18nService.t('unknown_user')}${userId}`;
       const topicClassification = profileData.topic_classification || I18nService.t('topic_classification');
       const summary = profileData.summary || "";
-      const valueOrientation = profileData.value_orientation || [];
+      const valueOrientation = (profileData.value_orientation || []).filter(item => Math.abs(item.score) > 1e-6);
       const dateStr = new Date(timestamp).toLocaleDateString(config?.language === 'en-US' ? 'en-US' : 'zh-CN');
       
       // 创建一个临时的、样式化的容器用于截图

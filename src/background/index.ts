@@ -96,17 +96,18 @@ async function testConnection(provider: string, apiKey: string, baseUrl: string,
         let body = {};
         let headers: any = { 'Content-Type': 'application/json' };
 
-        if (provider === 'openai' || provider === 'deepseek' || provider === 'qwen' || provider === 'custom') {
+        if (provider === 'openai' || provider === 'deepseek' || provider === 'qwen' || provider === 'qwen-intl' || provider === 'custom') {
             if (provider === 'openai') url = 'https://api.openai.com/v1/chat/completions';
             else if (provider === 'deepseek') url = 'https://api.deepseek.com/v1/chat/completions';
             else if (provider === 'qwen') url = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions';
+            else if (provider === 'qwen-intl') url = 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions';
             else if (provider === 'custom') url = `${baseUrl}/chat/completions`;
             
             if (baseUrl && provider !== 'custom') url = `${baseUrl}/chat/completions`;
 
             headers['Authorization'] = `Bearer ${apiKey}`;
             body = {
-                model: model || (provider === 'qwen' ? 'qwen-turbo' : 'gpt-3.5-turbo'),
+                model: model || ((provider === 'qwen' || provider === 'qwen-intl') ? 'qwen-turbo' : 'gpt-3.5-turbo'),
                 messages: [{ role: 'user', content: testPrompt }],
                 max_tokens: 5
             };
@@ -150,11 +151,12 @@ async function testConnection(provider: string, apiKey: string, baseUrl: string,
 
 async function listModels(provider: string, apiKey: string, baseUrl: string): Promise<string[]> {
     try {
-        if (provider === 'openai' || provider === 'deepseek' || provider === 'qwen' || provider === 'custom') {
+        if (provider === 'openai' || provider === 'deepseek' || provider === 'qwen' || provider === 'qwen-intl' || provider === 'custom') {
             let url = '';
             if (provider === 'openai') url = 'https://api.openai.com/v1/models';
             else if (provider === 'deepseek') url = 'https://api.deepseek.com/v1/models';
             else if (provider === 'qwen') url = 'https://dashscope.aliyuncs.com/compatible-mode/v1/models';
+            else if (provider === 'qwen-intl') url = 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1/models';
             else if (provider === 'custom') url = `${baseUrl}/models`;
             
             if (baseUrl && provider !== 'custom') {
@@ -167,34 +169,102 @@ async function listModels(provider: string, apiKey: string, baseUrl: string): Pr
             
             if (!response.ok) {
                 const errText = await response.text().catch(() => '');
+                if ((provider === 'qwen' || provider === 'qwen-intl') && shouldUseQwenFallback(response.status, errText)) {
+                    const cached = await getCachedModels(provider);
+                    if (cached?.length) {
+                        console.warn("Qwen models endpoint failed, using cached list.", response.status, errText);
+                        return cached;
+                    }
+                    console.warn("Qwen models endpoint failed, using fallback list.", response.status, errText);
+                    return getQwenFallbackModels();
+                }
                 throw new Error(`Failed to fetch models: ${response.status} ${errText}`);
             }
             
             const data = await response.json();
-            return data.data.map((m: any) => m.id).sort();
+            const models = data.data.map((m: any) => m.id).sort();
+            await setCachedModels(provider, models);
+            return models;
         } 
         else if (provider === 'ollama') {
             const url = `${baseUrl || 'http://localhost:11434'}/api/tags`;
             const response = await fetch(url);
             if (!response.ok) throw new Error(`Failed to fetch models: ${response.status}`);
             const data = await response.json();
-            return data.models.map((m: any) => m.name).sort();
+            const models = data.models.map((m: any) => m.name).sort();
+            await setCachedModels(provider, models);
+            return models;
         }
         else if (provider === 'gemini') {
             const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
             const response = await fetch(url);
             if (!response.ok) throw new Error(`Failed to fetch models: ${response.status}`);
             const data = await response.json();
-            return (data.models || [])
+            const models = (data.models || [])
                 .filter((m: any) => m.supportedGenerationMethods?.includes('generateContent'))
                 .map((m: any) => m.name.replace('models/', ''))
                 .sort();
+            await setCachedModels(provider, models);
+            return models;
         }
         return [];
     } catch (e: any) {
+        if ((provider === 'qwen' || provider === 'qwen-intl') && shouldUseQwenFallback(undefined, e?.message || "")) {
+            const cached = await getCachedModels(provider);
+            if (cached?.length) {
+                console.warn("Qwen models fetch error, using cached list.", e);
+                return cached;
+            }
+            console.warn("Qwen models fetch error, using fallback list.", e);
+            return getQwenFallbackModels();
+        }
         console.error("List models error:", e);
         throw e;
     }
+}
+
+const MODEL_CACHE_KEY = "deep_profile_model_cache";
+
+async function getCachedModels(provider: string): Promise<string[] | null> {
+  try {
+    if (!chrome?.storage?.local) return null;
+    const result = await chrome.storage.local.get(MODEL_CACHE_KEY);
+    const cache = result[MODEL_CACHE_KEY] || {};
+    const entry = cache[provider];
+    if (!entry || !Array.isArray(entry.models)) return null;
+    return entry.models;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function setCachedModels(provider: string, models: string[]): Promise<void> {
+  try {
+    if (!chrome?.storage?.local) return;
+    const result = await chrome.storage.local.get(MODEL_CACHE_KEY);
+    const cache = result[MODEL_CACHE_KEY] || {};
+    cache[provider] = { models, updatedAt: Date.now() };
+    await chrome.storage.local.set({ [MODEL_CACHE_KEY]: cache });
+  } catch (e) {
+    // Ignore cache write failures
+  }
+}
+
+function shouldUseQwenFallback(status?: number, message?: string) {
+  if (status && status >= 500) return true;
+  if (!message) return false;
+  const normalized = message.toLowerCase();
+  return normalized.includes("invalid header name") || normalized.includes("dashscope");
+}
+
+function getQwenFallbackModels(): string[] {
+  return [
+    "qwen-turbo",
+    "qwen-plus",
+    "qwen-max",
+    "qwen-max-longcontext",
+    "qwen-long"
+  ];
 }
 
 type ProgressMeta = {
@@ -372,7 +442,7 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
         }
     }
 
-    const sensitiveProviders = new Set(['openai', 'gemini', 'deepseek', 'qwen', 'custom']);
+    const sensitiveProviders = new Set(['openai', 'gemini', 'deepseek', 'qwen', 'qwen-intl', 'custom']);
     const shouldRedactSensitiveContent =
       config.redactSensitiveMode === 'always' ||
       (config.redactSensitiveMode === 'sensitive-providers' && sensitiveProviders.has(config.selectedProvider));

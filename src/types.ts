@@ -1,4 +1,4 @@
-export type AIProvider = 'openai' | 'gemini' | 'deepseek' | 'qwen' | 'ollama' | 'custom';
+export type AIProvider = 'openai' | 'gemini' | 'deepseek' | 'qwen' | 'qwen-intl' | 'ollama' | 'custom';
 
 export type AnalysisMode = 'fast' | 'balanced' | 'deep';
 

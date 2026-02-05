@@ -111,6 +111,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
   const displayName = nickname || `${I18nService.t('unknown_user')}${record.userId.substring(0, 8)}`
   const userHomeUrl = `https://www.zhihu.com/people/${record.userId}`
+  const visibleValueOrientation = valueOrientation.filter(item => Math.abs(item.score) > 1e-6);
 
   const toggleDebug = () => setShowDebug(!showDebug)
   const toggleEvidence = () => setExpandedEvidence(!expandedEvidence)
@@ -161,8 +162,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       
       // 渲染价值取向条
       let valueOrientationHtml = '';
-      if (valueOrientation && valueOrientation.length > 0) {
-          valueOrientationHtml = valueOrientation.map(item => {
+      if (visibleValueOrientation.length > 0) {
+          valueOrientationHtml = visibleValueOrientation.map(item => {
               const parsedLabel = parseLabelName(item.label);
               const leftLabel = parsedLabel.left || 'Left';
               const rightLabel = parsedLabel.right || 'Right';
@@ -642,11 +643,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         </div>
       ) : record.profileData ? (
         <div>
-          {valueOrientation && valueOrientation.length > 0 && (
+          {visibleValueOrientation.length > 0 && (
             <div style={{ marginBottom: theme.spacing.md }}>
               <h4 style={{ margin: "0 0 8px 0", fontSize: theme.typography.fontSizeBase, fontWeight: theme.typography.fontWeightBold, color: theme.colors.text }}>{I18nService.t('value_orientation')}</h4>
               <div style={{ display: "flex", flexDirection: "column", gap: theme.spacing.sm }}>
-                {valueOrientation.map((item, index) => {
+                {visibleValueOrientation.map((item, index) => {
                   const parsedLabel = parseLabelName(item.label);
                   const leftLabel = parsedLabel.left;
                   const rightLabel = parsedLabel.right;

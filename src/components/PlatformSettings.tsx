@@ -7,7 +7,8 @@ import { I18nService } from "~services/I18nService";
 export const PROVIDERS: { value: any; label: string }[] = [
   { value: "openai", label: "OpenAI" },
   { value: "deepseek", label: "DeepSeek" },
-  { value: "qwen", label: "通义千问 (Qwen)" },
+  { value: "qwen", label: "阿里云北京服 (通义千问)" },
+  { value: "qwen-intl", label: "阿里云新加坡服 (通义千问)" },
   { value: "gemini", label: "Google Gemini" },
   { value: "ollama", label: "Ollama (Local)" },
   { value: "custom", label: "Custom (OpenAI Compatible)" }
@@ -41,6 +42,7 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({
   const showBaseUrlInput = config.selectedProvider === "ollama" || 
                            config.selectedProvider === "custom" || 
                            config.selectedProvider === "qwen" ||
+                           config.selectedProvider === "qwen-intl" ||
                            config.selectedProvider === "deepseek" ||
                            config.selectedProvider === "openai";
 
@@ -48,6 +50,7 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({
     switch(provider) {
       case 'ollama': return "http://localhost:11434";
       case 'qwen': return "https://dashscope.aliyuncs.com/compatible-mode/v1";
+      case 'qwen-intl': return "https://dashscope-intl.aliyuncs.com/compatible-mode/v1";
       case 'deepseek': return "https://api.deepseek.com/v1";
       case 'custom': return "https://api.example.com/v1";
       default: return "https://api.openai.com/v1";
@@ -328,7 +331,13 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({
                   <strong style={{ display: "block", marginBottom: "6px", fontSize: "15px" }}>
                     {testResult.success ? I18nService.t('connection_success') : I18nService.t('connection_failed')}
                   </strong>
-                  {testResult.message}
+                  {(() => {
+                    const successLabel = I18nService.t('connection_success').trim();
+                    const message = testResult.message?.trim();
+                    if (!message) return null;
+                    if (testResult.success && message === successLabel) return null;
+                    return message;
+                  })()}
               </div>
           )}
       </div>

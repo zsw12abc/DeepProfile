@@ -93,15 +93,17 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
       
       {modelError && (
           <div style={{ 
-            color: "var(--theme-error, #e53e3e)", 
+            color: "var(--theme-error-text, #742a2a)", 
             fontSize: "13px", 
             marginTop: "8px", 
             display: "flex", 
             alignItems: "center", 
             gap: "6px",
-            backgroundColor: "var(--theme-error, #fed7d7)",
+            backgroundColor: "var(--theme-error-bg, #ffeef0)",
             padding: "10px",
-            borderRadius: "var(--theme-border-radius-small, 8px)"
+            borderRadius: "var(--theme-border-radius-small, 8px)",
+            border: "1px solid var(--theme-error-border, #feb2b2)",
+            wordBreak: "break-word"
           }}>
               ⚠️ {modelError}
           </div>
