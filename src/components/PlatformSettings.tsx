@@ -1,6 +1,6 @@
 import React from "react";
 import { Card, InputGroup } from "./UIComponents";
-import { type AnalysisMode, type Language } from "~types";
+import { DEFAULT_CONFIG, type AnalysisMode, type Language } from "~types";
 import { I18nService } from "~services/I18nService";
 
 // 常量定义
@@ -630,6 +630,25 @@ interface DebugSettingsProps {
 }
 
 export const DebugSettings: React.FC<DebugSettingsProps> = ({ config, setConfig }) => {
+  const observability = {
+    ...DEFAULT_CONFIG.observability,
+    ...(config.observability || {})
+  };
+  const isDev =
+    typeof process !== "undefined" &&
+    process.env &&
+    process.env.NODE_ENV !== "production";
+
+  const updateObservability = (patch: Partial<typeof observability>) => {
+    setConfig({
+      ...config,
+      observability: {
+        ...observability,
+        ...patch
+      }
+    });
+  };
+
   return (
     <Card title={I18nService.t('settings_debug')} icon={<span style={{ fontSize: "24px" }}>🛠️</span>}>
       <div style={{ 
@@ -669,6 +688,242 @@ export const DebugSettings: React.FC<DebugSettingsProps> = ({ config, setConfig 
           </div>
         </div>
       </div>
+
+      {isDev && (
+      <div style={{ 
+        marginTop: "20px",
+        paddingTop: "16px",
+        borderTop: "1px solid var(--theme-border, #edf2f7)"
+      }}>
+        <div style={{ fontWeight: "600", marginBottom: "12px", color: "var(--theme-text, #2d3748)" }}>
+          {I18nService.t('observability_settings')}
+        </div>
+        <div style={{ display: "grid", gap: "12px" }}>
+          {[
+            { key: "errorMonitoringEnabled", label: I18nService.t('observability_error'), desc: I18nService.t('observability_error_desc') },
+            { key: "analyticsEnabled", label: I18nService.t('observability_analytics'), desc: I18nService.t('observability_analytics_desc') },
+            { key: "performanceMonitoringEnabled", label: I18nService.t('observability_performance'), desc: I18nService.t('observability_performance_desc') },
+            { key: "complianceMonitoringEnabled", label: I18nService.t('observability_compliance'), desc: I18nService.t('observability_compliance_desc') }
+          ].map(item => {
+            const enabled = Boolean((observability as any)[item.key]);
+            const inputId = `observability-${item.key}`;
+            return (
+              <div key={item.key} style={{ 
+                display: "flex", 
+                alignItems: "center", 
+                padding: "12px",
+                backgroundColor: enabled 
+                  ? "var(--theme-success-bg, #f0fff4)" 
+                  : "var(--theme-error-bg, #fff5f5)",
+                borderRadius: "var(--theme-border-radius-medium, 10px)",
+                border: `1px solid ${enabled 
+                  ? "var(--theme-success-border, #c6f6d5)" 
+                  : "var(--theme-error-border, #feb2b2)"}`
+              }}>
+                <div style={{ flex: 1 }}>
+                  <label htmlFor={inputId} style={{ 
+                    fontWeight: "700", 
+                    cursor: "pointer", 
+                    fontSize: "14px",
+                    color: enabled 
+                      ? "var(--theme-success-text, #22543d)" 
+                      : "var(--theme-error-text, #742a2a)",
+                    display: "block"
+                  }}>
+                    {item.label}
+                  </label>
+                  <div style={{ 
+                    fontSize: "12px", 
+                    color: enabled 
+                      ? "var(--theme-success-text, #2f855a)" 
+                      : "var(--theme-error-text, #9b2c2c)", 
+                    marginTop: "4px" 
+                  }}>
+                    {item.desc}
+                  </div>
+                </div>
+                <div style={{ position: "relative", width: "46px", height: "28px" }}>
+                  <input
+                      type="checkbox"
+                      id={inputId}
+                      checked={enabled}
+                      onChange={(e) => updateObservability({ [item.key]: e.target.checked } as any)}
+                      style={{ 
+                        opacity: 0,
+                        width: 0,
+                        height: 0
+                      }}
+                  />
+                  <label htmlFor={inputId} style={{
+                    position: "absolute",
+                    cursor: "pointer",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: enabled 
+                      ? "var(--theme-success, #48bb78)" 
+                      : "var(--theme-border, #ccc)",
+                    transition: ".4s",
+                    borderRadius: "999px"
+                  }}>
+                    <span style={{
+                      position: "absolute",
+                      height: "20px",
+                      width: "20px",
+                      left: enabled ? "22px" : "4px",
+                      bottom: "4px",
+                      backgroundColor: "var(--theme-surface, white)",
+                      transition: ".4s",
+                      borderRadius: "50%"
+                    }}></span>
+                  </label>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div style={{ display: "grid", gap: "12px", marginTop: "12px" }}>
+          {[
+            { key: "allowInProd", label: I18nService.t('observability_prod_allow'), desc: I18nService.t('observability_prod_allow_desc') },
+            { key: "prodConsent", label: I18nService.t('observability_prod_consent'), desc: I18nService.t('observability_prod_consent_desc') }
+          ].map(item => {
+            const enabled = Boolean((observability as any)[item.key]);
+            const inputId = `observability-${item.key}`;
+            return (
+              <div key={item.key} style={{ 
+                display: "flex", 
+                alignItems: "center", 
+                padding: "12px",
+                backgroundColor: enabled 
+                  ? "var(--theme-success-bg, #f0fff4)" 
+                  : "var(--theme-error-bg, #fff5f5)",
+                borderRadius: "var(--theme-border-radius-medium, 10px)",
+                border: `1px solid ${enabled 
+                  ? "var(--theme-success-border, #c6f6d5)" 
+                  : "var(--theme-error-border, #feb2b2)"}`
+              }}>
+                <div style={{ flex: 1 }}>
+                  <label htmlFor={inputId} style={{ 
+                    fontWeight: "700", 
+                    cursor: "pointer", 
+                    fontSize: "14px",
+                    color: enabled 
+                      ? "var(--theme-success-text, #22543d)" 
+                      : "var(--theme-error-text, #742a2a)",
+                    display: "block"
+                  }}>
+                    {item.label}
+                  </label>
+                  <div style={{ 
+                    fontSize: "12px", 
+                    color: enabled 
+                      ? "var(--theme-success-text, #2f855a)" 
+                      : "var(--theme-error-text, #9b2c2c)", 
+                    marginTop: "4px" 
+                  }}>
+                    {item.desc}
+                  </div>
+                </div>
+                <div style={{ position: "relative", width: "46px", height: "28px" }}>
+                  <input
+                      type="checkbox"
+                      id={inputId}
+                      checked={enabled}
+                      onChange={(e) => updateObservability({ [item.key]: e.target.checked } as any)}
+                      style={{ 
+                        opacity: 0,
+                        width: 0,
+                        height: 0
+                      }}
+                  />
+                  <label htmlFor={inputId} style={{
+                    position: "absolute",
+                    cursor: "pointer",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: enabled 
+                      ? "var(--theme-success, #48bb78)" 
+                      : "var(--theme-border, #ccc)",
+                    transition: ".4s",
+                    borderRadius: "999px"
+                  }}>
+                    <span style={{
+                      position: "absolute",
+                      height: "20px",
+                      width: "20px",
+                      left: enabled ? "22px" : "4px",
+                      bottom: "4px",
+                      backgroundColor: "var(--theme-surface, white)",
+                      transition: ".4s",
+                      borderRadius: "50%"
+                    }}></span>
+                  </label>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div style={{ marginTop: "12px" }}>
+          <label style={{ 
+            display: "block", 
+            marginBottom: "6px", 
+            fontSize: "13px", 
+            color: "var(--theme-text, #555)" 
+          }}>
+            {I18nService.t('observability_endpoint')}
+          </label>
+          <input
+            type="text"
+            value={observability.endpoint || ""}
+            onChange={(e) => updateObservability({ endpoint: e.target.value })}
+            placeholder={I18nService.t('observability_endpoint_placeholder')}
+            style={{
+              width: "100%",
+              padding: "10px 12px",
+              border: "1px solid var(--theme-border, #ddd)",
+              borderRadius: "var(--theme-border-radius-small, 8px)",
+              fontSize: "13px",
+              backgroundColor: "var(--theme-surface, #fff)",
+              color: "var(--theme-text, #000)"
+            }}
+          />
+          <div style={{ fontSize: "12px", color: "var(--theme-text-secondary, #718096)", marginTop: "4px" }}>
+            {I18nService.t('observability_endpoint_desc')}
+          </div>
+        </div>
+
+        <div style={{ marginTop: "12px" }}>
+          <label style={{ 
+            display: "block", 
+            marginBottom: "6px", 
+            fontSize: "13px", 
+            color: "var(--theme-text, #555)" 
+          }}>
+            {I18nService.t('observability_sample_rate')}: {observability.sampleRate}
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.05"
+            value={observability.sampleRate}
+            onChange={(e) => updateObservability({ sampleRate: Number(e.target.value) })}
+            style={{ 
+              width: "100%", 
+              accentColor: "var(--theme-primary, #3498db)", 
+              height: "8px", 
+              borderRadius: "4px", 
+              border: "none" 
+            }}
+          />
+        </div>
+      </div>
+      )}
     </Card>
   );
 };

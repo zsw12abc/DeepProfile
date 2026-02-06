@@ -290,6 +290,15 @@ const ZhihuOverlay = () => {
           setTargetUser(userId)
           setInitialNickname(nickname)
           setCurrentContext(richContext)
+          try {
+            chrome.runtime.sendMessage({
+              type: "TELEMETRY_EVENT",
+              name: "analysis_button_clicked",
+              data: { platform: "zhihu" }
+            });
+          } catch (err) {
+            // Ignore telemetry failures
+          }
           handleAnalyze(userId, nickname, richContext)
         }
 

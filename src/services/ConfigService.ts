@@ -136,6 +136,11 @@ export class ConfigService {
       ...(migratedConfig.customModelNames || {})
     };
 
+    const mergedObservability = {
+      ...DEFAULT_CONFIG.observability,
+      ...(migratedConfig.observability || {})
+    };
+
     const mergedEnabledPlatforms = {
       ...DEFAULT_CONFIG.enabledPlatforms,
       ...(migratedConfig.enabledPlatforms || {})
@@ -164,6 +169,7 @@ export class ConfigService {
       apiKeys: mergedApiKeys,
       customBaseUrls: mergedCustomBaseUrls,
       customModelNames: mergedCustomModelNames,
+      observability: mergedObservability,
       enabledPlatforms: mergedEnabledPlatforms,
       platformAnalysisModes: mergedPlatformAnalysisModes,
       platformConfigs: mergedPlatformConfigs,
@@ -196,6 +202,26 @@ export class ConfigService {
         platformConfigs: {
           ...DEFAULT_CONFIG.platformConfigs,
           ...(migrated.platformConfigs || {})
+        }
+      };
+    }
+
+    if (currentVersion < 3) {
+      migrated = {
+        ...migrated,
+        observability: {
+          ...DEFAULT_CONFIG.observability,
+          ...(migrated.observability || {})
+        }
+      };
+    }
+
+    if (currentVersion < 4) {
+      migrated = {
+        ...migrated,
+        observability: {
+          ...DEFAULT_CONFIG.observability,
+          ...(migrated.observability || {})
         }
       };
     }

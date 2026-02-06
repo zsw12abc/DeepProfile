@@ -7,6 +7,7 @@ import { TopicService } from "../services/TopicService"
 import { CommentAnalysisService } from "../services/CommentAnalysisService"
 import { I18nService } from "../services/I18nService"
 import { LabelService } from "../services/LabelService"
+import { TelemetryService } from "../services/TelemetryService"
 import type { SupportedPlatform } from "../types"
 
 export {}
@@ -37,7 +38,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     
     handleAnalysis(request.userId, request.context, tabId, request.platform, request.forceRefresh)
       .then((result) => sendResponse({ success: true, data: result }))
-      .catch((error) => sendResponse({ success: false, error: error.message }))
+      .catch((error) => {
+        TelemetryService.recordError("analysis_failed", {
+          platform: request.platform,
+          userId: request.userId,
+          message: error.message
+        });
+        sendResponse({ success: false, error: error.message });
+      })
     return true // Keep the message channel open for async response
   }
 
@@ -68,9 +76,27 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           return CommentAnalysisService.analyzeComments(request.comments, contextTitle, contextContent, request.platform);
       };
 
+      const startTime = Date.now();
+      TelemetryService.recordEvent("comment_analysis_requested", {
+        platform: request.platform || "zhihu"
+      });
+
       analyzeWithContext()
-          .then((result) => sendResponse({ success: true, data: result }))
-          .catch((error) => sendResponse({ success: false, error: error.message }));
+          .then((result) => {
+            TelemetryService.recordPerformance("comment_analysis_completed", {
+              platform: request.platform || "zhihu",
+              durationMs: Date.now() - startTime,
+              commentCount: request.comments?.length || 0
+            });
+            sendResponse({ success: true, data: result });
+          })
+          .catch((error) => {
+            TelemetryService.recordError("comment_analysis_failed", {
+              platform: request.platform || "zhihu",
+              message: error.message
+            });
+            sendResponse({ success: false, error: error.message });
+          });
       return true;
   }
   
@@ -86,6 +112,30 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       .then((result) => sendResponse({ success: true, data: result }))
       .catch((error) => sendResponse({ success: false, error: error.message }))
     return true
+  }
+
+  if (request.type === "TELEMETRY_EVENT") {
+    TelemetryService.recordEvent(request.name, request.data);
+    sendResponse({ success: true });
+    return true;
+  }
+
+  if (request.type === "TELEMETRY_ERROR") {
+    TelemetryService.recordError(request.name, request.data);
+    sendResponse({ success: true });
+    return true;
+  }
+
+  if (request.type === "TELEMETRY_PERFORMANCE") {
+    TelemetryService.recordPerformance(request.name, request.data);
+    sendResponse({ success: true });
+    return true;
+  }
+
+  if (request.type === "TELEMETRY_COMPLIANCE") {
+    TelemetryService.recordCompliance(request.name, request.data);
+    sendResponse({ success: true });
+    return true;
   }
 })
 
@@ -343,6 +393,10 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
   
   console.log(`Analyzing user: ${userId}, Platform: ${platform}, Context: ${context}, ForceRefresh: ${forceRefresh}`)
   const startTime = Date.now();
+  TelemetryService.recordEvent("analysis_started", {
+    platform,
+    forceRefresh
+  });
   
   // Get analysis mode to estimate time
   const config = await ConfigService.getConfig();
@@ -465,6 +519,22 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
     const llmResponse = await LLMService.generateProfileForPlatform(cleanText, macroCategory, platform)
     
     const totalDuration = Date.now() - startTime;
+    TelemetryService.recordPerformance("analysis_completed", {
+      platform,
+      durationMs: totalDuration,
+      itemsCount: items.length,
+      analysisMode
+    });
+
+    const redactionOff = config.redactSensitiveMode === 'never';
+    const redactionSensitive = config.redactSensitiveMode === 'sensitive-providers' && sensitiveProviders.has(config.selectedProvider);
+    if (redactionOff || redactionSensitive) {
+      TelemetryService.recordCompliance("redaction_mode_active", {
+        platform,
+        redactSensitiveMode: config.redactSensitiveMode,
+        provider: config.selectedProvider
+      });
+    }
 
     // 3. Save to History using macroCategory
     await HistoryService.saveProfile(
@@ -520,6 +590,11 @@ async function handleAnalysis(userId: string, context?: string, tabId?: number, 
       else if (msg.includes("500")) msg = I18nService.t('error_500');
       else if (msg.includes("Failed to fetch")) msg = I18nService.t('error_network');
       
+      TelemetryService.recordError("analysis_exception", {
+        platform,
+        userId,
+        message: msg
+      });
       throw new Error(msg);
   } finally {
     // Clean up any remaining intervals in the finally block

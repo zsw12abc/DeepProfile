@@ -21,6 +21,15 @@ export default defineConfig({
       { find: /^data-text:.*/, replacement: resolve(__dirname, './__mocks__/data-text-mock') },
     ],
     mockReset: true,
+    coverage: {
+      provider: "v8",
+      thresholds: {
+        lines: 70,
+        functions: 65,
+        branches: 60,
+        statements: 70
+      }
+    }
   },
   resolve: {
     alias: [

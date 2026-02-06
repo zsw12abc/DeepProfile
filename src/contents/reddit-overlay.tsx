@@ -402,6 +402,15 @@ const RedditOverlay = () => {
           setTargetUser(userId)
           setInitialNickname(nickname)
           setCurrentContext(richContext)
+          try {
+            chrome.runtime.sendMessage({
+              type: "TELEMETRY_EVENT",
+              name: "analysis_button_clicked",
+              data: { platform: "reddit" }
+            });
+          } catch (err) {
+            // Ignore telemetry failures
+          }
           
           // Also trigger the analysis
           handleAnalyze(userId, nickname, richContext)

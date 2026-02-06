@@ -8,6 +8,18 @@ export type Language = 'zh-CN' | 'en-US';
 
 export type RedactSensitiveMode = 'always' | 'sensitive-providers' | 'never';
 
+export interface ObservabilityConfig {
+  errorMonitoringEnabled: boolean;
+  analyticsEnabled: boolean;
+  performanceMonitoringEnabled: boolean;
+  complianceMonitoringEnabled: boolean;
+  allowInProd: boolean;
+  prodConsent: boolean;
+  endpoint: string;
+  sampleRate: number;
+  maxQueueSize: number;
+}
+
 export type MacroCategory = 
   | 'politics'       // 政治 (Politics)
   | 'economy'        // 经济 (Economy)
@@ -39,6 +51,7 @@ export interface AppConfig {
   analyzeLimit: number; // Default 15
   enableDebug: boolean;
   redactSensitiveMode: RedactSensitiveMode;
+  observability: ObservabilityConfig;
   analysisMode: AnalysisMode; // Default analysis mode for all platforms
   platformAnalysisModes: Record<SupportedPlatform, AnalysisMode>; // Platform-specific analysis modes
   enabledPlatforms: Record<SupportedPlatform, boolean>;
@@ -454,7 +467,7 @@ export const REDDIT_BLACK_THEME: ThemeConfig = {
 
 
 
-export const CONFIG_VERSION = 2;
+export const CONFIG_VERSION = 4;
 
 export const DEFAULT_CONFIG: ExtendedAppConfig = {
   configVersion: CONFIG_VERSION,
@@ -467,6 +480,17 @@ export const DEFAULT_CONFIG: ExtendedAppConfig = {
   analyzeLimit: 15,
   enableDebug: false,
   redactSensitiveMode: 'sensitive-providers',
+  observability: {
+    errorMonitoringEnabled: false,
+    analyticsEnabled: false,
+    performanceMonitoringEnabled: false,
+    complianceMonitoringEnabled: false,
+    allowInProd: false,
+    prodConsent: false,
+    endpoint: '',
+    sampleRate: 1,
+    maxQueueSize: 200
+  },
   analysisMode: 'balanced',
   platformAnalysisModes: {
     zhihu: 'balanced',

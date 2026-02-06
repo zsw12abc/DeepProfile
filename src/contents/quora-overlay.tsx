@@ -400,6 +400,15 @@ const QuoraOverlay = () => {
           setTargetUser(userId)
           setInitialNickname(nickname)
           setCurrentContext(richContext)
+          try {
+            chrome.runtime.sendMessage({
+              type: "TELEMETRY_EVENT",
+              name: "analysis_button_clicked",
+              data: { platform: "quora" }
+            });
+          } catch (err) {
+            // Ignore telemetry failures
+          }
           
           // Also trigger the analysis
           handleAnalyze(userId, nickname, richContext)

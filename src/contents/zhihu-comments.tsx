@@ -360,6 +360,15 @@ const ZhihuComments = () => {
                 
                 btn.onclick = (e) => {
                     e.stopPropagation(); 
+                    try {
+                        chrome.runtime.sendMessage({
+                            type: "TELEMETRY_EVENT",
+                            name: "comment_analysis_button_clicked",
+                            data: { platform: "zhihu" }
+                        });
+                    } catch (err) {
+                        // Ignore telemetry failures
+                    }
                     
                     // 创建嵌入面板的容器
                     const panelContainer = document.createElement('div');

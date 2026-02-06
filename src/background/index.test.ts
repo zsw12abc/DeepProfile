@@ -8,6 +8,7 @@ import { TopicService } from '../services/TopicService';
 import { CommentAnalysisService } from '../services/CommentAnalysisService';
 import { I18nService } from '../services/I18nService';
 import { LabelService } from '../services/LabelService';
+import { TelemetryService } from '../services/TelemetryService';
 
 // Mock dependencies
 vi.mock('../services/LLMService');
@@ -19,6 +20,7 @@ vi.mock('../services/TopicService');
 vi.mock('../services/CommentAnalysisService');
 vi.mock('../services/I18nService');
 vi.mock('../services/LabelService');
+vi.mock('../services/TelemetryService');
 
 // Mock chrome API
 const mockSendMessage = vi.fn();
@@ -82,6 +84,10 @@ describe('Background Service', () => {
     
     vi.mocked(I18nService.t).mockImplementation((key) => key);
     vi.mocked(I18nService.init).mockResolvedValue(undefined);
+    vi.mocked(TelemetryService.recordEvent).mockResolvedValue(undefined);
+    vi.mocked(TelemetryService.recordError).mockResolvedValue(undefined);
+    vi.mocked(TelemetryService.recordPerformance).mockResolvedValue(undefined);
+    vi.mocked(TelemetryService.recordCompliance).mockResolvedValue(undefined);
 
     // Capture the message listener
     mockAddListener.mockImplementation((callback) => {

@@ -20,6 +20,7 @@ const buildConfig = (overrides: Partial<ExtendedAppConfig>): ExtendedAppConfig =
   apiKeys: { ...DEFAULT_CONFIG.apiKeys, ...(overrides.apiKeys || {}) },
   customBaseUrls: { ...DEFAULT_CONFIG.customBaseUrls, ...(overrides.customBaseUrls || {}) },
   customModelNames: { ...DEFAULT_CONFIG.customModelNames, ...(overrides.customModelNames || {}) },
+  observability: { ...DEFAULT_CONFIG.observability, ...(overrides.observability || {}) },
   enabledPlatforms: { ...DEFAULT_CONFIG.enabledPlatforms, ...(overrides.enabledPlatforms || {}) },
   platformAnalysisModes: { ...DEFAULT_CONFIG.platformAnalysisModes, ...(overrides.platformAnalysisModes || {}) },
   platformConfigs: { ...DEFAULT_CONFIG.platformConfigs, ...(overrides.platformConfigs || {}) },

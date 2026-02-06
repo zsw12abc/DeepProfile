@@ -198,6 +198,23 @@ export type LocaleKey =
   // Settings
   | 'settings_twitter'
   | 'settings_quora'
+  | 'observability_settings'
+  | 'observability_error'
+  | 'observability_error_desc'
+  | 'observability_analytics'
+  | 'observability_analytics_desc'
+  | 'observability_performance'
+  | 'observability_performance_desc'
+  | 'observability_compliance'
+  | 'observability_compliance_desc'
+  | 'observability_endpoint'
+  | 'observability_endpoint_desc'
+  | 'observability_endpoint_placeholder'
+  | 'observability_sample_rate'
+  | 'observability_prod_allow'
+  | 'observability_prod_allow_desc'
+  | 'observability_prod_consent'
+  | 'observability_prod_consent_desc'
 
   // Errors
   | 'error_extension_context';
