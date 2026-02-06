@@ -267,6 +267,10 @@ const TwitterOverlay = () => {
         // 1. 清理孤儿按钮
         try {
           document.querySelectorAll('.deep-profile-btn').forEach(btn => {
+              const nameContainer = btn.closest('[data-testid="User-Name"]');
+              if (nameContainer) return;
+              const anchorParent = btn.closest('a');
+              if (anchorParent) return;
               const prev = btn.previousElementSibling as HTMLAnchorElement | null;
               if (!prev || prev.tagName !== 'A') {
                   btn.remove();
@@ -282,8 +286,13 @@ const TwitterOverlay = () => {
           const injectedLinks = document.querySelectorAll('a[data-deep-profile-injected="true"]');
           injectedLinks.forEach(link => {
               const next = link.nextElementSibling;
-              if (!next || !next.classList.contains('deep-profile-btn')) {
+              const nestedBtn = link.querySelector('.deep-profile-btn');
+              const nameContainer = link.closest('[data-testid="User-Name"]');
+              const containerBtn = nameContainer?.querySelector('.deep-profile-btn');
+              if ((!next || !next.classList.contains('deep-profile-btn')) && !nestedBtn) {
+                  if (!containerBtn) {
                   link.removeAttribute('data-deep-profile-injected');
+                  }
               }
           });
         } catch (e) {
@@ -356,7 +365,10 @@ const TwitterOverlay = () => {
         if (link.closest('.avatar') || link.closest('[aria-label*="avatar"]')) return
 
         // 在注入新按钮之前，先检查该链接是否已经有按钮但未标记为已注入
-        const existingBtn = link.nextElementSibling as HTMLElement | null;
+        const nameContainer = link.closest('[data-testid="User-Name"]') as HTMLElement | null;
+        const existingBtn = nameContainer?.querySelector('.deep-profile-btn') 
+          || link.querySelector('.deep-profile-btn') 
+          || (link.nextElementSibling as HTMLElement | null);
         if (existingBtn && existingBtn.classList.contains('deep-profile-btn')) {
           // 如果已有按钮但链接未标记为已注入，标记它并返回
           link.setAttribute("data-deep-profile-injected", "true");
@@ -381,8 +393,12 @@ const TwitterOverlay = () => {
         btn.style.boxShadow = "0 4px 12px rgba(37, 99, 235, 0.18)"
         btn.style.transition = "all 0.2s ease"
         // 最简样式确保与Twitter用户名在同一行
-        btn.style.display = "inline-block"
+        btn.style.display = "inline-flex"
+        btn.style.alignItems = "center"
+        btn.style.justifyContent = "center"
         btn.style.whiteSpace = "nowrap"
+        btn.style.flexShrink = "0"
+        btn.style.pointerEvents = "auto"
         try {
           btn.title = I18nService.t('deep_profile_analysis')
         } catch (e) {
@@ -461,9 +477,18 @@ const TwitterOverlay = () => {
 
         link.setAttribute("data-deep-profile-injected", "true")
         
-        // 使用原始的插入方式，避免复杂逻辑导致的问题
-        if (link.parentNode) {
-            link.parentNode.insertBefore(btn, link.nextSibling)
+        if (nameContainer) {
+            nameContainer.style.display = "inline-flex"
+            nameContainer.style.alignItems = "center"
+            nameContainer.style.flexWrap = "nowrap"
+            nameContainer.style.gap = "6px"
+            nameContainer.style.maxWidth = "100%"
+            nameContainer.appendChild(btn)
+        } else if (link.parentNode) {
+            link.style.display = "inline-flex"
+            link.style.alignItems = "center"
+            link.style.flexWrap = "nowrap"
+            link.appendChild(btn)
         }
       })
     }
