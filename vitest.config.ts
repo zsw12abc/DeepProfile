@@ -7,7 +7,6 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./test-setup.ts'],
     alias: [
-      { find: '~', replacement: resolve(__dirname, './src') },
       { find: '~locales', replacement: resolve(__dirname, './__mocks__/locale-mock') },
       { find: '~locales/zh-CN', replacement: resolve(__dirname, './__mocks__/locale-mock') },
       { find: '~locales/en-US', replacement: resolve(__dirname, './__mocks__/locale-mock') },
@@ -19,6 +18,7 @@ export default defineConfig({
       { find: /^data-text:.*locales\/zh-CN.*$/, replacement: resolve(__dirname, './__mocks__/zh-CN-changelog-mock') },
       { find: /^data-text:.*locales\/en-US.*$/, replacement: resolve(__dirname, './__mocks__/en-US-changelog-mock') },
       { find: /^data-text:.*/, replacement: resolve(__dirname, './__mocks__/data-text-mock') },
+      { find: /^~(.+)$/, replacement: `${resolve(__dirname, './src')}/$1` },
     ],
     mockReset: true,
     coverage: {
@@ -33,7 +33,6 @@ export default defineConfig({
   },
   resolve: {
     alias: [
-      { find: '~', replacement: resolve(__dirname, './src') },
       { find: '~locales', replacement: resolve(__dirname, './__mocks__/locale-mock') },
       { find: '~locales/zh-CN', replacement: resolve(__dirname, './__mocks__/locale-mock') },
       { find: '~locales/en-US', replacement: resolve(__dirname, './__mocks__/locale-mock') },
@@ -45,6 +44,7 @@ export default defineConfig({
       { find: /^data-text:.*locales\/zh-CN.*$/, replacement: resolve(__dirname, './__mocks__/zh-CN-changelog-mock') },
       { find: /^data-text:.*locales\/en-US.*$/, replacement: resolve(__dirname, './__mocks__/en-US-changelog-mock') },
       { find: /^data-text:.*/, replacement: resolve(__dirname, './__mocks__/data-text-mock') },
+      { find: /^~(.+)$/, replacement: `${resolve(__dirname, './src')}/$1` },
     ],
   },
 });

@@ -14,18 +14,31 @@ global.chrome = {
   },
 } as any;
 
-const buildConfig = (overrides: Partial<ExtendedAppConfig>): ExtendedAppConfig => ({
-  ...DEFAULT_CONFIG,
-  ...overrides,
-  apiKeys: { ...DEFAULT_CONFIG.apiKeys, ...(overrides.apiKeys || {}) },
-  customBaseUrls: { ...DEFAULT_CONFIG.customBaseUrls, ...(overrides.customBaseUrls || {}) },
-  customModelNames: { ...DEFAULT_CONFIG.customModelNames, ...(overrides.customModelNames || {}) },
-  observability: { ...DEFAULT_CONFIG.observability, ...(overrides.observability || {}) },
-  enabledPlatforms: { ...DEFAULT_CONFIG.enabledPlatforms, ...(overrides.enabledPlatforms || {}) },
-  platformAnalysisModes: { ...DEFAULT_CONFIG.platformAnalysisModes, ...(overrides.platformAnalysisModes || {}) },
-  platformConfigs: { ...DEFAULT_CONFIG.platformConfigs, ...(overrides.platformConfigs || {}) },
-  themes: { ...DEFAULT_CONFIG.themes, ...(overrides.themes || {}) }
-});
+const buildConfig = (overrides: Partial<ExtendedAppConfig>): ExtendedAppConfig => {
+  const mergedPlatformConfigs: ExtendedAppConfig["platformConfigs"] = {
+    ...DEFAULT_CONFIG.platformConfigs
+  };
+
+  for (const [platform, config] of Object.entries(overrides.platformConfigs || {})) {
+    mergedPlatformConfigs[platform as keyof ExtendedAppConfig["platformConfigs"]] = {
+      ...(DEFAULT_CONFIG.platformConfigs as Record<string, any>)[platform],
+      ...config
+    };
+  }
+
+  return {
+    ...DEFAULT_CONFIG,
+    ...overrides,
+    apiKeys: { ...DEFAULT_CONFIG.apiKeys, ...(overrides.apiKeys || {}) },
+    customBaseUrls: { ...DEFAULT_CONFIG.customBaseUrls, ...(overrides.customBaseUrls || {}) },
+    customModelNames: { ...DEFAULT_CONFIG.customModelNames, ...(overrides.customModelNames || {}) },
+    observability: { ...DEFAULT_CONFIG.observability, ...(overrides.observability || {}) },
+    enabledPlatforms: { ...DEFAULT_CONFIG.enabledPlatforms, ...(overrides.enabledPlatforms || {}) },
+    platformAnalysisModes: { ...DEFAULT_CONFIG.platformAnalysisModes, ...(overrides.platformAnalysisModes || {}) },
+    platformConfigs: mergedPlatformConfigs,
+    themes: { ...DEFAULT_CONFIG.themes, ...(overrides.themes || {}) }
+  };
+};
 
 describe('ConfigService', () => {
   beforeEach(() => {

@@ -27,7 +27,7 @@ describe("ThemeService", () => {
 
   it("should get the default theme initially", () => {
     const currentTheme = themeService.getCurrentTheme();
-    expect(currentTheme.id).toBe('zhihu-white');
+    expect(currentTheme.id).toBe('future-day');
   });
 
   it("should apply a new theme", async () => {
