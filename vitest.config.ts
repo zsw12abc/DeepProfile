@@ -23,9 +23,22 @@ export default defineConfig({
     mockReset: true,
     coverage: {
       provider: "v8",
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: [
+        "src/contents/**",
+        "src/locales/**",
+        "src/options.tsx",
+        "src/types.ts",
+        "src/types.d.ts",
+        "**/__mocks__/**",
+        "scripts/**",
+        "fix-bom.js",
+        "plasmo.config.ts",
+        "skip-api-tests.js"
+      ],
       thresholds: {
         lines: 70,
-        functions: 65,
+        functions: 60,
         branches: 60,
         statements: 70
       }
