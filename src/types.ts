@@ -116,39 +116,39 @@ export interface ExtendedAppConfig extends AppConfig {
   themes: Record<string, ThemeConfig>;
 }
 
-export const NEO_TECH_THEME: ThemeConfig = {
-  id: 'neo-tech',
-  name: 'Neo Tech',
-  description: 'Futuristic glassy theme with neon accents',
+export const FUTURE_DAY_THEME: ThemeConfig = {
+  id: 'future-day',
+  name: 'Future Daylight',
+  description: 'Bright glassy tech theme with crisp neon highlights',
   colors: {
-    primary: '#2563eb',
-    secondary: '#22d3ee',
-    background: '#f5f7fb',
-    surface: '#ffffff',
-    text: '#0f172a',
-    textSecondary: '#475569',
-    border: '#e2e8f0',
+    primary: '#0ea5e9',
+    secondary: '#22c55e',
+    background: '#e7f6ff',
+    surface: 'rgba(255, 255, 255, 0.72)',
+    text: '#0b1426',
+    textSecondary: '#3b556f',
+    border: 'rgba(14, 165, 233, 0.25)',
     success: '#16a34a',
-    successBg: '#dcfce7',
-    successText: '#166534',
-    successBorder: '#86efac',
+    successBg: 'rgba(34, 197, 94, 0.18)',
+    successText: '#14532d',
+    successBorder: 'rgba(34, 197, 94, 0.4)',
     warning: '#f59e0b',
     error: '#ef4444',
-    errorBg: '#fee2e2',
-    errorText: '#991b1b',
-    errorBorder: '#fecaca',
+    errorBg: 'rgba(239, 68, 68, 0.18)',
+    errorText: '#7f1d1d',
+    errorBorder: 'rgba(239, 68, 68, 0.4)',
     accent: '#38bdf8',
     primaryText: '#ffffff',
-    warningText: '#0f172a'
+    warningText: '#0b1426'
   },
   typography: {
-    fontFamily: "'Space Grotesk', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
+    fontFamily: "'Sora', 'Space Grotesk', 'Segoe UI', sans-serif",
     fontSizeBase: '14px',
     fontSizeSmall: '12px',
     fontSizeMedium: '16px',
     fontSizeLarge: '18px',
-    fontWeightNormal: 450,
-    fontWeightBold: 650,
+    fontWeightNormal: 480,
+    fontWeightBold: 680,
     lineHeight: 1.55
   },
   spacing: {
@@ -160,14 +160,69 @@ export const NEO_TECH_THEME: ThemeConfig = {
     xxl: '52px'
   },
   borderRadius: {
-    small: '8px',
-    medium: '14px',
-    large: '20px'
+    small: '10px',
+    medium: '16px',
+    large: '24px'
   },
   shadows: {
-    small: '0 4px 12px rgba(15, 23, 42, 0.08)',
-    medium: '0 10px 30px rgba(15, 23, 42, 0.12)',
-    large: '0 20px 50px rgba(15, 23, 42, 0.18)'
+    small: '0 4px 12px rgba(14, 165, 233, 0.14)',
+    medium: '0 12px 28px rgba(14, 165, 233, 0.18)',
+    large: '0 24px 52px rgba(14, 165, 233, 0.22)'
+  }
+};
+
+export const FUTURE_NIGHT_THEME: ThemeConfig = {
+  id: 'future-night',
+  name: 'Future Night',
+  description: 'Neon night glass theme with deep cyber contrast',
+  colors: {
+    primary: '#2de2ff',
+    secondary: '#00ffa3',
+    background: '#05070f',
+    surface: 'rgba(8, 16, 28, 0.78)',
+    text: '#e3f4ff',
+    textSecondary: '#98b6cc',
+    border: 'rgba(45, 226, 255, 0.22)',
+    success: '#22c55e',
+    successBg: 'rgba(34, 197, 94, 0.2)',
+    successText: '#dcfce7',
+    successBorder: 'rgba(34, 197, 94, 0.45)',
+    warning: '#fbbf24',
+    error: '#ff6b6b',
+    errorBg: 'rgba(255, 107, 107, 0.2)',
+    errorText: '#ffe4e6',
+    errorBorder: 'rgba(255, 107, 107, 0.45)',
+    accent: '#60f6ff',
+    primaryText: '#021217',
+    warningText: '#081018'
+  },
+  typography: {
+    fontFamily: "'Orbitron', 'Oxanium', 'Rajdhani', 'Segoe UI', sans-serif",
+    fontSizeBase: '14px',
+    fontSizeSmall: '12px',
+    fontSizeMedium: '16px',
+    fontSizeLarge: '18px',
+    fontWeightNormal: 520,
+    fontWeightBold: 700,
+    lineHeight: 1.6
+  },
+  spacing: {
+    xs: '6px',
+    sm: '10px',
+    md: '18px',
+    lg: '26px',
+    xl: '34px',
+    xxl: '52px'
+  },
+  borderRadius: {
+    small: '10px',
+    medium: '16px',
+    large: '24px'
+  },
+  shadows: {
+    small: '0 4px 14px rgba(0, 255, 163, 0.18)',
+    medium: '0 12px 34px rgba(45, 226, 255, 0.24)',
+    large: '0 26px 62px rgba(45, 226, 255, 0.32)'
   }
 };
 
@@ -452,9 +507,10 @@ export const DEFAULT_CONFIG: ExtendedAppConfig = {
       apiEndpoint: 'https://api.weibo.com'
     }
   },
-  themeId: 'neo-tech',
+  themeId: 'future-day',
   themes: {
-    'neo-tech': NEO_TECH_THEME,
+    'future-day': FUTURE_DAY_THEME,
+    'future-night': FUTURE_NIGHT_THEME,
     'zhihu-white': ZHIHU_WHITE_THEME,
     'zhihu-black': ZHIHU_BLACK_THEME,
     'reddit-white': REDDIT_WHITE_THEME,
