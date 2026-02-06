@@ -315,8 +315,11 @@ const ZhihuOverlay = () => {
 
     const checkConfig = async () => {
       const config = await ConfigService.getConfig();
-      // 添加安全检查，防止config或config.globalEnabled为undefined
-      const newEnabled = config?.globalEnabled ?? DEFAULT_CONFIG.globalEnabled;
+      const globalEnabled = config?.globalEnabled ?? DEFAULT_CONFIG.globalEnabled;
+      const buttonEnabled = config?.platformConfigs?.zhihu?.analysisButtonEnabled 
+        ?? DEFAULT_CONFIG.platformConfigs.zhihu.analysisButtonEnabled 
+        ?? true;
+      const newEnabled = globalEnabled && buttonEnabled;
       
       // console.log("Checking config. Enabled:", newEnabled);
 

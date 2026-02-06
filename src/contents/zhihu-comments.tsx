@@ -3,6 +3,8 @@ import React, { useEffect, useState } from "react"
 import { createRoot } from "react-dom/client"
 import type { CommentItem, CommentAnalysisResult } from "~types"
 import { I18nService } from "~services/I18nService"
+import { ConfigService } from "~services/ConfigService"
+import { DEFAULT_CONFIG } from "~types"
 
 export const config: PlasmoCSConfig = {
   matches: ["https://www.zhihu.com/*"]
@@ -278,7 +280,18 @@ const CommentAnalysisPanel = ({ contextTitle, containerElement, answerId }: { co
 // 注入逻辑
 const ZhihuComments = () => {
     useEffect(() => {
+        let isEnabled = false;
+        let storageListenerRef: ((changes: any, area: string) => void) | null = null;
+
+        I18nService.init();
+
+        const cleanup = () => {
+            document.querySelectorAll('.deep-profile-summary-btn').forEach(el => el.remove());
+            document.querySelectorAll('.deep-profile-embedded-panel').forEach(el => el.remove());
+        };
+
         const injectButton = () => {
+            if (!isEnabled || typeof document === 'undefined') return;
             // 适配页面内评论区和弹窗评论区
             const containers = document.querySelectorAll('.Comments-container, .Modal-content');
             
@@ -421,12 +434,59 @@ const ZhihuComments = () => {
             });
         };
 
-        const observer = new MutationObserver(injectButton);
+        const observer = new MutationObserver(() => {
+            if (isEnabled) {
+                injectButton();
+            }
+        });
         observer.observe(document.body, { childList: true, subtree: true });
-        
-        injectButton();
-        
-        return () => observer.disconnect();
+
+        const checkConfig = async () => {
+            try {
+                const config = await ConfigService.getConfig();
+                const globalEnabled = config?.globalEnabled ?? DEFAULT_CONFIG.globalEnabled;
+                const commentEnabled = config?.platformConfigs?.zhihu?.commentAnalysisEnabled 
+                    ?? DEFAULT_CONFIG.platformConfigs.zhihu.commentAnalysisEnabled 
+                    ?? true;
+                const newEnabled = globalEnabled && commentEnabled;
+
+                if (newEnabled !== isEnabled) {
+                    isEnabled = newEnabled;
+                    if (isEnabled) {
+                        injectButton();
+                    } else {
+                        cleanup();
+                    }
+                } else if (isEnabled) {
+                    injectButton();
+                }
+            } catch (e) {
+                console.warn("[DeepProfile] Failed to read config for comment analysis:", e);
+            }
+        };
+
+        checkConfig();
+
+        const storageListener = (changes: any, area: string) => {
+            if (area === 'local' && changes['deep_profile_config']) {
+                checkConfig();
+            }
+        };
+        storageListenerRef = storageListener;
+        chrome.storage.onChanged.addListener(storageListener);
+
+        return () => {
+            observer.disconnect();
+            try {
+                if (storageListenerRef) {
+                    chrome.storage.onChanged.removeListener(storageListenerRef);
+                    storageListenerRef = null;
+                }
+            } catch (e) {
+                console.debug("[DeepProfile] Failed to remove config listener:", e);
+            }
+            cleanup();
+        };
     }, []);
 
     return null;

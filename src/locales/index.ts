@@ -43,6 +43,10 @@ export type LocaleKey =
   | 'clear_all'
   | 'debug_mode'
   | 'debug_mode_desc'
+  | 'analysis_button_toggle'
+  | 'analysis_button_toggle_desc'
+  | 'comment_analysis_toggle'
+  | 'comment_analysis_toggle_desc'
   
   // Profile Card
   | 'analyzing'

@@ -349,7 +349,7 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({
 interface PlatformSpecificSettingsProps {
   config: any;
   setConfig: (config: any) => void;
-  platform: 'zhihu' | 'reddit';
+  platform: 'zhihu' | 'reddit' | 'twitter' | 'quora';
 }
 
 export const PlatformSpecificSettings: React.FC<PlatformSpecificSettingsProps> = ({ config, setConfig, platform }) => {
@@ -365,8 +365,181 @@ export const PlatformSpecificSettings: React.FC<PlatformSpecificSettingsProps> =
         ? <img src="https://abs.twimg.com/icons/apple-touch-icon-192x192.png" alt="Twitter" style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "contain" }} />
         : <img src="https://qsf.fs.quoracdn.net/-4-ans_frontend_assets.favicon-new.ico-26-e7e93fe0a7fbc991.ico" alt="Quora" style={{ width: "24px", height: "24px", objectFit: "contain" }} />;
 
+  const platformConfig = config.platformConfigs?.[platform] || {};
+  const isPlatformButtonEnabled = platformConfig.analysisButtonEnabled ?? true;
+  const zhihuConfig = config.platformConfigs?.zhihu || {};
+  const isCommentAnalysisEnabled = zhihuConfig.commentAnalysisEnabled ?? true;
+
   return (
     <Card title={platformName} icon={platformIcon}>
+      <div style={{ 
+        display: "flex", 
+        alignItems: "center", 
+        padding: "14px",
+        backgroundColor: isPlatformButtonEnabled 
+          ? "var(--theme-success-bg, #f0fff4)" 
+          : "var(--theme-error-bg, #fff5f5)",
+        borderRadius: "var(--theme-border-radius-medium, 10px)",
+        marginBottom: "20px",
+        border: `1px solid ${isPlatformButtonEnabled 
+          ? "var(--theme-success-border, #c6f6d5)" 
+          : "var(--theme-error-border, #feb2b2)"}`
+      }}>
+        <div style={{ flex: 1 }}>
+          <label htmlFor={`platform-enabled-${platform}`} style={{ 
+            fontWeight: "700", 
+            cursor: "pointer", 
+            fontSize: "15px",
+            color: isPlatformButtonEnabled 
+              ? "var(--theme-success-text, #22543d)" 
+              : "var(--theme-error-text, #742a2a)",
+            display: "block"
+          }}>
+            {I18nService.t('analysis_button_toggle')}
+          </label>
+          <div style={{ 
+            fontSize: "12px", 
+            color: isPlatformButtonEnabled 
+              ? "var(--theme-success-text, #2f855a)" 
+              : "var(--theme-error-text, #9b2c2c)", 
+            marginTop: "4px" 
+          }}>
+            {I18nService.t('analysis_button_toggle_desc')}
+          </div>
+        </div>
+        <div style={{ position: "relative", width: "46px", height: "28px" }}>
+          <input
+              type="checkbox"
+              id={`platform-enabled-${platform}`}
+              checked={isPlatformButtonEnabled}
+              onChange={(e) => setConfig({ 
+                ...config, 
+                platformConfigs: {
+                  ...(config.platformConfigs || {}),
+                  [platform]: {
+                    ...platformConfig,
+                    analysisButtonEnabled: e.target.checked
+                  }
+                }
+              })}
+              style={{ 
+                opacity: 0,
+                width: 0,
+                height: 0
+              }}
+          />
+          <label htmlFor={`platform-enabled-${platform}`} style={{
+            position: "absolute",
+            cursor: "pointer",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: isPlatformButtonEnabled 
+              ? "var(--theme-success, #48bb78)" 
+              : "var(--theme-border, #ccc)",
+            transition: ".4s",
+            borderRadius: "999px"
+          }}>
+            <span style={{
+              position: "absolute",
+              height: "20px",
+              width: "20px",
+              left: isPlatformButtonEnabled ? "22px" : "4px",
+              bottom: "4px",
+              backgroundColor: "var(--theme-surface, white)",
+              transition: ".4s",
+              borderRadius: "50%"
+            }}></span>
+          </label>
+        </div>
+      </div>
+
+      {platform === 'zhihu' && (
+        <div style={{ 
+          display: "flex", 
+          alignItems: "center", 
+          padding: "14px",
+          backgroundColor: isCommentAnalysisEnabled 
+            ? "var(--theme-success-bg, #f0fff4)" 
+            : "var(--theme-error-bg, #fff5f5)",
+          borderRadius: "var(--theme-border-radius-medium, 10px)",
+          marginBottom: "20px",
+          border: `1px solid ${isCommentAnalysisEnabled 
+            ? "var(--theme-success-border, #c6f6d5)" 
+            : "var(--theme-error-border, #feb2b2)"}`
+        }}>
+          <div style={{ flex: 1 }}>
+            <label htmlFor="zhihu-comment-analysis-enabled" style={{ 
+              fontWeight: "700", 
+              cursor: "pointer", 
+              fontSize: "15px",
+              color: isCommentAnalysisEnabled 
+                ? "var(--theme-success-text, #22543d)" 
+                : "var(--theme-error-text, #742a2a)",
+              display: "block"
+            }}>
+              {I18nService.t('comment_analysis_toggle')}
+            </label>
+            <div style={{ 
+              fontSize: "12px", 
+              color: isCommentAnalysisEnabled 
+                ? "var(--theme-success-text, #2f855a)" 
+                : "var(--theme-error-text, #9b2c2c)", 
+              marginTop: "4px" 
+            }}>
+              {I18nService.t('comment_analysis_toggle_desc')}
+            </div>
+          </div>
+          <div style={{ position: "relative", width: "46px", height: "28px" }}>
+            <input
+                type="checkbox"
+                id="zhihu-comment-analysis-enabled"
+                checked={isCommentAnalysisEnabled}
+                onChange={(e) => setConfig({ 
+                  ...config, 
+                  platformConfigs: {
+                    ...(config.platformConfigs || {}),
+                    zhihu: {
+                      ...zhihuConfig,
+                      commentAnalysisEnabled: e.target.checked
+                    }
+                  }
+                })}
+                style={{ 
+                  opacity: 0,
+                  width: 0,
+                  height: 0
+                }}
+            />
+            <label htmlFor="zhihu-comment-analysis-enabled" style={{
+              position: "absolute",
+              cursor: "pointer",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: isCommentAnalysisEnabled 
+                ? "var(--theme-success, #48bb78)" 
+                : "var(--theme-border, #ccc)",
+              transition: ".4s",
+              borderRadius: "999px"
+            }}>
+              <span style={{
+                position: "absolute",
+                height: "20px",
+                width: "20px",
+                left: isCommentAnalysisEnabled ? "22px" : "4px",
+                bottom: "4px",
+                backgroundColor: "var(--theme-surface, white)",
+                transition: ".4s",
+                borderRadius: "50%"
+              }}></span>
+            </label>
+          </div>
+        </div>
+      )}
+
       <InputGroup 
         label={I18nService.t('analysis_mode')} 
         subLabel={

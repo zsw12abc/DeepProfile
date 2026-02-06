@@ -23,6 +23,8 @@ export interface PlatformConfig {
   enabled: boolean;
   baseUrl: string;
   apiEndpoint?: string;
+  analysisButtonEnabled?: boolean;
+  commentAnalysisEnabled?: boolean;
   settings?: Record<string, any>;
 }
 
@@ -484,27 +486,33 @@ export const DEFAULT_CONFIG: ExtendedAppConfig = {
     zhihu: {
       enabled: true,
       baseUrl: 'https://www.zhihu.com',
-      apiEndpoint: 'https://www.zhihu.com/api/v4'
+      apiEndpoint: 'https://www.zhihu.com/api/v4',
+      analysisButtonEnabled: true,
+      commentAnalysisEnabled: true
     },
     reddit: {
       enabled: true,
       baseUrl: 'https://www.reddit.com',
-      apiEndpoint: 'https://oauth.reddit.com'
+      apiEndpoint: 'https://oauth.reddit.com',
+      analysisButtonEnabled: true
     },
     twitter: {
       enabled: false,
       baseUrl: 'https://twitter.com',
-      apiEndpoint: 'https://api.twitter.com'
+      apiEndpoint: 'https://api.twitter.com',
+      analysisButtonEnabled: true
     },
     quora: {
       enabled: false,
       baseUrl: 'https://www.quora.com',
-      apiEndpoint: 'https://www.quora.com/api'
+      apiEndpoint: 'https://www.quora.com/api',
+      analysisButtonEnabled: true
     },
     weibo: {
       enabled: false,
       baseUrl: 'https://weibo.com',
-      apiEndpoint: 'https://api.weibo.com'
+      apiEndpoint: 'https://api.weibo.com',
+      analysisButtonEnabled: false
     }
   },
   themeId: 'future-day',
