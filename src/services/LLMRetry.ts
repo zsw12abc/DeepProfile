@@ -4,14 +4,20 @@ export interface RetryOptions {
   shouldRetry: (error: any) => boolean;
 }
 
-export const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
+export const withTimeout = async <T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+): Promise<T> => {
   let timer: ReturnType<typeof setTimeout> | null = null;
   const timeoutPromise = new Promise<never>((_, reject) => {
-    timer = setTimeout(() => reject(new Error('LLM request timeout')), timeoutMs);
+    timer = setTimeout(
+      () => reject(new Error("LLM request timeout")),
+      timeoutMs,
+    );
   });
 
   try {
-    return await Promise.race([promise, timeoutPromise]) as T;
+    return (await Promise.race([promise, timeoutPromise])) as T;
   } finally {
     if (timer) {
       clearTimeout(timer);
@@ -21,7 +27,7 @@ export const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number): Pr
 
 export const withRetry = async <T>(
   fn: (attempt: number) => Promise<T>,
-  options: RetryOptions
+  options: RetryOptions,
 ): Promise<T> => {
   let lastError: any;
   for (let attempt = 0; attempt <= options.retries; attempt += 1) {
@@ -33,7 +39,7 @@ export const withRetry = async <T>(
         throw lastError;
       }
       const delay = options.baseDelayMs * (attempt + 1);
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
   throw lastError;

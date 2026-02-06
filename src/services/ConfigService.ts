@@ -1,18 +1,26 @@
-import { CONFIG_VERSION, DEFAULT_CONFIG, type ExtendedAppConfig } from "../types"
+import {
+  CONFIG_VERSION,
+  DEFAULT_CONFIG,
+  type ExtendedAppConfig,
+} from "../types";
 
 export class ConfigService {
-  private static STORAGE_KEY = "deep_profile_config"
-  private static cachedConfig: ExtendedAppConfig | null = null
-  private static cacheInitialized = false
-  private static configPromise: Promise<ExtendedAppConfig> | null = null
-  private static pendingWrite: Promise<void> | null = null
+  private static STORAGE_KEY = "deep_profile_config";
+  private static cachedConfig: ExtendedAppConfig | null = null;
+  private static cacheInitialized = false;
+  private static configPromise: Promise<ExtendedAppConfig> | null = null;
+  private static pendingWrite: Promise<void> | null = null;
 
   static async getConfig(): Promise<ExtendedAppConfig> {
     try {
       this.initCacheSync();
       // Check if chrome APIs are available
-      if (typeof chrome === 'undefined' || !chrome.storage || !chrome.storage.local) {
-        console.warn('Chrome API not available, using default config');
+      if (
+        typeof chrome === "undefined" ||
+        !chrome.storage ||
+        !chrome.storage.local
+      ) {
+        console.warn("Chrome API not available, using default config");
         return DEFAULT_CONFIG as ExtendedAppConfig;
       }
 
@@ -26,8 +34,10 @@ export class ConfigService {
 
       this.configPromise = (async () => {
         try {
-        const result = (await chrome.storage.local.get(this.STORAGE_KEY)) || {}
-          const storedConfig = result[this.STORAGE_KEY] as Partial<ExtendedAppConfig> || {}
+          const result =
+            (await chrome.storage.local.get(this.STORAGE_KEY)) || {};
+          const storedConfig =
+            (result[this.STORAGE_KEY] as Partial<ExtendedAppConfig>) || {};
           const mergedConfig = this.mergeConfig(storedConfig);
           this.cachedConfig = mergedConfig;
           return mergedConfig;
@@ -38,8 +48,8 @@ export class ConfigService {
 
       return await this.configPromise;
     } catch (error) {
-      console.error("Failed to get config:", error)
-      return DEFAULT_CONFIG as ExtendedAppConfig
+      console.error("Failed to get config:", error);
+      return DEFAULT_CONFIG as ExtendedAppConfig;
     }
   }
 
@@ -52,7 +62,7 @@ export class ConfigService {
       }
 
       const write = async () => {
-        await chrome.storage.local.set({ [this.STORAGE_KEY]: config })
+        await chrome.storage.local.set({ [this.STORAGE_KEY]: config });
         this.cachedConfig = config;
       };
 
@@ -63,8 +73,8 @@ export class ConfigService {
       this.pendingWrite = currentWrite;
       await currentWrite;
     } catch (error) {
-      console.error("Failed to save config:", error)
-      throw error
+      console.error("Failed to save config:", error);
+      throw error;
     } finally {
       if (currentWrite && this.pendingWrite === currentWrite) {
         this.pendingWrite = null;
@@ -80,15 +90,15 @@ export class ConfigService {
   }
 
   static async updateApiKey(provider: string, apiKey: string): Promise<void> {
-    const currentConfig = await this.getConfig()
+    const currentConfig = await this.getConfig();
     const newConfig = {
       ...currentConfig,
       apiKeys: {
         ...currentConfig.apiKeys,
-        [provider]: apiKey
-      }
-    }
-    await this.saveConfig(newConfig)
+        [provider]: apiKey,
+      },
+    };
+    await this.saveConfig(newConfig);
   }
 
   static initCacheSync(): void {
@@ -98,7 +108,7 @@ export class ConfigService {
     try {
       if (!chrome?.storage?.onChanged) return;
       chrome.storage.onChanged.addListener((changes, area) => {
-        if (area === 'local' && changes[this.STORAGE_KEY]) {
+        if (area === "local" && changes[this.STORAGE_KEY]) {
           this.cachedConfig = changes[this.STORAGE_KEY].newValue || null;
         }
       });
@@ -114,51 +124,57 @@ export class ConfigService {
     this.pendingWrite = null;
   }
 
-  private static mergeConfig(storedConfig: Partial<ExtendedAppConfig>): ExtendedAppConfig {
+  private static mergeConfig(
+    storedConfig: Partial<ExtendedAppConfig>,
+  ): ExtendedAppConfig {
     const migratedConfig = this.migrateConfig(storedConfig);
     const mergedThemes = {
       ...DEFAULT_CONFIG.themes,
-      ...(migratedConfig.themes || {})
+      ...(migratedConfig.themes || {}),
     };
 
     const mergedApiKeys = {
       ...DEFAULT_CONFIG.apiKeys,
-      ...(migratedConfig.apiKeys || {})
+      ...(migratedConfig.apiKeys || {}),
     };
 
     const mergedCustomBaseUrls = {
       ...DEFAULT_CONFIG.customBaseUrls,
-      ...(migratedConfig.customBaseUrls || {})
+      ...(migratedConfig.customBaseUrls || {}),
     };
 
     const mergedCustomModelNames = {
       ...DEFAULT_CONFIG.customModelNames,
-      ...(migratedConfig.customModelNames || {})
+      ...(migratedConfig.customModelNames || {}),
     };
 
     const mergedObservability = {
       ...DEFAULT_CONFIG.observability,
-      ...(migratedConfig.observability || {})
+      ...(migratedConfig.observability || {}),
     };
 
     const mergedEnabledPlatforms = {
       ...DEFAULT_CONFIG.enabledPlatforms,
-      ...(migratedConfig.enabledPlatforms || {})
+      ...(migratedConfig.enabledPlatforms || {}),
     };
 
     const mergedPlatformAnalysisModes = {
       ...DEFAULT_CONFIG.platformAnalysisModes,
-      ...(migratedConfig.platformAnalysisModes || {})
+      ...(migratedConfig.platformAnalysisModes || {}),
     };
 
     const mergedPlatformConfigs: ExtendedAppConfig["platformConfigs"] = {
-      ...DEFAULT_CONFIG.platformConfigs
+      ...DEFAULT_CONFIG.platformConfigs,
     };
 
-    for (const [platform, config] of Object.entries(migratedConfig.platformConfigs || {})) {
-      mergedPlatformConfigs[platform as keyof ExtendedAppConfig["platformConfigs"]] = {
+    for (const [platform, config] of Object.entries(
+      migratedConfig.platformConfigs || {},
+    )) {
+      mergedPlatformConfigs[
+        platform as keyof ExtendedAppConfig["platformConfigs"]
+      ] = {
         ...(DEFAULT_CONFIG.platformConfigs as Record<string, any>)[platform],
-        ...config
+        ...config,
       };
     }
 
@@ -173,18 +189,21 @@ export class ConfigService {
       enabledPlatforms: mergedEnabledPlatforms,
       platformAnalysisModes: mergedPlatformAnalysisModes,
       platformConfigs: mergedPlatformConfigs,
-      themes: mergedThemes
+      themes: mergedThemes,
     } as ExtendedAppConfig;
   }
 
-  private static migrateConfig(storedConfig: Partial<ExtendedAppConfig>): Partial<ExtendedAppConfig> {
+  private static migrateConfig(
+    storedConfig: Partial<ExtendedAppConfig>,
+  ): Partial<ExtendedAppConfig> {
     const currentVersion = storedConfig.configVersion ?? 0;
     let migrated = { ...storedConfig };
 
     if (currentVersion < 1) {
       migrated = {
         ...migrated,
-        redactSensitiveMode: migrated.redactSensitiveMode ?? DEFAULT_CONFIG.redactSensitiveMode
+        redactSensitiveMode:
+          migrated.redactSensitiveMode ?? DEFAULT_CONFIG.redactSensitiveMode,
       };
     }
 
@@ -193,16 +212,16 @@ export class ConfigService {
         ...migrated,
         enabledPlatforms: {
           ...DEFAULT_CONFIG.enabledPlatforms,
-          ...(migrated.enabledPlatforms || {})
+          ...(migrated.enabledPlatforms || {}),
         },
         platformAnalysisModes: {
           ...DEFAULT_CONFIG.platformAnalysisModes,
-          ...(migrated.platformAnalysisModes || {})
+          ...(migrated.platformAnalysisModes || {}),
         },
         platformConfigs: {
           ...DEFAULT_CONFIG.platformConfigs,
-          ...(migrated.platformConfigs || {})
-        }
+          ...(migrated.platformConfigs || {}),
+        },
       };
     }
 
@@ -211,8 +230,8 @@ export class ConfigService {
         ...migrated,
         observability: {
           ...DEFAULT_CONFIG.observability,
-          ...(migrated.observability || {})
-        }
+          ...(migrated.observability || {}),
+        },
       };
     }
 
@@ -221,14 +240,14 @@ export class ConfigService {
         ...migrated,
         observability: {
           ...DEFAULT_CONFIG.observability,
-          ...(migrated.observability || {})
-        }
+          ...(migrated.observability || {}),
+        },
       };
     }
 
     return {
       ...migrated,
-      configVersion: CONFIG_VERSION
+      configVersion: CONFIG_VERSION,
     };
   }
 }

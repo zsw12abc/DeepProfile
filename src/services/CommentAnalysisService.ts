@@ -4,39 +4,62 @@ import { ConfigService } from "./ConfigService";
 import { I18nService } from "./I18nService";
 
 export class CommentAnalysisService {
-  
-  static async analyzeComments(comments: CommentItem[], contextTitle: string, contextContent?: string, platform?: string): Promise<CommentAnalysisResult> {
+  static async analyzeComments(
+    comments: CommentItem[],
+    contextTitle: string,
+    contextContent?: string,
+    platform?: string,
+  ): Promise<CommentAnalysisResult> {
     if (!comments || comments.length === 0) {
       throw new Error("没有找到可分析的评论");
     }
 
     const config = await ConfigService.getConfig();
     // Use platform-specific analysis mode if available and platform is specified, otherwise fallback to default
-    const mode = platform ? (config.platformAnalysisModes?.[platform] || config.analysisMode || 'balanced') : config.analysisMode || 'balanced';
-    const isEn = I18nService.getLanguage() === 'en-US';
+    const mode = platform
+      ? config.platformAnalysisModes?.[platform] ||
+        config.analysisMode ||
+        "balanced"
+      : config.analysisMode || "balanced";
+    const isEn = I18nService.getLanguage() === "en-US";
 
     // 1. 预处理评论数据，减少Token消耗
-    const processedComments = comments.map(c => {
-      let text = `${c.author}: ${c.content}`;
-      if (c.likes && c.likes > 0) text += ` [${c.likes}${isEn ? ' likes' : '赞'}]`;
-      return text;
-    }).join('\n');
+    const processedComments = comments
+      .map((c) => {
+        let text = `${c.author}: ${c.content}`;
+        if (c.likes && c.likes > 0)
+          text += ` [${c.likes}${isEn ? " likes" : "赞"}]`;
+        return text;
+      })
+      .join("\n");
 
     // 2. 构建 Prompt
-    let promptContext = isEn ? `Topic【${contextTitle}】` : `话题【${contextTitle}】`;
+    let promptContext = isEn
+      ? `Topic【${contextTitle}】`
+      : `话题【${contextTitle}】`;
     if (contextContent) {
-        // 限制上下文长度，防止超出 Token 限制
-        const truncatedContent = contextContent.length > 2000 ? contextContent.slice(0, 2000) + "..." : contextContent;
-        promptContext += isEn ? `
+      // 限制上下文长度，防止超出 Token 限制
+      const truncatedContent =
+        contextContent.length > 2000
+          ? contextContent.slice(0, 2000) + "..."
+          : contextContent;
+      promptContext += isEn
+        ? `
 
 [Topic/Answer Original Text Summary]
-${truncatedContent}` : `
+${truncatedContent}`
+        : `
 
 【话题/回答原文摘要】
 ${truncatedContent}`;
     }
 
-    const prompt = this.getPromptForMode(mode, promptContext, processedComments, isEn);
+    const prompt = this.getPromptForMode(
+      mode,
+      promptContext,
+      processedComments,
+      isEn,
+    );
 
     // 3. 调用 LLM
     try {
@@ -49,37 +72,57 @@ ${truncatedContent}`;
     }
   }
 
-  private static getPromptForMode(mode: AnalysisMode, context: string, comments: string, isEn: boolean): string {
+  private static getPromptForMode(
+    mode: AnalysisMode,
+    context: string,
+    comments: string,
+    isEn: boolean,
+  ): string {
     let keyPointsCount = 3;
     let extraAnalysis = "";
 
-    if (mode === 'fast') {
+    if (mode === "fast") {
       keyPointsCount = 3;
-    } else if (mode === 'balanced') {
+    } else if (mode === "balanced") {
       keyPointsCount = 5;
-    } else if (mode === 'deep') {
+    } else if (mode === "deep") {
       keyPointsCount = 7;
-      extraAnalysis = isEn ? 
-      `
-5.  **Deep Insights (Optional)**: Identify if there are obvious logical fallacies (e.g., straw man, ad hominem), echo chamber effects, or group polarization phenomena in the comment section. If present, briefly explain in the 'deep_analysis' field.` :
-      `
+      extraAnalysis = isEn
+        ? `
+5.  **Deep Insights (Optional)**: Identify if there are obvious logical fallacies (e.g., straw man, ad hominem), echo chamber effects, or group polarization phenomena in the comment section. If present, briefly explain in the 'deep_analysis' field.`
+        : `
 5.  **深度洞察 (可选)**: 识别评论区是否存在明显的逻辑谬误（如稻草人谬误、人身攻击）、回音室效应或群体极化现象。如果存在，请在 'deep_analysis' 字段中简要说明。`;
     }
 
     const jsonSchema = {
-      summary: isEn ? "One-sentence summary of the comment section status" : "一句话总结评论区现状",
+      summary: isEn
+        ? "One-sentence summary of the comment section status"
+        : "一句话总结评论区现状",
       stance_ratio: { support: 0.4, oppose: 0.3, neutral: 0.3 },
-      key_points: [{ point: isEn ? "Point Summary" : "观点概括", count: 10, type: "support", example_quotes: [isEn ? "Original Quote" : "原文摘录1"] }],
+      key_points: [
+        {
+          point: isEn ? "Point Summary" : "观点概括",
+          count: 10,
+          type: "support",
+          example_quotes: [isEn ? "Original Quote" : "原文摘录1"],
+        },
+      ],
       sentiment: "controversial",
-      ...(mode === 'deep' && { deep_analysis: { has_fallacy: false, fallacy_type: "none", example: "none" } })
+      ...(mode === "deep" && {
+        deep_analysis: {
+          has_fallacy: false,
+          fallacy_type: "none",
+          example: "none",
+        },
+      }),
     };
 
-    const languageInstruction = isEn ? 
-    `IMPORTANT: All analysis results (summary, point summaries, analysis explanations) must be in English, but the example_quotes should remain in the original language.` :
-    `重要：所有分析结果（总结、观点概括、分析说明）必须使用中文，但 example_quotes 应保持原始语言。`;
+    const languageInstruction = isEn
+      ? `IMPORTANT: All analysis results (summary, point summaries, analysis explanations) must be in English, but the example_quotes should remain in the original language.`
+      : `重要：所有分析结果（总结、观点概括、分析说明）必须使用中文，但 example_quotes 应保持原始语言。`;
 
-    const instructions = isEn ? 
-    `
+    const instructions = isEn
+      ? `
 You are a public opinion analysis expert. Please analyze the following comment section content.
 Comment section is about: ${context}
 
@@ -100,8 +143,8 @@ ${languageInstruction}
 
 Please strictly return the result in the following JSON format (do not include Markdown code block markers):
 ${JSON.stringify(jsonSchema, null, 2)}
-` :
-    `
+`
+      : `
 你是一个舆情分析专家。请分析以下评论区内容。
 评论区是关于：${context}
 
@@ -133,27 +176,35 @@ ${JSON.stringify(jsonSchema, null, 2)}
     // 1. 尝试移除包裹的 Markdown
     const jsonMatch = jsonText.match(/```json\s*([\s\S]*?)\s*```/);
     if (jsonMatch && jsonMatch[1]) {
-        jsonText = jsonMatch[1];
+      jsonText = jsonMatch[1];
     }
 
     try {
-        // 2. 尝试直接解析
-        return JSON.parse(jsonText);
+      // 2. 尝试直接解析
+      return JSON.parse(jsonText);
     } catch (e) {
-        console.warn("[DeepProfile] Direct JSON.parse failed. Trying to extract from a larger structure.", e);
-        // 3. 如果直接解析失败，尝试从完整的 LLM 响应对象中提取
-        try {
-            const outerObject = JSON.parse(responseStr); // 使用原始字符串
-            if (outerObject.choices && outerObject.choices[0]?.message?.content) {
-                // 提取 content 字段，它本身应该是一个 JSON 字符串
-                const contentStr = outerObject.choices[0].message.content;
-                return JSON.parse(contentStr);
-            }
-        } catch (e2) {
-            // 4. 如果所有尝试都失败
-            console.error("[DeepProfile] Could not parse JSON from LLM response.", e2, "Original response string:", responseStr);
-            throw new Error("AI 返回的数据格式不正确，无法解析。");
+      console.warn(
+        "[DeepProfile] Direct JSON.parse failed. Trying to extract from a larger structure.",
+        e,
+      );
+      // 3. 如果直接解析失败，尝试从完整的 LLM 响应对象中提取
+      try {
+        const outerObject = JSON.parse(responseStr); // 使用原始字符串
+        if (outerObject.choices && outerObject.choices[0]?.message?.content) {
+          // 提取 content 字段，它本身应该是一个 JSON 字符串
+          const contentStr = outerObject.choices[0].message.content;
+          return JSON.parse(contentStr);
         }
+      } catch (e2) {
+        // 4. 如果所有尝试都失败
+        console.error(
+          "[DeepProfile] Could not parse JSON from LLM response.",
+          e2,
+          "Original response string:",
+          responseStr,
+        );
+        throw new Error("AI 返回的数据格式不正确，无法解析。");
+      }
     }
     // 如果代码能运行到这里，说明发生了意料之外的情况
     throw new Error("无法从AI响应中解析出有效的JSON。");

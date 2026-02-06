@@ -11,7 +11,7 @@ export interface InjectionScheduler {
 }
 
 export const createInjectionScheduler = (
-  options: InjectionSchedulerOptions
+  options: InjectionSchedulerOptions,
 ): InjectionScheduler => {
   const debounceMs = options.debounceMs ?? 200;
   let observer: MutationObserver | null = null;
@@ -34,7 +34,7 @@ export const createInjectionScheduler = (
       return;
     }
 
-    rootsToProcess.forEach(root => options.injectButtons(root));
+    rootsToProcess.forEach((root) => options.injectButtons(root));
   };
 
   const schedule = (roots?: ParentNode[]) => {
@@ -47,7 +47,7 @@ export const createInjectionScheduler = (
     }
 
     if (roots && roots.length > 0) {
-      roots.forEach(root => pendingRoots.add(root));
+      roots.forEach((root) => pendingRoots.add(root));
     }
 
     if (injectionTimer !== null) return;
@@ -63,8 +63,8 @@ export const createInjectionScheduler = (
       if (!options.shouldProcess()) return;
       if (document.hidden) return;
       const roots: ParentNode[] = [];
-      mutations.forEach(mutation => {
-        mutation.addedNodes.forEach(node => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
           if (node.nodeType === Node.ELEMENT_NODE) {
             roots.push(node as ParentNode);
           }
@@ -75,7 +75,7 @@ export const createInjectionScheduler = (
 
     observer.observe(root, {
       childList: true,
-      subtree: true
+      subtree: true,
     });
   };
 

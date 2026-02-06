@@ -4,14 +4,17 @@ import { ConfigService } from "./ConfigService";
 
 vi.mock("./ConfigService", () => ({
   ConfigService: {
-    getConfigSync: vi.fn()
-  }
+    getConfigSync: vi.fn(),
+  },
 }));
 
 describe("LLMResponseNormalizer", () => {
   it("normalizes fenced json and clamps scores", () => {
-    vi.mocked(ConfigService.getConfigSync).mockReturnValue({ enableDebug: false } as any);
-    const input = "```json\n{\"nickname\":\"n\",\"value_orientation\":[{\"label\":\"discipline_vs_hedonism\",\"score\":2}],\"summary\":\"ok\"}\n```";
+    vi.mocked(ConfigService.getConfigSync).mockReturnValue({
+      enableDebug: false,
+    } as any);
+    const input =
+      '```json\n{"nickname":"n","value_orientation":[{"label":"discipline_vs_hedonism","score":2}],"summary":"ok"}\n```';
     const result = normalizeAndFixResponse(input);
     const parsed = JSON.parse(result);
     expect(parsed.nickname).toBe("n");
@@ -19,8 +22,11 @@ describe("LLMResponseNormalizer", () => {
   });
 
   it("falls back to political_leaning when value_orientation is missing", () => {
-    vi.mocked(ConfigService.getConfigSync).mockReturnValue({ enableDebug: false } as any);
-    const input = "{\"nickname\":\"n\",\"political_leaning\":[\"discipline_vs_hedonism\"],\"summary\":\"ok\"}";
+    vi.mocked(ConfigService.getConfigSync).mockReturnValue({
+      enableDebug: false,
+    } as any);
+    const input =
+      '{"nickname":"n","political_leaning":["discipline_vs_hedonism"],"summary":"ok"}';
     const result = normalizeAndFixResponse(input);
     const parsed = JSON.parse(result);
     expect(parsed.value_orientation).toHaveLength(1);

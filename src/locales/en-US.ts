@@ -11,7 +11,8 @@ export const enUS: LocaleDict = {
   delete: "Delete",
   confirm_delete: "Are you sure?",
   clear_all: "Clear All",
-  confirm_clear_all: "Are you sure you want to clear all history? This action cannot be undone.",
+  confirm_clear_all:
+    "Are you sure you want to clear all history? This action cannot be undone.",
   export_markdown: "Export as Markdown",
   export_image: "Export as Image",
   export_image_failed: "Export as Image Failed",
@@ -26,7 +27,8 @@ export const enUS: LocaleDict = {
   debug_mode: "Debug Mode",
   debug_mode_desc: "Enable detailed logging",
   analysis_button_toggle: "Show analysis buttons",
-  analysis_button_toggle_desc: "Control whether analysis buttons appear on this site.",
+  analysis_button_toggle_desc:
+    "Control whether analysis buttons appear on this site.",
   comment_analysis_toggle: "Enable comment analysis",
   comment_analysis_toggle_desc: "Show the comment analysis button on Zhihu.",
   observability_settings: "Observability",
@@ -35,23 +37,30 @@ export const enUS: LocaleDict = {
   observability_analytics: "Behavior analytics",
   observability_analytics_desc: "Track feature usage and button interactions.",
   observability_performance: "Performance monitoring",
-  observability_performance_desc: "Record analysis durations and runtime metrics.",
+  observability_performance_desc:
+    "Record analysis durations and runtime metrics.",
   observability_compliance: "Compliance monitoring",
-  observability_compliance_desc: "Track redaction and compliance-related signals.",
+  observability_compliance_desc:
+    "Track redaction and compliance-related signals.",
   observability_endpoint: "Telemetry endpoint",
-  observability_endpoint_desc: "Optional. If provided, data will be posted to this endpoint.",
+  observability_endpoint_desc:
+    "Optional. If provided, data will be posted to this endpoint.",
   observability_endpoint_placeholder: "https://telemetry.example.com/ingest",
   observability_sample_rate: "Sample rate",
   observability_prod_allow: "Allow in production",
-  observability_prod_allow_desc: "Production builds require explicit permission to enable telemetry.",
+  observability_prod_allow_desc:
+    "Production builds require explicit permission to enable telemetry.",
   observability_prod_consent: "Confirm production consent",
-  observability_prod_consent_desc: "I understand telemetry will be collected in production.",
+  observability_prod_consent_desc:
+    "I understand telemetry will be collected in production.",
   settings_history: "History",
   settings_debug: "Developer Options",
   plugin_enabled: "✅ Plugin Enabled",
   plugin_disabled: "⛔ Plugin Disabled",
-  plugin_enabled_desc: "DeepProfile is working normally and will display analysis buttons on target websites.",
-  plugin_disabled_desc: "DeepProfile is completely turned off and will not inject code into any website.",
+  plugin_enabled_desc:
+    "DeepProfile is working normally and will display analysis buttons on target websites.",
+  plugin_disabled_desc:
+    "DeepProfile is completely turned off and will not inject code into any website.",
   ai_provider: "AI Provider",
   api_key: "API Key",
   api_base_url: "API Base URL",
@@ -67,7 +76,7 @@ export const enUS: LocaleDict = {
   mode_fast_desc: "Minimal content, fastest analysis",
   mode_balanced_desc: "Moderate content, balanced speed and quality",
   mode_deep_desc: "Maximum content, most comprehensive analysis",
-  
+
   // Categories
   category_politics: "🏛️ Politics",
   category_economy: "💰 Economy",
@@ -78,7 +87,7 @@ export const enUS: LocaleDict = {
   category_entertainment: "🎮 Entertainment",
   category_lifestyle_career: "💼 Lifestyle & Career",
   category_general: "🌐 General",
-  
+
   // Profile Card
   analyzing: "Analyzing",
   topic_classification: "Topic Classification",
@@ -101,19 +110,27 @@ export const enUS: LocaleDict = {
   data_breakdown: "Data Breakdown",
   unknown_user: "Unknown User",
   unknown_topic: "Unknown Topic",
-  
+
   // Errors
-  error_401: "Authentication Failed (401) 🔐: Please check if your API Key is correct.",
-  error_402: "Insufficient Balance (402) 💸: Please check your API Key balance.",
+  error_401:
+    "Authentication Failed (401) 🔐: Please check if your API Key is correct.",
+  error_402:
+    "Insufficient Balance (402) 💸: Please check your API Key balance.",
   error_404: "Model Not Found (404) 🗺️: Please check your model configuration.",
   error_429: "Too Many Requests (429) 🔥: AI is busy, please try again later.",
   error_500: "AI Provider Error (500) 💥: Please try again later.",
-  error_network: "Network Error 🌐: Please check your internet connection or proxy settings.",
-  error_zhihu_403: "Access Denied by Zhihu (403) 🚧. Please try refreshing the page or logging in.",
-  error_user_not_found: "User data not found 🕵️‍♂️. The account might be banned or set to private.",
-  error_extension_context: "Extension context invalidated. Please refresh the page to retry.",
-  error_content_filter: "Content Safety Review Failed: The input content was flagged by the AI provider as potentially inappropriate. Please try switching to a different model like DeepSeek or OpenAI.",
-  error_missing_api_key: "API Key is missing 🔑: Please set your API Key for the selected provider.",
+  error_network:
+    "Network Error 🌐: Please check your internet connection or proxy settings.",
+  error_zhihu_403:
+    "Access Denied by Zhihu (403) 🚧. Please try refreshing the page or logging in.",
+  error_user_not_found:
+    "User data not found 🕵️‍♂️. The account might be banned or set to private.",
+  error_extension_context:
+    "Extension context invalidated. Please refresh the page to retry.",
+  error_content_filter:
+    "Content Safety Review Failed: The input content was flagged by the AI provider as potentially inappropriate. Please try switching to a different model like DeepSeek or OpenAI.",
+  error_missing_api_key:
+    "API Key is missing 🔑: Please set your API Key for the selected provider.",
 
   // Export
   click_jump: "Click to Jump",
@@ -123,7 +140,7 @@ export const enUS: LocaleDict = {
   start_ai_journey: "Start your AI journey",
   ai_profile_analysis: "AI-powered User Profile Analysis",
   date_label: "Date",
-  
+
   // Comment Analysis
   analyzing_comments: "Analyzing comments on current page...",
   expanding_comments: "Expanding comment section...",
@@ -151,9 +168,11 @@ export const enUS: LocaleDict = {
   theme_zhihu_black_name: "Zhihu Dark Theme",
   theme_zhihu_black_desc: "Zhihu-inspired dark theme with blue accents",
   theme_reddit_white_name: "Reddit White Theme",
-  theme_reddit_white_desc: "Reddit-inspired light theme with orange-blue accents",
+  theme_reddit_white_desc:
+    "Reddit-inspired light theme with orange-blue accents",
   theme_reddit_black_name: "Reddit Dark Theme",
-  theme_reddit_black_desc: "Reddit-inspired dark theme with orange-blue accents",
+  theme_reddit_black_desc:
+    "Reddit-inspired dark theme with orange-blue accents",
   theme_future_day_name: "Future Daylight",
   theme_future_day_desc: "Bright glassy tech theme with crisp neon highlights",
   theme_future_night_name: "Future Night",
@@ -165,7 +184,8 @@ export const enUS: LocaleDict = {
   failed_save_theme: "Failed to save theme",
   theme_id_name_required: "Please enter theme ID and name",
   cannot_delete_builtin_theme: "Cannot delete built-in themes",
-  confirm_delete_theme: "Are you sure you want to delete this theme? This action cannot be undone.",
+  confirm_delete_theme:
+    "Are you sure you want to delete this theme? This action cannot be undone.",
   edit: "Edit",
   color_settings: "Color Settings",
   color_primary: "Primary Color",
@@ -180,23 +200,25 @@ export const enUS: LocaleDict = {
   color_error: "Error Color",
   color_accent: "Accent Color",
   save_changes: "Save Changes",
-  
+
   // Context Invalidated Error
   extension_context_invalidated: "Extension context invalidated",
   extension_context_invalidated_title: "Extension Context Invalidated",
-  extension_context_invalidated_desc: "Extension context has been invalidated. Please refresh the page to retry.",
-  
+  extension_context_invalidated_desc:
+    "Extension context has been invalidated. Please refresh the page to retry.",
+
   // Version Info
   version_info: "Version Information",
   current_version: "Current Version",
   changelog: "Changelog",
   version_history: "Version History",
-  
+
   // Comment Analysis
   comment_summary_btn: "Analyze Comments",
   anonymous_user: "Anonymous User",
   not_enough_comments: "Not enough comments for analysis",
-  comment_analysis_instruction: ", please try increasing the number of comments displayed.",
+  comment_analysis_instruction:
+    ", please try increasing the number of comments displayed.",
   comment_analysis_summary: "Comment Analysis Summary",
   comment_analysis_ai_generated: "AI Generated",
   sentiment_support: "Support",
@@ -208,7 +230,7 @@ export const enUS: LocaleDict = {
   logic_fallacy: "Logical Fallacy Detected",
   unknown_type: "Unknown Type",
   example_quote: "Example Quote",
-  
+
   // Reddit Overlay
   deep_profile_analysis: "Deep Profile Analysis",
 
@@ -217,7 +239,7 @@ export const enUS: LocaleDict = {
   reading_content: "Reading user content",
   ai_analyzing: "AI is analyzing",
   progress_eta: "ETA",
-  progress_overdue: "Overdue"
+  progress_overdue: "Overdue",
 };
 
 // DeepProfile Current Version Changelog

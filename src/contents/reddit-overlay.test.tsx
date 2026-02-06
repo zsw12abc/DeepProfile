@@ -1,27 +1,27 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
-import { ConfigService } from '../services/ConfigService';
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import React from "react";
+import { render, screen, waitFor } from "@testing-library/react";
+import { ConfigService } from "../services/ConfigService";
 
 // Mock I18nService
-vi.mock('../services/I18nService', () => ({
+vi.mock("../services/I18nService", () => ({
   I18nService: {
     t: (key: string) => key,
     init: vi.fn(),
-    getLanguage: () => 'zh-CN',
-  }
+    getLanguage: () => "zh-CN",
+  },
 }));
 
 // Mock ConfigService
-vi.mock('../services/ConfigService', () => ({
+vi.mock("../services/ConfigService", () => ({
   ConfigService: {
-    getConfig: vi.fn().mockResolvedValue({ globalEnabled: true })
-  }
+    getConfig: vi.fn().mockResolvedValue({ globalEnabled: true }),
+  },
 }));
 
 // Mock ProfileCard component
-vi.mock('../components/ProfileCard', () => ({
-  ProfileCard: () => <div data-testid="profile-card">Profile Card</div>
+vi.mock("../components/ProfileCard", () => ({
+  ProfileCard: () => <div data-testid="profile-card">Profile Card</div>,
 }));
 
 // Mock chrome runtime
@@ -34,25 +34,25 @@ global.chrome = {
     sendMessage: mockSendMessage,
     onMessage: {
       addListener: mockAddListener,
-      removeListener: mockRemoveListener
-    }
+      removeListener: mockRemoveListener,
+    },
   },
   storage: {
     onChanged: {
       addListener: vi.fn(),
-      removeListener: vi.fn()
-    }
-  }
+      removeListener: vi.fn(),
+    },
+  },
 } as any;
 
 // Import the component directly instead of dynamically
-import RedditOverlay from './reddit-overlay';
+import RedditOverlay from "./reddit-overlay";
 
-describe('RedditOverlay', () => {
+describe("RedditOverlay", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    document.body.innerHTML = '';
-    
+    document.body.innerHTML = "";
+
     // Mock MutationObserver
     global.MutationObserver = class {
       constructor(callback: any) {
@@ -61,19 +61,21 @@ describe('RedditOverlay', () => {
       callback: any;
       observe() {}
       disconnect() {}
-      takeRecords() { return []; }
+      takeRecords() {
+        return [];
+      }
     } as any;
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(RedditOverlay).toBeDefined();
   });
 
-  it('should render without crashing', () => {
+  it("should render without crashing", () => {
     render(<RedditOverlay />);
   });
 
-  it('should inject buttons when enabled', async () => {
+  it("should inject buttons when enabled", async () => {
     // Setup DOM with a Reddit user link
     document.body.innerHTML = `
       <div>

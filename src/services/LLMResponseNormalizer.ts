@@ -16,22 +16,25 @@ export const normalizeAndFixResponse = (response: string): string => {
       Logger.info("【LLM RAW RESPONSE】", response);
     }
 
-    if (cleanedResponse.startsWith('```json')) {
+    if (cleanedResponse.startsWith("```json")) {
       cleanedResponse = cleanedResponse.substring(7);
       if (config && config.enableDebug) {
-          Logger.info("【LLM RESPONSE】Removed '```json' prefix");
+        Logger.info("【LLM RESPONSE】Removed '```json' prefix");
       }
     }
-    if (cleanedResponse.startsWith('```')) {
+    if (cleanedResponse.startsWith("```")) {
       cleanedResponse = cleanedResponse.substring(3);
       if (config && config.enableDebug) {
-          Logger.info("【LLM RESPONSE】Removed '```' prefix");
+        Logger.info("【LLM RESPONSE】Removed '```' prefix");
       }
     }
-    if (cleanedResponse.endsWith('```')) {
-      cleanedResponse = cleanedResponse.substring(0, cleanedResponse.length - 3);
+    if (cleanedResponse.endsWith("```")) {
+      cleanedResponse = cleanedResponse.substring(
+        0,
+        cleanedResponse.length - 3,
+      );
       if (config && config.enableDebug) {
-          Logger.info("【LLM RESPONSE】Removed '```' suffix");
+        Logger.info("【LLM RESPONSE】Removed '```' suffix");
       }
     }
     cleanedResponse = cleanedResponse.trim();
@@ -45,7 +48,9 @@ export const normalizeAndFixResponse = (response: string): string => {
         try {
           parsed = JSON.parse(jsonMatch[0]);
           if (config && config.enableDebug) {
-            Logger.info("【LLM RESPONSE】Successfully extracted JSON from text");
+            Logger.info(
+              "【LLM RESPONSE】Successfully extracted JSON from text",
+            );
           }
         } catch (extractError) {
           console.error("Failed to extract JSON from response:", extractError);
@@ -61,7 +66,9 @@ export const normalizeAndFixResponse = (response: string): string => {
       if (parsed.political_leaning) {
         parsed.value_orientation = parsed.political_leaning;
         if (config && config.enableDebug) {
-            Logger.info("【LLM RESPONSE】Using 'political_leaning' field as 'value_orientation'");
+          Logger.info(
+            "【LLM RESPONSE】Using 'political_leaning' field as 'value_orientation'",
+          );
         }
       } else {
         console.warn("LLM response missing 'value_orientation' field");
@@ -72,42 +79,65 @@ export const normalizeAndFixResponse = (response: string): string => {
 
     if (Array.isArray(parsed.value_orientation)) {
       const originalLength = parsed.value_orientation.length;
-      parsed.value_orientation = parsed.value_orientation.map((item: any, index: number) => {
-        if (typeof item === 'string') {
-          console.warn(`LLM returned string label at index ${index}: ${item}. Converting to object.`);
-          return { label: normalizeLabelId(item.trim()), score: 0.5 };
-        } else if (typeof item === 'object' && item.label) {
-          let score = item.score !== undefined ? item.score : 0.5;
+      parsed.value_orientation = parsed.value_orientation.map(
+        (item: any, index: number) => {
+          if (typeof item === "string") {
+            console.warn(
+              `LLM returned string label at index ${index}: ${item}. Converting to object.`,
+            );
+            return { label: normalizeLabelId(item.trim()), score: 0.5 };
+          } else if (typeof item === "object" && item.label) {
+            let score = item.score !== undefined ? item.score : 0.5;
 
-          if (typeof score !== 'number' || isNaN(score)) {
-            console.warn(`Invalid score value at index ${index}: ${score}. Using 0.5 as default.`);
-            score = 0.5;
-          } else {
-            score = Math.max(-1, Math.min(1, score));
-            if (score !== item.score && config && config.enableDebug) {
-              Logger.info(`Normalized score at index ${index}: ${item.score} -> ${score}`);
+            if (typeof score !== "number" || isNaN(score)) {
+              console.warn(
+                `Invalid score value at index ${index}: ${score}. Using 0.5 as default.`,
+              );
+              score = 0.5;
+            } else {
+              score = Math.max(-1, Math.min(1, score));
+              if (score !== item.score && config && config.enableDebug) {
+                Logger.info(
+                  `Normalized score at index ${index}: ${item.score} -> ${score}`,
+                );
+              }
             }
+
+            const originalLabel = item.label;
+            const normalizedLabel = normalizeLabelId(
+              String(originalLabel).trim(),
+            );
+
+            if (
+              originalLabel !== normalizedLabel &&
+              config &&
+              config.enableDebug
+            ) {
+              Logger.info(
+                `Normalized label at index ${index}: ${originalLabel} -> ${normalizedLabel}`,
+              );
+            }
+
+            return { label: normalizedLabel, score };
           }
 
-          const originalLabel = item.label;
-          const normalizedLabel = normalizeLabelId(String(originalLabel).trim());
+          console.warn(
+            `Invalid value_orientation item at index ${index}:`,
+            item,
+          );
+          return { label: "Unknown", score: 0.5 };
+        },
+      );
 
-            if (originalLabel !== normalizedLabel && config && config.enableDebug) {
-              Logger.info(`Normalized label at index ${index}: ${originalLabel} -> ${normalizedLabel}`);
-            }
-
-          return { label: normalizedLabel, score };
-        }
-
-        console.warn(`Invalid value_orientation item at index ${index}:`, item);
-        return { label: "Unknown", score: 0.5 };
-      });
-
-        if (config && config.enableDebug) {
-          Logger.info(`【LLM RESPONSE】Processed ${originalLength} labels, got ${parsed.value_orientation.length} valid labels`);
-        }
+      if (config && config.enableDebug) {
+        Logger.info(
+          `【LLM RESPONSE】Processed ${originalLength} labels, got ${parsed.value_orientation.length} valid labels`,
+        );
+      }
     } else {
-      console.warn("LLM response 'value_orientation' is not an array, resetting to empty array");
+      console.warn(
+        "LLM response 'value_orientation' is not an array, resetting to empty array",
+      );
       parsed.value_orientation = [];
     }
 
@@ -119,12 +149,16 @@ export const normalizeAndFixResponse = (response: string): string => {
     return JSON.stringify(parsed, null, 2);
   } catch (e) {
     console.error("Response validation error:", e, "Raw response:", response);
-    return JSON.stringify({
-      nickname: "",
-      topic_classification: "Unknown",
-      value_orientation: [],
-      summary: "Analysis Failed",
-      evidence: []
-    }, null, 2);
+    return JSON.stringify(
+      {
+        nickname: "",
+        topic_classification: "Unknown",
+        value_orientation: [],
+        summary: "Analysis Failed",
+        evidence: [],
+      },
+      null,
+      2,
+    );
   }
 };

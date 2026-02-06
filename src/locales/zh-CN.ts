@@ -67,7 +67,7 @@ export const zhCN: LocaleDict = {
   mode_balanced_desc: "适中内容，平衡速度与质量",
   mode_deep: "🧠 深度",
   mode_deep_desc: "最多内容，最全面分析",
-  
+
   // Categories
   category_politics: "🏛️ 政治 (Politics)",
   category_economy: "💰 经济 (Economy)",
@@ -78,7 +78,7 @@ export const zhCN: LocaleDict = {
   category_entertainment: "🎮 娱乐 (Entertainment)",
   category_lifestyle_career: "💼 生活与职场 (Lifestyle & Career)",
   category_general: "🌐 通用综合",
-  
+
   // Profile Card
   analyzing: "正在分析",
   topic_classification: "话题分类",
@@ -101,7 +101,7 @@ export const zhCN: LocaleDict = {
   data_breakdown: "数据分解",
   unknown_user: "未知用户",
   unknown_topic: "未知话题",
-  
+
   // Errors
   error_401: "认证失败 (401) 🔐: 请检查您的 API Key 是否正确。",
   error_402: "余额不足 (402) 💸: 请检查您的 API Key 余额。",
@@ -109,10 +109,13 @@ export const zhCN: LocaleDict = {
   error_429: "太热情啦 (429) 🔥，AI 有点忙不过来，请稍后再试。",
   error_500: "AI 服务商罢工了 (500) 💥，请稍后再试。",
   error_network: "网络开小差了 🌐，请检查网络连接或代理设置。",
-  error_zhihu_403: "哎呀，被知乎拦截了 (403) 🚧。请试着刷新一下知乎页面，或者确认是否登录了哦～",
-  error_user_not_found: "哎呀，找不到这个用户的数据 🕵️‍♂️，可能是账号被封禁或设置了隐私保护。",
+  error_zhihu_403:
+    "哎呀，被知乎拦截了 (403) 🚧。请试着刷新一下知乎页面，或者确认是否登录了哦～",
+  error_user_not_found:
+    "哎呀，找不到这个用户的数据 🕵️‍♂️，可能是账号被封禁或设置了隐私保护。",
   error_extension_context: "扩展上下文已失效，请刷新页面重试。",
-  error_content_filter: "内容安全审查失败：输入内容被AI服务商标记为可能不当。请尝试切换到DeepSeek或OpenAI等模型。",
+  error_content_filter:
+    "内容安全审查失败：输入内容被AI服务商标记为可能不当。请尝试切换到DeepSeek或OpenAI等模型。",
   error_missing_api_key: "API Key 缺失 🔑：请为当前选择的模型配置 API Key。",
 
   // Export
@@ -123,7 +126,7 @@ export const zhCN: LocaleDict = {
   start_ai_journey: "开启AI之旅",
   ai_profile_analysis: "AI驱动的用户画像分析",
   date_label: "日期",
-  
+
   // Comment Analysis
   analyzing_comments: "正在分析当前页面的评论...",
   expanding_comments: "正在展开评论区...",
@@ -180,18 +183,18 @@ export const zhCN: LocaleDict = {
   color_error: "错误色",
   color_accent: "强调色",
   save_changes: "保存更改",
-  
+
   // Context Invalidated Error
   extension_context_invalidated: "扩展上下文失效",
   extension_context_invalidated_title: "扩展上下文失效",
   extension_context_invalidated_desc: "扩展上下文已失效，请刷新页面重试。",
-  
+
   // Version Info
   version_info: "版本信息",
   current_version: "当前版本",
   changelog: "更新日志",
   version_history: "版本历史",
-  
+
   // Comment Analysis
   comment_summary_btn: "分析评论",
   anonymous_user: "匿名用户",
@@ -208,7 +211,7 @@ export const zhCN: LocaleDict = {
   logic_fallacy: "检测到逻辑谬误",
   unknown_type: "未知类型",
   example_quote: "示例引用",
-  
+
   // Reddit Overlay
   deep_profile_analysis: "深度画像分析",
 
@@ -217,7 +220,7 @@ export const zhCN: LocaleDict = {
   reading_content: "正在读取用户内容",
   ai_analyzing: "AI 正在分析中",
   progress_eta: "预计剩余",
-  progress_overdue: "已超过预估"
+  progress_overdue: "已超过预估",
 };
 
 // DeepProfile 当前版本更新日志

@@ -26,34 +26,50 @@ export class ProfileService {
     platform: SupportedPlatform,
     userId: string,
     limit: number = 15,
-    context?: string
+    context?: string,
   ): Promise<FetchResult> {
     switch (platform) {
-      case 'zhihu':
-        const zhihuResult = await ZhihuClient.fetchUserContent(userId, limit, context);
+      case "zhihu":
+        const zhihuResult = await ZhihuClient.fetchUserContent(
+          userId,
+          limit,
+          context,
+        );
         return {
           ...zhihuResult,
-          platform: 'zhihu'
+          platform: "zhihu",
         };
-      case 'reddit':
-        const redditResult = await RedditClient.fetchUserContent(userId, limit, context);
+      case "reddit":
+        const redditResult = await RedditClient.fetchUserContent(
+          userId,
+          limit,
+          context,
+        );
         return {
           ...redditResult,
-          platform: 'reddit'
+          platform: "reddit",
         };
-      case 'twitter':
-        const twitterResult = await TwitterClient.fetchUserContent(userId, limit, context);
+      case "twitter":
+        const twitterResult = await TwitterClient.fetchUserContent(
+          userId,
+          limit,
+          context,
+        );
         return {
           ...twitterResult,
-          platform: 'twitter'
+          platform: "twitter",
         };
-      case 'quora':
-        const quoraResult = await QuoraClient.fetchUserContent(userId, limit, context);
+      case "quora":
+        const quoraResult = await QuoraClient.fetchUserContent(
+          userId,
+          limit,
+          context,
+        );
         return {
           ...quoraResult,
-          platform: 'quora'
+          platform: "quora",
         };
-      case 'weibo':
+      case "weibo":
       default:
         throw new Error(`Platform ${platform} is not implemented yet`);
     }
@@ -61,38 +77,43 @@ export class ProfileService {
 
   static async fetchUserProfile(
     platform: SupportedPlatform,
-    userId: string
+    userId: string,
   ): Promise<UserProfile | null> {
     switch (platform) {
-      case 'zhihu':
+      case "zhihu":
         return await ZhihuClient.fetchUserProfile(userId);
-      case 'reddit':
+      case "reddit":
         return await RedditClient.fetchUserProfile(userId);
-      case 'twitter':
+      case "twitter":
         return await TwitterClient.fetchUserProfile(userId);
-      case 'quora':
+      case "quora":
         return await QuoraClient.fetchUserProfile(userId);
-      case 'weibo':
+      case "weibo":
       default:
         throw new Error(`Platform ${platform} is not implemented yet`);
     }
   }
 
-  static async identifyPlatform(url: string): Promise<SupportedPlatform | null> {
+  static async identifyPlatform(
+    url: string,
+  ): Promise<SupportedPlatform | null> {
     const config = await ConfigService.getConfig();
-    
-    if (url.includes('zhihu.com') && config.enabledPlatforms.zhihu) {
-      return 'zhihu';
-    } else if (url.includes('reddit.com') && config.enabledPlatforms.reddit) {
-      return 'reddit';
-    } else if ((url.includes('twitter.com') || url.includes('x.com')) && config.enabledPlatforms.twitter) {
-      return 'twitter';
-    } else if (url.includes('quora.com') && config.enabledPlatforms.quora) {
-      return 'quora';
-    } else if (url.includes('weibo.com') && config.enabledPlatforms.weibo) {
-      return 'weibo';
+
+    if (url.includes("zhihu.com") && config.enabledPlatforms.zhihu) {
+      return "zhihu";
+    } else if (url.includes("reddit.com") && config.enabledPlatforms.reddit) {
+      return "reddit";
+    } else if (
+      (url.includes("twitter.com") || url.includes("x.com")) &&
+      config.enabledPlatforms.twitter
+    ) {
+      return "twitter";
+    } else if (url.includes("quora.com") && config.enabledPlatforms.quora) {
+      return "quora";
+    } else if (url.includes("weibo.com") && config.enabledPlatforms.weibo) {
+      return "weibo";
     }
-    
+
     return null;
   }
 
@@ -100,42 +121,44 @@ export class ProfileService {
     platform: SupportedPlatform,
     items: ZhihuContent[],
     userProfile?: UserProfile | null,
-    options: CleanContentOptions = {}
+    options: CleanContentOptions = {},
   ): string {
     let text = `Platform: ${platform}\n`;
-    
+
     if (userProfile) {
       text += `User Nickname: ${userProfile.name}\nUser Headline: ${userProfile.headline}\n\n`;
     }
 
     if (!items || items.length === 0) {
       switch (platform) {
-        case 'zhihu':
-          text += 'This user has no public answers or articles.';
+        case "zhihu":
+          text += "This user has no public answers or articles.";
           break;
-        case 'reddit':
-          text += 'This user has no public posts or comments.';
+        case "reddit":
+          text += "This user has no public posts or comments.";
           break;
-        case 'twitter':
-          text += 'This user has no public tweets or replies.';
+        case "twitter":
+          text += "This user has no public tweets or replies.";
           break;
-        case 'quora':
-          text += 'This user has no public answers or questions.';
+        case "quora":
+          text += "This user has no public answers or questions.";
           break;
-        case 'weibo':
+        case "weibo":
         default:
-          text += 'This user has no public content.';
+          text += "This user has no public content.";
           break;
       }
       return text;
     }
 
-    const relevantItems = items.filter(item => item.is_relevant);
-    let otherItems = items.filter(item => !item.is_relevant);
+    const relevantItems = items.filter((item) => item.is_relevant);
+    let otherItems = items.filter((item) => !item.is_relevant);
 
     const minRelevantRatio = options.minRelevantRatio ?? 0.8;
     if (relevantItems.length > 0 && items.length > 0) {
-      const maxOther = Math.floor(relevantItems.length * (1 - minRelevantRatio) / minRelevantRatio);
+      const maxOther = Math.floor(
+        (relevantItems.length * (1 - minRelevantRatio)) / minRelevantRatio,
+      );
       if (otherItems.length > maxOther) {
         otherItems = otherItems.slice(0, Math.max(0, maxOther));
       }
@@ -143,77 +166,94 @@ export class ProfileService {
 
     // --- Aggressive Filtering Strategy ---
     // If we have enough relevant items (e.g. >= 3), we drastically reduce the noise.
-    // We only keep a few "other" items to give a hint of general personality, 
+    // We only keep a few "other" items to give a hint of general personality,
     // but not enough to overwhelm the topic classification.
     if (relevantItems.length >= 3) {
-        console.log(`Found ${relevantItems.length} relevant items. Trimming noise.`);
-        // Keep max 3 other items just for personality context
-        otherItems = otherItems.slice(0, 3);
+      console.log(
+        `Found ${relevantItems.length} relevant items. Trimming noise.`,
+      );
+      // Keep max 3 other items just for personality context
+      otherItems = otherItems.slice(0, 3);
     }
 
     const formatItem = (item: ZhihuContent, maxContentLength: number) => {
-        // Prefer full content, strip HTML, and take a longer slice (e.g. 1000 chars to capture more of the answer)
-        let content = '';
-        if (item.content) {
-          content = this.stripHtml(item.content);
-        } else {
-          content = item.excerpt || '';
-        }
+      // Prefer full content, strip HTML, and take a longer slice (e.g. 1000 chars to capture more of the answer)
+      let content = "";
+      if (item.content) {
+        content = this.stripHtml(item.content);
+      } else {
+        content = item.excerpt || "";
+      }
 
-        // 增加敏感内容过滤（可配置）
-        if (options.redactSensitive) {
-          content = this.filterSensitiveContent(content);
-        }
-        
-        // Increase content length to capture more meaningful content
-        content = content.slice(0, maxContentLength); 
-        
-        const actionTag = item.action_type === 'voted' ? '【Upvoted】' : '【Original】';
-        let typeTag = '';
-        
-        if (platform === 'zhihu') {
-            typeTag = item.type === 'answer' ? '【Answer】' : (item.type === 'article' ? '【Article】' : '【Activity】');
-        } else if (platform === 'reddit') {
-            typeTag = item.type === 'article' ? '【Post】' : '【Comment】';
-        } else if (platform === 'twitter') {
-            typeTag = item.type === 'article' ? '【Tweet】' : '【Reply】';
-        } else if (platform === 'quora') {
-            typeTag = item.type === 'answer' ? '【Answer】' : '【Question】';
-        }
-        
-        const includeMetadata = options.includeMetadata ?? true;
-        const includeExcerpt = options.includeExcerpt ?? true;
-        const metaParts: string[] = [];
-        if (includeMetadata) {
-          metaParts.push(`platform=${platform}`);
-          if (item.created_time) metaParts.push(`time=${item.created_time}`);
-          if (item.action_type) metaParts.push(`action=${item.action_type}`);
-          const votes = (item as any).voteup_count ?? (item as any).score ?? (item as any).ups;
-          if (typeof votes === 'number') metaParts.push(`votes=${votes}`);
-        }
-        const metaLine = includeMetadata ? `Meta: ${metaParts.join(', ')}\n` : '';
-        const excerpt = item.excerpt ? item.excerpt.slice(0, 120) : '';
-        const excerptLine = includeExcerpt && excerpt ? `Excerpt: ${excerpt}\n` : '';
-        return `[ID:${item.id}] ${actionTag}${typeTag} Title: 【${item.title}】\n${metaLine}${excerptLine}Content: ${content}`;
+      // 增加敏感内容过滤（可配置）
+      if (options.redactSensitive) {
+        content = this.filterSensitiveContent(content);
+      }
+
+      // Increase content length to capture more meaningful content
+      content = content.slice(0, maxContentLength);
+
+      const actionTag =
+        item.action_type === "voted" ? "【Upvoted】" : "【Original】";
+      let typeTag = "";
+
+      if (platform === "zhihu") {
+        typeTag =
+          item.type === "answer"
+            ? "【Answer】"
+            : item.type === "article"
+              ? "【Article】"
+              : "【Activity】";
+      } else if (platform === "reddit") {
+        typeTag = item.type === "article" ? "【Post】" : "【Comment】";
+      } else if (platform === "twitter") {
+        typeTag = item.type === "article" ? "【Tweet】" : "【Reply】";
+      } else if (platform === "quora") {
+        typeTag = item.type === "answer" ? "【Answer】" : "【Question】";
+      }
+
+      const includeMetadata = options.includeMetadata ?? true;
+      const includeExcerpt = options.includeExcerpt ?? true;
+      const metaParts: string[] = [];
+      if (includeMetadata) {
+        metaParts.push(`platform=${platform}`);
+        if (item.created_time) metaParts.push(`time=${item.created_time}`);
+        if (item.action_type) metaParts.push(`action=${item.action_type}`);
+        const votes =
+          (item as any).voteup_count ??
+          (item as any).score ??
+          (item as any).ups;
+        if (typeof votes === "number") metaParts.push(`votes=${votes}`);
+      }
+      const metaLine = includeMetadata ? `Meta: ${metaParts.join(", ")}\n` : "";
+      const excerpt = item.excerpt ? item.excerpt.slice(0, 120) : "";
+      const excerptLine =
+        includeExcerpt && excerpt ? `Excerpt: ${excerpt}\n` : "";
+      return `[ID:${item.id}] ${actionTag}${typeTag} Title: 【${item.title}】\n${metaLine}${excerptLine}Content: ${content}`;
     };
 
     const MAX_TOTAL_CHARS = 20000;
     const RELEVANT_SLICE = 1000;
     const OTHER_SLICE = 500;
 
-    let contentText = '';
+    let contentText = "";
     let remaining = MAX_TOTAL_CHARS;
 
-    const appendSection = (header: string, itemsToAdd: ZhihuContent[], sliceLimit: number) => {
+    const appendSection = (
+      header: string,
+      itemsToAdd: ZhihuContent[],
+      sliceLimit: number,
+    ) => {
       if (itemsToAdd.length === 0 || remaining <= 0) return;
-      const headerWithNewline = header + '\n';
+      const headerWithNewline = header + "\n";
       if (headerWithNewline.length > remaining) return;
       contentText += headerWithNewline;
       remaining -= headerWithNewline.length;
 
       for (const item of itemsToAdd) {
         const formatted = formatItem(item, sliceLimit);
-        const block = (contentText.endsWith('\n') ? '' : '\n') + formatted + '\n\n';
+        const block =
+          (contentText.endsWith("\n") ? "" : "\n") + formatted + "\n\n";
         if (block.length > remaining) break;
         contentText += block;
         remaining -= block.length;
@@ -223,23 +263,31 @@ export class ProfileService {
     const uniqueRelevant = this.deduplicateItems(relevantItems);
     const uniqueOthers = this.deduplicateItems(otherItems);
 
-    appendSection('--- RELEVANT CONTENT (★ Key Analysis) ---', uniqueRelevant, RELEVANT_SLICE);
-    appendSection('--- OTHER RECENT CONTENT (For Personality Reference Only) ---', uniqueOthers, OTHER_SLICE);
-    
+    appendSection(
+      "--- RELEVANT CONTENT (★ Key Analysis) ---",
+      uniqueRelevant,
+      RELEVANT_SLICE,
+    );
+    appendSection(
+      "--- OTHER RECENT CONTENT (For Personality Reference Only) ---",
+      uniqueOthers,
+      OTHER_SLICE,
+    );
+
     return text + contentText;
   }
 
   private static stripHtml(html: string): string {
-    if (!html) return '';
-    return html.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ');
+    if (!html) return "";
+    return html.replace(/<[^>]*>?/gm, "").replace(/&nbsp;/g, " ");
   }
 
   private static deduplicateItems(items: ZhihuContent[]): ZhihuContent[] {
     const seen = new Set<string>();
     const result: ZhihuContent[] = [];
     for (const item of items) {
-      const title = item.title || '';
-      const content = item.content || item.excerpt || '';
+      const title = item.title || "";
+      const content = item.content || item.excerpt || "";
       const signature = `${title.trim().toLowerCase()}|${content.trim().toLowerCase().slice(0, 200)}`;
       if (seen.has(signature)) continue;
       seen.add(signature);
@@ -247,11 +295,11 @@ export class ProfileService {
     }
     return result;
   }
-  
+
   // 敏感内容过滤函数，移除或替换可能触发AI安全过滤的词汇
   private static filterSensitiveContent(content: string): string {
     if (!content) return content;
-    
+
     // 仅对高风险内容进行替换，避免过度削弱语义
     const sensitivePatterns = [
       // 自伤/自杀
@@ -275,24 +323,27 @@ export class ProfileService {
       /\b(child porn|child pornography)\b/gi,
       // 毒品与制毒贩毒
       /毒品|制毒|贩毒/gi,
-      /\b(drug trafficking|cocaine|heroin|meth)\b/gi
+      /\b(drug trafficking|cocaine|heroin|meth)\b/gi,
     ];
-    
+
     let filteredContent = content;
     for (const pattern of sensitivePatterns) {
       // 将敏感词替换为中性词汇或删除
-      filteredContent = filteredContent.replace(pattern, '[REDACTED]');
+      filteredContent = filteredContent.replace(pattern, "[REDACTED]");
     }
-    
+
     return filteredContent;
   }
-  
+
   // 使用标准化标签系统分析用户内容
   static async analyzeWithStandardLabels(
     content: string,
-    topicClassification: string
+    topicClassification: string,
   ) {
     const labelService = LabelService.getInstance();
-    return labelService.analyzeContentWithStandardLabels(content, topicClassification);
+    return labelService.analyzeContentWithStandardLabels(
+      content,
+      topicClassification,
+    );
   }
 }

@@ -14,25 +14,42 @@ export type TelemetryRecord = {
 const TELEMETRY_STORAGE_KEY = "deep_profile_telemetry";
 
 export class TelemetryService {
-  static async recordError(name: string, data?: Record<string, any>): Promise<void> {
+  static async recordError(
+    name: string,
+    data?: Record<string, any>,
+  ): Promise<void> {
     await this.record("error", name, data);
   }
 
-  static async recordEvent(name: string, data?: Record<string, any>): Promise<void> {
+  static async recordEvent(
+    name: string,
+    data?: Record<string, any>,
+  ): Promise<void> {
     await this.record("event", name, data);
   }
 
-  static async recordPerformance(name: string, data?: Record<string, any>): Promise<void> {
+  static async recordPerformance(
+    name: string,
+    data?: Record<string, any>,
+  ): Promise<void> {
     await this.record("performance", name, data);
   }
 
-  static async recordCompliance(name: string, data?: Record<string, any>): Promise<void> {
+  static async recordCompliance(
+    name: string,
+    data?: Record<string, any>,
+  ): Promise<void> {
     await this.record("compliance", name, data);
   }
 
-  private static async record(category: TelemetryCategory, name: string, data?: Record<string, any>): Promise<void> {
+  private static async record(
+    category: TelemetryCategory,
+    name: string,
+    data?: Record<string, any>,
+  ): Promise<void> {
     const config = await this.getObservabilityConfig();
-    if (this.isProduction() && (!config.allowInProd || !config.prodConsent)) return;
+    if (this.isProduction() && (!config.allowInProd || !config.prodConsent))
+      return;
     if (!this.isEnabled(category, config)) return;
     if (!this.shouldSample(config)) return;
 
@@ -41,7 +58,7 @@ export class TelemetryService {
       category,
       name,
       timestamp: Date.now(),
-      data
+      data,
     };
 
     await this.enqueue(record, config);
@@ -58,7 +75,10 @@ export class TelemetryService {
   private static async getObservabilityConfig(): Promise<ObservabilityConfig> {
     try {
       const config = await ConfigService.getConfig();
-      return { ...DEFAULT_CONFIG.observability, ...(config.observability || {}) };
+      return {
+        ...DEFAULT_CONFIG.observability,
+        ...(config.observability || {}),
+      };
     } catch (e) {
       return DEFAULT_CONFIG.observability;
     }
@@ -76,10 +96,14 @@ export class TelemetryService {
     return true;
   }
 
-  private static isEnabled(category: TelemetryCategory, config: ObservabilityConfig): boolean {
+  private static isEnabled(
+    category: TelemetryCategory,
+    config: ObservabilityConfig,
+  ): boolean {
     if (category === "error") return !!config.errorMonitoringEnabled;
     if (category === "event") return !!config.analyticsEnabled;
-    if (category === "performance") return !!config.performanceMonitoringEnabled;
+    if (category === "performance")
+      return !!config.performanceMonitoringEnabled;
     if (category === "compliance") return !!config.complianceMonitoringEnabled;
     return false;
   }
@@ -89,7 +113,10 @@ export class TelemetryService {
     return Math.random() <= sampleRate;
   }
 
-  private static async enqueue(record: TelemetryRecord, config: ObservabilityConfig): Promise<void> {
+  private static async enqueue(
+    record: TelemetryRecord,
+    config: ObservabilityConfig,
+  ): Promise<void> {
     if (!chrome?.storage?.local) return;
     try {
       const result = await chrome.storage.local.get(TELEMETRY_STORAGE_KEY);
@@ -115,7 +142,7 @@ export class TelemetryService {
       const response = await fetch(config.endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ records: queue })
+        body: JSON.stringify({ records: queue }),
       });
 
       if (response.ok) {

@@ -1,6 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ConfigService } from './ConfigService';
-import { CONFIG_VERSION, DEFAULT_CONFIG, type ExtendedAppConfig } from '../types';
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { ConfigService } from "./ConfigService";
+import {
+  CONFIG_VERSION,
+  DEFAULT_CONFIG,
+  type ExtendedAppConfig,
+} from "../types";
 
 // Mock chrome.storage.local
 const storageMock = {
@@ -14,15 +18,21 @@ global.chrome = {
   },
 } as any;
 
-const buildConfig = (overrides: Partial<ExtendedAppConfig>): ExtendedAppConfig => {
+const buildConfig = (
+  overrides: Partial<ExtendedAppConfig>,
+): ExtendedAppConfig => {
   const mergedPlatformConfigs: ExtendedAppConfig["platformConfigs"] = {
-    ...DEFAULT_CONFIG.platformConfigs
+    ...DEFAULT_CONFIG.platformConfigs,
   };
 
-  for (const [platform, config] of Object.entries(overrides.platformConfigs || {})) {
-    mergedPlatformConfigs[platform as keyof ExtendedAppConfig["platformConfigs"]] = {
+  for (const [platform, config] of Object.entries(
+    overrides.platformConfigs || {},
+  )) {
+    mergedPlatformConfigs[
+      platform as keyof ExtendedAppConfig["platformConfigs"]
+    ] = {
       ...(DEFAULT_CONFIG.platformConfigs as Record<string, any>)[platform],
-      ...config
+      ...config,
     };
   }
 
@@ -30,188 +40,207 @@ const buildConfig = (overrides: Partial<ExtendedAppConfig>): ExtendedAppConfig =
     ...DEFAULT_CONFIG,
     ...overrides,
     apiKeys: { ...DEFAULT_CONFIG.apiKeys, ...(overrides.apiKeys || {}) },
-    customBaseUrls: { ...DEFAULT_CONFIG.customBaseUrls, ...(overrides.customBaseUrls || {}) },
-    customModelNames: { ...DEFAULT_CONFIG.customModelNames, ...(overrides.customModelNames || {}) },
-    observability: { ...DEFAULT_CONFIG.observability, ...(overrides.observability || {}) },
-    enabledPlatforms: { ...DEFAULT_CONFIG.enabledPlatforms, ...(overrides.enabledPlatforms || {}) },
-    platformAnalysisModes: { ...DEFAULT_CONFIG.platformAnalysisModes, ...(overrides.platformAnalysisModes || {}) },
+    customBaseUrls: {
+      ...DEFAULT_CONFIG.customBaseUrls,
+      ...(overrides.customBaseUrls || {}),
+    },
+    customModelNames: {
+      ...DEFAULT_CONFIG.customModelNames,
+      ...(overrides.customModelNames || {}),
+    },
+    observability: {
+      ...DEFAULT_CONFIG.observability,
+      ...(overrides.observability || {}),
+    },
+    enabledPlatforms: {
+      ...DEFAULT_CONFIG.enabledPlatforms,
+      ...(overrides.enabledPlatforms || {}),
+    },
+    platformAnalysisModes: {
+      ...DEFAULT_CONFIG.platformAnalysisModes,
+      ...(overrides.platformAnalysisModes || {}),
+    },
     platformConfigs: mergedPlatformConfigs,
-    themes: { ...DEFAULT_CONFIG.themes, ...(overrides.themes || {}) }
+    themes: { ...DEFAULT_CONFIG.themes, ...(overrides.themes || {}) },
   };
 };
 
-describe('ConfigService', () => {
+describe("ConfigService", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     ConfigService.clearCache();
   });
 
-  it('should return default config when storage is empty', async () => {
+  it("should return default config when storage is empty", async () => {
     storageMock.get.mockResolvedValue({});
     const config = await ConfigService.getConfig();
     expect(config).toEqual(DEFAULT_CONFIG);
-    expect(storageMock.get).toHaveBeenCalledWith('deep_profile_config');
+    expect(storageMock.get).toHaveBeenCalledWith("deep_profile_config");
   });
 
-  it('should return stored config when available', async () => {
+  it("should return stored config when available", async () => {
     const storedConfig = buildConfig({
-      selectedProvider: 'deepseek',
-      apiKeys: { deepseek: 'test-key' },
+      selectedProvider: "deepseek",
+      apiKeys: { deepseek: "test-key" },
       customBaseUrls: {},
       customModelNames: {},
-      redactSensitiveMode: 'sensitive-providers',
+      redactSensitiveMode: "sensitive-providers",
       enabledPlatforms: {
         zhihu: true,
         twitter: false,
         weibo: false,
-        reddit: true
+        reddit: true,
       },
       platformAnalysisModes: {
-        zhihu: 'balanced',
-        twitter: 'balanced',
-        weibo: 'balanced',
-        reddit: 'balanced'
+        zhihu: "balanced",
+        twitter: "balanced",
+        weibo: "balanced",
+        reddit: "balanced",
       },
       platformConfigs: {
         zhihu: {
-          apiEndpoint: 'https://www.zhihu.com/api/v4',
-          baseUrl: 'https://www.zhihu.com',
-          enabled: true
+          apiEndpoint: "https://www.zhihu.com/api/v4",
+          baseUrl: "https://www.zhihu.com",
+          enabled: true,
         },
         twitter: {
-          apiEndpoint: 'https://api.twitter.com',
-          baseUrl: 'https://twitter.com',
-          enabled: false
+          apiEndpoint: "https://api.twitter.com",
+          baseUrl: "https://twitter.com",
+          enabled: false,
         },
         weibo: {
-          apiEndpoint: 'https://api.weibo.com',
-          baseUrl: 'https://weibo.com',
-          enabled: false
+          apiEndpoint: "https://api.weibo.com",
+          baseUrl: "https://weibo.com",
+          enabled: false,
         },
         reddit: {
-          apiEndpoint: 'https://oauth.reddit.com',
-          baseUrl: 'https://www.reddit.com',
-          enabled: true
-        }
+          apiEndpoint: "https://oauth.reddit.com",
+          baseUrl: "https://www.reddit.com",
+          enabled: true,
+        },
       },
       // Include theme-related fields to make the config complete
-      themeId: 'zhihu-white',
-      themes: DEFAULT_CONFIG.themes
+      themeId: "zhihu-white",
+      themes: DEFAULT_CONFIG.themes,
     });
     storageMock.get.mockResolvedValue({ deep_profile_config: storedConfig });
     const config = await ConfigService.getConfig();
     expect(config).toEqual(storedConfig);
   });
 
-  it('should save config correctly', async () => {
+  it("should save config correctly", async () => {
     const newConfig = buildConfig({
-      selectedProvider: 'gemini',
-      apiKeys: { gemini: 'gemini-key' },
+      selectedProvider: "gemini",
+      apiKeys: { gemini: "gemini-key" },
       customBaseUrls: {},
       customModelNames: {},
-      redactSensitiveMode: 'sensitive-providers',
+      redactSensitiveMode: "sensitive-providers",
       enabledPlatforms: {
         zhihu: true,
         twitter: false,
         weibo: false,
-        reddit: true
+        reddit: true,
       },
       platformAnalysisModes: {
-        zhihu: 'balanced',
-        twitter: 'balanced',
-        weibo: 'balanced',
-        reddit: 'balanced'
+        zhihu: "balanced",
+        twitter: "balanced",
+        weibo: "balanced",
+        reddit: "balanced",
       },
       platformConfigs: {
         zhihu: {
-          apiEndpoint: 'https://www.zhihu.com/api/v4',
-          baseUrl: 'https://www.zhihu.com',
-          enabled: true
+          apiEndpoint: "https://www.zhihu.com/api/v4",
+          baseUrl: "https://www.zhihu.com",
+          enabled: true,
         },
         twitter: {
-          apiEndpoint: 'https://api.twitter.com',
-          baseUrl: 'https://twitter.com',
-          enabled: false
+          apiEndpoint: "https://api.twitter.com",
+          baseUrl: "https://twitter.com",
+          enabled: false,
         },
         weibo: {
-          apiEndpoint: 'https://api.weibo.com',
-          baseUrl: 'https://weibo.com',
-          enabled: false
+          apiEndpoint: "https://api.weibo.com",
+          baseUrl: "https://weibo.com",
+          enabled: false,
         },
         reddit: {
-          apiEndpoint: 'https://oauth.reddit.com',
-          baseUrl: 'https://www.reddit.com',
-          enabled: true
-        }
+          apiEndpoint: "https://oauth.reddit.com",
+          baseUrl: "https://www.reddit.com",
+          enabled: true,
+        },
       },
-      themeId: 'zhihu-white',
-      themes: DEFAULT_CONFIG.themes
+      themeId: "zhihu-white",
+      themes: DEFAULT_CONFIG.themes,
     });
     await ConfigService.saveConfig(newConfig as any);
-    expect(storageMock.set).toHaveBeenCalledWith({ deep_profile_config: newConfig });
+    expect(storageMock.set).toHaveBeenCalledWith({
+      deep_profile_config: newConfig,
+    });
   });
 
-  it('should update api key correctly', async () => {
+  it("should update api key correctly", async () => {
     const initialConfig = buildConfig({
-      selectedProvider: 'openai',
-      apiKeys: { openai: 'old-key' },
+      selectedProvider: "openai",
+      apiKeys: { openai: "old-key" },
       customBaseUrls: {},
       customModelNames: {},
-      redactSensitiveMode: 'sensitive-providers',
+      redactSensitiveMode: "sensitive-providers",
       enabledPlatforms: {
         zhihu: true,
         twitter: false,
         weibo: false,
-        reddit: true
+        reddit: true,
       },
       platformAnalysisModes: {
-        zhihu: 'balanced',
-        twitter: 'balanced',
-        weibo: 'balanced',
-        reddit: 'balanced'
+        zhihu: "balanced",
+        twitter: "balanced",
+        weibo: "balanced",
+        reddit: "balanced",
       },
       platformConfigs: {
         zhihu: {
-          apiEndpoint: 'https://www.zhihu.com/api/v4',
-          baseUrl: 'https://www.zhihu.com',
-          enabled: true
+          apiEndpoint: "https://www.zhihu.com/api/v4",
+          baseUrl: "https://www.zhihu.com",
+          enabled: true,
         },
         twitter: {
-          apiEndpoint: 'https://api.twitter.com',
-          baseUrl: 'https://twitter.com',
-          enabled: false
+          apiEndpoint: "https://api.twitter.com",
+          baseUrl: "https://twitter.com",
+          enabled: false,
         },
         weibo: {
-          apiEndpoint: 'https://api.weibo.com',
-          baseUrl: 'https://weibo.com',
-          enabled: false
+          apiEndpoint: "https://api.weibo.com",
+          baseUrl: "https://weibo.com",
+          enabled: false,
         },
         reddit: {
-          apiEndpoint: 'https://oauth.reddit.com',
-          baseUrl: 'https://www.reddit.com',
-          enabled: true
-        }
+          apiEndpoint: "https://oauth.reddit.com",
+          baseUrl: "https://www.reddit.com",
+          enabled: true,
+        },
       },
-      themeId: 'zhihu-white',
-      themes: DEFAULT_CONFIG.themes
+      themeId: "zhihu-white",
+      themes: DEFAULT_CONFIG.themes,
     });
     storageMock.get.mockResolvedValue({ deep_profile_config: initialConfig });
 
-    await ConfigService.updateApiKey('openai', 'new-key');
+    await ConfigService.updateApiKey("openai", "new-key");
 
     const expectedConfig = {
       ...initialConfig,
-      apiKeys: { openai: 'new-key' },
+      apiKeys: { openai: "new-key" },
     };
-    expect(storageMock.set).toHaveBeenCalledWith({ deep_profile_config: expectedConfig });
+    expect(storageMock.set).toHaveBeenCalledWith({
+      deep_profile_config: expectedConfig,
+    });
   });
 
-  it('should migrate older config versions and fill missing defaults', async () => {
+  it("should migrate older config versions and fill missing defaults", async () => {
     const legacyConfig = {
       configVersion: 0,
-      selectedProvider: 'openai',
-      apiKeys: { openai: 'legacy-key' },
-      enabledPlatforms: { zhihu: true }
+      selectedProvider: "openai",
+      apiKeys: { openai: "legacy-key" },
+      enabledPlatforms: { zhihu: true },
     };
 
     storageMock.get.mockResolvedValue({ deep_profile_config: legacyConfig });
@@ -219,12 +248,18 @@ describe('ConfigService', () => {
 
     expect(config.configVersion).toBe(CONFIG_VERSION);
     expect(config.redactSensitiveMode).toBe(DEFAULT_CONFIG.redactSensitiveMode);
-    expect(config.enabledPlatforms.quora).toBe(DEFAULT_CONFIG.enabledPlatforms.quora);
-    expect(config.platformConfigs.quora).toEqual(DEFAULT_CONFIG.platformConfigs.quora);
+    expect(config.enabledPlatforms.quora).toBe(
+      DEFAULT_CONFIG.enabledPlatforms.quora,
+    );
+    expect(config.platformConfigs.quora).toEqual(
+      DEFAULT_CONFIG.platformConfigs.quora,
+    );
   });
 
-  it('should cache config after first load', async () => {
-    storageMock.get.mockResolvedValue({ deep_profile_config: buildConfig({ selectedProvider: 'openai' }) });
+  it("should cache config after first load", async () => {
+    storageMock.get.mockResolvedValue({
+      deep_profile_config: buildConfig({ selectedProvider: "openai" }),
+    });
 
     const first = await ConfigService.getConfig();
     const second = await ConfigService.getConfig();
@@ -233,9 +268,12 @@ describe('ConfigService', () => {
     expect(storageMock.get).toHaveBeenCalledTimes(1);
   });
 
-  it('should return cached config after save without extra read', async () => {
+  it("should return cached config after save without extra read", async () => {
     storageMock.get.mockResolvedValue({});
-    const saved = buildConfig({ selectedProvider: 'gemini', apiKeys: { gemini: 'test' } });
+    const saved = buildConfig({
+      selectedProvider: "gemini",
+      apiKeys: { gemini: "test" },
+    });
 
     await ConfigService.saveConfig(saved);
     const config = await ConfigService.getConfig();

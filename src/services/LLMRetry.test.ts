@@ -28,14 +28,15 @@ describe("LLMRetry", () => {
   });
 
   it("retries until success", async () => {
-    const fn = vi.fn()
+    const fn = vi
+      .fn()
       .mockRejectedValueOnce(new Error("fail"))
       .mockResolvedValueOnce("ok");
 
     const resultPromise = withRetry(fn, {
       retries: 2,
       baseDelayMs: 10,
-      shouldRetry: () => true
+      shouldRetry: () => true,
     });
 
     await Promise.resolve();
@@ -48,10 +49,12 @@ describe("LLMRetry", () => {
   it("stops retry when shouldRetry returns false", async () => {
     const fn = vi.fn().mockRejectedValue(new Error("nope"));
 
-    await expect(withRetry(fn, {
-      retries: 2,
-      baseDelayMs: 10,
-      shouldRetry: () => false
-    })).rejects.toThrow("nope");
+    await expect(
+      withRetry(fn, {
+        retries: 2,
+        baseDelayMs: 10,
+        shouldRetry: () => false,
+      }),
+    ).rejects.toThrow("nope");
   });
 });

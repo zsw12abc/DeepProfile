@@ -11,7 +11,7 @@ describe("createInjectionScheduler", () => {
     vi.useRealTimers();
     Object.defineProperty(document, "hidden", {
       configurable: true,
-      value: false
+      value: false,
     });
   });
 
@@ -20,12 +20,12 @@ describe("createInjectionScheduler", () => {
     const scheduler = createInjectionScheduler({
       injectButtons,
       shouldProcess: () => true,
-      debounceMs: 10
+      debounceMs: 10,
     });
 
     Object.defineProperty(document, "hidden", {
       configurable: true,
-      value: true
+      value: true,
     });
 
     scheduler.start(document.body);
@@ -34,7 +34,7 @@ describe("createInjectionScheduler", () => {
 
     Object.defineProperty(document, "hidden", {
       configurable: true,
-      value: false
+      value: false,
     });
     document.dispatchEvent(new Event("visibilitychange"));
     vi.runAllTimers();
@@ -47,7 +47,7 @@ describe("createInjectionScheduler", () => {
     const scheduler = createInjectionScheduler({
       injectButtons,
       shouldProcess: () => true,
-      debounceMs: 10
+      debounceMs: 10,
     });
 
     scheduler.start(document.body);

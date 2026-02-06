@@ -4,8 +4,8 @@ import { ConfigService } from "./ConfigService";
 
 vi.mock("./ConfigService", () => ({
   ConfigService: {
-    getConfig: vi.fn()
-  }
+    getConfig: vi.fn(),
+  },
 }));
 
 const createStorageMock = () => {
@@ -15,7 +15,7 @@ const createStorageMock = () => {
     get: vi.fn(async (key: string) => ({ [key]: data[key] })),
     set: vi.fn(async (obj: Record<string, any>) => {
       Object.assign(data, obj);
-    })
+    }),
   };
 };
 
@@ -28,8 +28,8 @@ describe("TelemetryService", () => {
     storageMock = createStorageMock();
     (global as any).chrome = {
       storage: {
-        local: storageMock
-      }
+        local: storageMock,
+      },
     };
     randomSpy = vi.spyOn(Math, "random").mockReturnValue(0);
   });
@@ -51,8 +51,8 @@ describe("TelemetryService", () => {
         prodConsent: false,
         endpoint: "",
         sampleRate: 1,
-        maxQueueSize: 200
-      }
+        maxQueueSize: 200,
+      },
     } as any);
 
     await TelemetryService.recordEvent("test_event");
@@ -71,11 +71,13 @@ describe("TelemetryService", () => {
         prodConsent: false,
         endpoint: "",
         sampleRate: 1,
-        maxQueueSize: 200
-      }
+        maxQueueSize: 200,
+      },
     } as any);
 
-    await TelemetryService.recordEvent("analysis_button_clicked", { platform: "zhihu" });
+    await TelemetryService.recordEvent("analysis_button_clicked", {
+      platform: "zhihu",
+    });
     expect(storageMock.set).toHaveBeenCalled();
     const stored = storageMock.data["deep_profile_telemetry"] as any[];
     expect(stored).toHaveLength(1);
@@ -94,8 +96,8 @@ describe("TelemetryService", () => {
         prodConsent: false,
         endpoint: "https://example.com/ingest",
         sampleRate: 1,
-        maxQueueSize: 200
-      }
+        maxQueueSize: 200,
+      },
     } as any);
 
     global.fetch = vi.fn().mockResolvedValue({ ok: true }) as any;
@@ -120,8 +122,8 @@ describe("TelemetryService", () => {
         prodConsent: false,
         endpoint: "",
         sampleRate: 0,
-        maxQueueSize: 200
-      }
+        maxQueueSize: 200,
+      },
     } as any);
 
     await TelemetryService.recordEvent("sampled_out");

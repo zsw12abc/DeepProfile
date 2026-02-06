@@ -4,8 +4,8 @@ import { ConfigService } from "./ConfigService";
 
 vi.mock("./ConfigService", () => ({
   ConfigService: {
-    getConfigSync: vi.fn()
-  }
+    getConfigSync: vi.fn(),
+  },
 }));
 
 describe("Logger", () => {
@@ -14,7 +14,9 @@ describe("Logger", () => {
   });
 
   it("logs debug/info when enableDebug is true", () => {
-    vi.mocked(ConfigService.getConfigSync).mockReturnValue({ enableDebug: true } as any);
+    vi.mocked(ConfigService.getConfigSync).mockReturnValue({
+      enableDebug: true,
+    } as any);
     const debugSpy = vi.spyOn(console, "debug").mockImplementation(() => {});
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
@@ -26,7 +28,9 @@ describe("Logger", () => {
   });
 
   it("skips debug/info when enableDebug is false", () => {
-    vi.mocked(ConfigService.getConfigSync).mockReturnValue({ enableDebug: false } as any);
+    vi.mocked(ConfigService.getConfigSync).mockReturnValue({
+      enableDebug: false,
+    } as any);
     const debugSpy = vi.spyOn(console, "debug").mockImplementation(() => {});
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
@@ -38,7 +42,9 @@ describe("Logger", () => {
   });
 
   it("always logs warn/error", () => {
-    vi.mocked(ConfigService.getConfigSync).mockReturnValue({ enableDebug: false } as any);
+    vi.mocked(ConfigService.getConfigSync).mockReturnValue({
+      enableDebug: false,
+    } as any);
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
