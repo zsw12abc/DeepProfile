@@ -1,52 +1,52 @@
-import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { Card, InputGroup } from './UIComponents';
-import { describe, it, expect } from 'vitest';
+import React from "react";
+import { render, screen } from "@testing-library/react";
+import { Card, InputGroup } from "./UIComponents";
+import { describe, it, expect } from "vitest";
 
-describe('UIComponents', () => {
-  describe('Card', () => {
-    it('renders title and children correctly', () => {
+describe("UIComponents", () => {
+  describe("Card", () => {
+    it("renders title and children correctly", () => {
       render(
         <Card title="Test Title">
           <div>Child Content</div>
-        </Card>
+        </Card>,
       );
 
-      expect(screen.getByText('Test Title')).toBeInTheDocument();
-      expect(screen.getByText('Child Content')).toBeInTheDocument();
+      expect(screen.getByText("Test Title")).toBeInTheDocument();
+      expect(screen.getByText("Child Content")).toBeInTheDocument();
     });
 
-    it('renders icon when provided', () => {
+    it("renders icon when provided", () => {
       render(
         <Card title="Test Title" icon={<span data-testid="icon">icon</span>}>
           <div>Child Content</div>
-        </Card>
+        </Card>,
       );
 
-      expect(screen.getByTestId('icon')).toBeInTheDocument();
+      expect(screen.getByTestId("icon")).toBeInTheDocument();
     });
   });
 
-  describe('InputGroup', () => {
-    it('renders label and children correctly', () => {
+  describe("InputGroup", () => {
+    it("renders label and children correctly", () => {
       render(
         <InputGroup label="Test Label">
           <input type="text" />
-        </InputGroup>
+        </InputGroup>,
       );
 
-      expect(screen.getByText('Test Label')).toBeInTheDocument();
-      expect(screen.getByRole('textbox')).toBeInTheDocument();
+      expect(screen.getByText("Test Label")).toBeInTheDocument();
+      expect(screen.getByRole("textbox")).toBeInTheDocument();
     });
 
-    it('renders subLabel when provided', () => {
+    it("renders subLabel when provided", () => {
       render(
         <InputGroup label="Test Label" subLabel="Test SubLabel">
           <input type="text" />
-        </InputGroup>
+        </InputGroup>,
       );
 
-      expect(screen.getByText('Test SubLabel')).toBeInTheDocument();
+      expect(screen.getByText("Test SubLabel")).toBeInTheDocument();
     });
   });
 });

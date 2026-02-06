@@ -4,21 +4,21 @@ import { StructuredOutputParser } from "langchain/output_parsers";
 // Define Zod schemas for structured output
 const ValueOrientationSchema = z.object({
   label: z.string(),
-  score: z.number().min(-1).max(1)
+  score: z.number().min(-1).max(1),
 });
 
 const EvidenceSchema = z.object({
   quote: z.string(),
   analysis: z.string(),
   source_title: z.string(),
-  source_id: z.string().optional()
+  source_id: z.string().optional(),
 });
 
 export const FastProfileSchema = z.object({
   nickname: z.string(),
   topic_classification: z.string(),
   value_orientation: z.array(ValueOrientationSchema),
-  summary: z.string()
+  summary: z.string(),
 });
 
 export const BalancedDeepProfileSchema = z.object({
@@ -27,34 +27,46 @@ export const BalancedDeepProfileSchema = z.object({
   reasoning: z.string(),
   value_orientation: z.array(ValueOrientationSchema),
   summary: z.string(),
-  evidence: z.array(EvidenceSchema)
+  evidence: z.array(EvidenceSchema),
 });
 
 export class StructuredOutputService {
-  static getParserForMode(mode: 'fast' | 'balanced' | 'deep') {
-    if (mode === 'fast') {
+  static getParserForMode(mode: "fast" | "balanced" | "deep") {
+    if (mode === "fast") {
       return StructuredOutputParser.fromZodSchema(FastProfileSchema);
     } else {
       return StructuredOutputParser.fromZodSchema(BalancedDeepProfileSchema);
     }
   }
 
-  static getFormatInstructions(mode: 'fast' | 'balanced' | 'deep'): string {
+  static getFormatInstructions(mode: "fast" | "balanced" | "deep"): string {
     const parser = this.getParserForMode(mode);
     return parser.getFormatInstructions();
   }
 
-  static async parseOutput(output: string, mode: 'fast' | 'balanced' | 'deep') {
+  static async parseOutput(output: string, mode: "fast" | "balanced" | "deep") {
     const parser = this.getParserForMode(mode);
     return parser.parse(output);
   }
-  
+
   // 获取用于动态 few-shot 选择的嵌入向量
-  static getSchemaFields(mode: 'fast' | 'balanced' | 'deep') {
-    if (mode === 'fast') {
-      return ['nickname', 'topic_classification', 'value_orientation', 'summary'];
+  static getSchemaFields(mode: "fast" | "balanced" | "deep") {
+    if (mode === "fast") {
+      return [
+        "nickname",
+        "topic_classification",
+        "value_orientation",
+        "summary",
+      ];
     } else {
-      return ['nickname', 'topic_classification', 'reasoning', 'value_orientation', 'summary', 'evidence'];
+      return [
+        "nickname",
+        "topic_classification",
+        "reasoning",
+        "value_orientation",
+        "summary",
+        "evidence",
+      ];
     }
   }
 }

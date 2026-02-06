@@ -25,6 +25,27 @@ export const zhCN: LocaleDict = {
   settings_quora: "Quora 设置",
   debug_mode: "调试模式",
   debug_mode_desc: "启用详细日志记录",
+  analysis_button_toggle: "显示分析按钮",
+  analysis_button_toggle_desc: "控制是否在该网站显示分析按钮。",
+  comment_analysis_toggle: "启用评论分析",
+  comment_analysis_toggle_desc: "控制是否在知乎显示评论分析按钮。",
+  observability_settings: "可观测性",
+  observability_error: "异常监控",
+  observability_error_desc: "捕获运行时错误与异常。",
+  observability_analytics: "行为分析",
+  observability_analytics_desc: "统计功能使用与按钮交互。",
+  observability_performance: "性能监测",
+  observability_performance_desc: "记录分析耗时与性能指标。",
+  observability_compliance: "合规监测",
+  observability_compliance_desc: "跟踪脱敏与合规相关信号。",
+  observability_endpoint: "遥测上报地址",
+  observability_endpoint_desc: "可选。填写后将上报到该地址。",
+  observability_endpoint_placeholder: "https://telemetry.example.com/ingest",
+  observability_sample_rate: "采样率",
+  observability_prod_allow: "允许在生产环境启用",
+  observability_prod_allow_desc: "生产环境需要显式授权才会开启遥测。",
+  observability_prod_consent: "确认生产环境授权",
+  observability_prod_consent_desc: "我已理解生产环境将采集遥测数据。",
   settings_history: "历史记录",
   settings_debug: "开发者选项",
   plugin_enabled: "✅ 插件已启用",
@@ -46,7 +67,7 @@ export const zhCN: LocaleDict = {
   mode_balanced_desc: "适中内容，平衡速度与质量",
   mode_deep: "🧠 深度",
   mode_deep_desc: "最多内容，最全面分析",
-  
+
   // Categories
   category_politics: "🏛️ 政治 (Politics)",
   category_economy: "💰 经济 (Economy)",
@@ -57,7 +78,7 @@ export const zhCN: LocaleDict = {
   category_entertainment: "🎮 娱乐 (Entertainment)",
   category_lifestyle_career: "💼 生活与职场 (Lifestyle & Career)",
   category_general: "🌐 通用综合",
-  
+
   // Profile Card
   analyzing: "正在分析",
   topic_classification: "话题分类",
@@ -80,7 +101,7 @@ export const zhCN: LocaleDict = {
   data_breakdown: "数据分解",
   unknown_user: "未知用户",
   unknown_topic: "未知话题",
-  
+
   // Errors
   error_401: "认证失败 (401) 🔐: 请检查您的 API Key 是否正确。",
   error_402: "余额不足 (402) 💸: 请检查您的 API Key 余额。",
@@ -88,10 +109,14 @@ export const zhCN: LocaleDict = {
   error_429: "太热情啦 (429) 🔥，AI 有点忙不过来，请稍后再试。",
   error_500: "AI 服务商罢工了 (500) 💥，请稍后再试。",
   error_network: "网络开小差了 🌐，请检查网络连接或代理设置。",
-  error_zhihu_403: "哎呀，被知乎拦截了 (403) 🚧。请试着刷新一下知乎页面，或者确认是否登录了哦～",
-  error_user_not_found: "哎呀，找不到这个用户的数据 🕵️‍♂️，可能是账号被封禁或设置了隐私保护。",
+  error_zhihu_403:
+    "哎呀，被知乎拦截了 (403) 🚧。请试着刷新一下知乎页面，或者确认是否登录了哦～",
+  error_user_not_found:
+    "哎呀，找不到这个用户的数据 🕵️‍♂️，可能是账号被封禁或设置了隐私保护。",
   error_extension_context: "扩展上下文已失效，请刷新页面重试。",
-  error_content_filter: "内容安全审查失败：输入内容被AI服务商标记为可能不当。请尝试切换到DeepSeek或OpenAI等模型。",
+  error_content_filter:
+    "内容安全审查失败：输入内容被AI服务商标记为可能不当。请尝试切换到DeepSeek或OpenAI等模型。",
+  error_missing_api_key: "API Key 缺失 🔑：请为当前选择的模型配置 API Key。",
 
   // Export
   click_jump: "点击跳转",
@@ -101,7 +126,7 @@ export const zhCN: LocaleDict = {
   start_ai_journey: "开启AI之旅",
   ai_profile_analysis: "AI驱动的用户画像分析",
   date_label: "日期",
-  
+
   // Comment Analysis
   analyzing_comments: "正在分析当前页面的评论...",
   expanding_comments: "正在展开评论区...",
@@ -132,6 +157,10 @@ export const zhCN: LocaleDict = {
   theme_reddit_white_desc: "Reddit风格的浅色主题，橙蓝点缀",
   theme_reddit_black_name: "Reddit黑主题",
   theme_reddit_black_desc: "Reddit风格的深色主题，橙蓝点缀",
+  theme_future_day_name: "未来科技·白天",
+  theme_future_day_desc: "明亮玻璃质感与清爽霓虹的科技氛围",
+  theme_future_night_name: "未来科技·夜晚",
+  theme_future_night_desc: "深夜霓虹与半透明玻璃的赛博对比",
   failed_load_themes: "加载主题失败",
   failed_apply_theme: "应用主题失败",
   failed_create_theme: "创建主题失败",
@@ -154,18 +183,18 @@ export const zhCN: LocaleDict = {
   color_error: "错误色",
   color_accent: "强调色",
   save_changes: "保存更改",
-  
+
   // Context Invalidated Error
   extension_context_invalidated: "扩展上下文失效",
   extension_context_invalidated_title: "扩展上下文失效",
   extension_context_invalidated_desc: "扩展上下文已失效，请刷新页面重试。",
-  
+
   // Version Info
   version_info: "版本信息",
   current_version: "当前版本",
   changelog: "更新日志",
   version_history: "版本历史",
-  
+
   // Comment Analysis
   comment_summary_btn: "分析评论",
   anonymous_user: "匿名用户",
@@ -182,34 +211,56 @@ export const zhCN: LocaleDict = {
   logic_fallacy: "检测到逻辑谬误",
   unknown_type: "未知类型",
   example_quote: "示例引用",
-  
+
   // Reddit Overlay
   deep_profile_analysis: "深度画像分析",
 
   // Progress Messages
   reading_user_profile: "正在读取用户资料",
   reading_content: "正在读取用户内容",
-  ai_analyzing: "AI 正在分析中"
+  ai_analyzing: "AI 正在分析中",
+  progress_eta: "预计剩余",
+  progress_overdue: "已超过预估",
 };
 
 // DeepProfile 当前版本更新日志
 export const zhCNChangelog = `# DeepProfile 当前版本更新日志
 
-## 当前版本: v0.8.0 (Beta)
+## 当前版本: v0.8.1 (Beta) - 内存优化与泄漏修复
 
-### ✅ 已达成功能
-
-### 核心功能 (v0.8.0) - Twitter与Quora平台支持
-- ✅ **Twitter平台支持**: 添加了对Twitter(X)平台的用户画像分析支持，包括内容抓取和分析功能。
-- ✅ **Quora平台支持**: 添加了对Quora平台的用户画像分析支持，包括内容抓取和分析功能。
-- ✅ **多平台架构**: 扩展了底层架构以支持多平台，便于未来添加更多社交平台。
-- ✅ **界面集成**: 在选项页面中添加了Twitter和Quora的设置入口，以及相应的图标。
-- ✅ **权限配置**: 更新了manifest文件以包含Twitter和Quora的访问权限。
+### 🚀 内存优化 (v0.8.1)
+- **内存泄漏修复**: 修复了后台服务中定时器未正确清理导致的内存泄漏问题
+- **事件监听器管理**: 改进了内容脚本中事件监听器的注册与注销机制，防止重复绑定
+- **缓存策略优化**: 优化了历史记录的缓存清理机制，定期清理过期数据
+- **组件卸载优化**: 改进了React组件的卸载逻辑，确保DOM节点和事件处理器被正确清理
+- **资源管理**: 添加了对活动定时器的跟踪，防止定时器累积
+- **可观测性（仅开发）**: 新增异常/行为/性能/合规遥测，支持可选上报；生产环境需显式授权
+- **按站点控制**: 增加各平台分析按钮开关及知乎评论分析开关
+- **CI质量门禁**: 增加CI测试、覆盖率门槛、lint/格式检查与构建产物打包
+- **主题更新**: 新增未来科技白天/夜晚主题并移除旧未来科技主题
 
 `;
 
 // DeepProfile 版本历史记录
 export const zhCNVersionHistory = `# DeepProfile 版本历史
+
+### 内存优化 (v0.8.1) - 内存管理与泄漏修复
+- ✅ **内存泄漏修复**: 修复了后台服务中定时器未正确清理导致的内存泄漏问题
+- ✅ **事件监听器管理**: 改进了内容脚本中事件监听器的注册与注销机制，防止重复绑定
+- ✅ **缓存策略优化**: 优化了历史记录的缓存清理机制，定期清理过期数据
+- ✅ **组件卸载优化**: 改进了React组件的卸载逻辑，确保DOM节点和事件处理器被正确清理
+- ✅ **资源管理**: 添加了对活动定时器的跟踪，防止定时器累积
+- ✅ **可观测性（仅开发）**: 新增异常/行为/性能/合规遥测，支持可选上报；生产环境需显式授权
+- ✅ **按站点控制**: 增加各平台分析按钮开关及知乎评论分析开关
+- ✅ **CI质量门禁**: 增加CI测试、覆盖率门槛、lint/格式检查与构建产物打包
+- ✅ **主题更新**: 新增未来科技白天/夜晚主题并移除旧未来科技主题
+
+### 核心功能 (v0.8.0) - 平台扩展与界面现代化
+- ✅ **Quora平台支持**: 新增对Quora平台的用户资料分析支持，包括内容抓取和用户信息提取
+- ✅ **Twitter/X平台支持**: 新增对Twitter/X平台的用户资料分析支持，适配新的API接口
+- ✅ **界面现代化**: 采用现代化UI设计，更新了设置页面布局，使用卡片式设计提升视觉效果
+- ✅ **图标更新**: 为所有支持的平台添加了专属图标，提升界面美观度
+- ✅ **响应式增强**: 优化了在不同屏幕尺寸下的界面展示效果
 
 ### 核心功能 (v0.7.1) - 标签显示与LLM输出优化
 - ✅ **标签显示修复**: 解决了部分标签（如 \`competition_vs_equality\`, \`speculation_vs_value\` 等）在前端无法正确显示的问题。
@@ -242,64 +293,53 @@ export const zhCNVersionHistory = `# DeepProfile 版本历史
 *   **Feature**: 配置更改后立即生效，无需重启或刷新。
 *   **UX**: 提升用户体验，提供更流畅的设置流程。
 
-### v0.6.0 (2024-01-08) - Reddit 平台多语言支持增强
-*   **Feature**: 修复 Reddit 平台的 I18nService 初始化问题，确保多语言功能正常工作。
-*   **Feature**: 重构 Reddit 平台的按钮注入逻辑，使其与 Zhihu 平台保持一致，解决按钮消失的问题。
-*   **Feature**: 确保 Reddit 平台的分析按钮和用户画像卡片支持中英文界面切换。
-*   **Feature**: 实现了与 Zhihu 平台一致的按钮注入机制，包括配置检查、清理函数和孤儿按钮清理等功能。
-*   **Feature**: 更新了加载、分析和错误状态消息的国际化支持，确保界面完全遵循用户语言设置。
-*   **Feature**: 修复了 Reddit overlay 中的 useCallback 导入问题，优化了组件性能。
+### v0.6.0 (2024-01-08) - Reddit平台多语言支持增强
+*   **Feature**: 修复了Reddit平台上I18nService初始化问题，确保多语言功能正常工作。
+*   **Feature**: 重构了Reddit平台上的按钮注入逻辑，与知乎平台对齐，解决了按钮消失问题。
+*   **Feature**: 确保Reddit平台分析按钮和用户资料卡片支持中英界面切换。
+*   **Feature**: 实现了与知乎平台对齐的一致按钮注入机制，包括配置检查、清理函数和孤立按钮移除功能。
+*   **Feature**: 更新了国际化支持，覆盖加载、分析和错误状态消息，确保界面完全跟随用户语言设置。
 
-### v0.5.1 (2024-01-10) - 多语言支持
-*   **Major Feature**: 全面支持 **简体中文** 和 **English** 双语切换。
-*   **Feature**: AI 分析结果自动适配所选语言。
-*   **Refactor**: 引入 \`I18nService\` 统一管理文本资源。
+### v0.5.0 (2024-01-07) - Reddit平台支持
+*   **Feature**: **Reddit平台支持**，新增对Reddit用户资料分析的支持。
+*   **Feature**: **跨平台架构**，重构了代码以支持多社交平台扩展。
+*   **Feature**: **平台特定配置**，允许为不同平台设置不同的分析参数。
+*   **Feature**: **Reddit内容抓取**，实现了针对Reddit API的内容提取和解析。
+*   **Feature**: **平台特定UI**，为Reddit适配了用户界面样式。
 
-### v0.5.0 (2024-01-09) - 评论区舆情总结
-*   **Major Feature**: **评论区舆情总结**，一键生成当前页面的舆论画像，包括立场分布、核心观点和情绪检测。
-*   **Security**: 采用**零风险分析**策略，仅分析已加载的 DOM 文本，不调用知乎 API，彻底规避风控。
+### v0.4.0 (2024-01-06) - 评论分析功能
+*   **Feature**: **评论分析**，新增专门的评论分析功能，分析用户在特定帖子下的评论。
+*   **Feature**: **情感分析**，实现对用户评论的情感倾向分析（支持/反对/中立）。
+*   **Feature**: **观点聚类**，自动聚类用户评论中的主要观点。
+*   **Feature**: **立场识别**，识别用户在争议话题上的立场。
+*   **Feature**: **舆论概览**，生成整体舆论的AI总结。
 
-### v0.4.2 (2024-01-08) - 导出增强与体验优化
-*   **Feature**: 导出图片支持显示用户头像和二维码。
-*   **Feature**: 历史记录管理支持图片导出。
-*   **Fix**: 修复历史记录中用户昵称显示问题。
-*   **Fix**: 优化知乎 API 请求头，解决 403 问题。
-*   **UX**: 错误提示文案优化，更加友好俏皮。
+### v0.3.0 (2024-01-05) - 价值标签系统
+*   **Feature**: **价值标签体系**，建立了多维度价值取向标签系统（政治、经济、社会、文化、科技等）。
+*   **Feature**: **量化分析**，将价值取向转化为-1到1之间的量化分数。
+*   **Feature**: **双极坐标**，使用双极坐标系直观展示价值取向。
+*   **Feature**: **标签可视化**，通过图表形式展示各维度的价值分布。
+*   **Feature**: **标签解释**，为每个标签提供详细说明。
 
-### v0.4.1 (2024-01-07) - 性能优化
-*   **Optimization**: **Prompt 动态剪裁**，根据话题分类仅加载相关标签定义，大幅减少 Token 消耗并提升响应速度。
-*   **Refactor**: 优化标签服务与话题服务，提升代码可维护性。
-
-### v0.4.0 (2024-01-06) - 历史记录与智能分类
-*   **Major Feature**: **历史记录系统**，支持本地缓存、秒级响应和可视化管理。
-*   **Major Feature**: **八大维度全谱系分类**，引入政治、经济、社会、科技等 30+ 个细分维度，画像更立体。
-*   **Feature**: **混合分类策略**，结合关键词匹配与 LLM 智能分类，确保话题归类准确无误。
-*   **Feature**: **领域自适应分析**，LLM 自动判断内容相关性，避免"张冠李戴"的错误分析。
-*   **Optimization**: **Prompt 深度降敏**，大幅降低触发内容安全风控的概率。
-*   **UI**: 设置页面新增"历史记录"面板，支持展开查看和精细化管理。
-
-### v0.3.0 (2024-01-04) - 精准聚焦与体验优化
-*   **Major Feature**: **重构上下文感知算法**，使用话题标签进行精准匹配，并采用动态截断策略，彻底解决话题跑偏问题。
-*   **Major Feature**: **重构 Prompt**，使用"价值取向"代替"政治倾向"，规避国产模型风控，并要求 AI 解释矛盾点。
-*   **Feature**: **新增"连接测试"功能**，提供友好的中文错误提示。
-*   **Feature**: **动态加载模型列表**，将模型名称输入框升级为下拉选择框。
-*   **Feature**: 新增对**通义千问 (Qwen)** 和**自定义 OpenAI 兼容接口**的支持。
-*   **Feature**: 数据源增加**用户点赞动态**，并能在 Debug 面板中展示来源比例。
-*   **Fix**: 优先提取并分析回答/文章的**完整正文**，而非简短摘要。
-*   **UI**: 设置页面 UI 现代化，采用卡片式布局。
+### v0.2.1 (2024-01-04) - 优化与修复
+*   **Fix**: 优化了内容抓取逻辑，增加了对API限流的处理。
+*   **Fix**: 修复了在某些情况下分析结果显示不完整的问题。
+*   **Fix**: 改进了错误处理机制，提供更清晰的错误信息。
+*   **UI**: 微调了UI组件样式，提升了视觉效果。
+*   **Performance**: 优化了缓存机制，提升了重复查询的响应速度。
 
 ### v0.2.0 (2024-01-03) - 深度分析与上下文感知
-*   **Feature**: 新增上下文感知功能，根据当前浏览的问题自动筛选用户相关回答。
-*   **Feature**: 新增"分析模式"设置 (极速/平衡/深度)，深度模式支持识别反讽。
-*   **Feature**: 画像标签新增置信度概率展示。
-*   **Feature**: Debug 模式增强，显示话题分类和抓取策略。
-*   **Fix**: 优化注入逻辑，精准定位昵称右侧，排除头像干扰。
-*   **Fix**: 修复引用链接为 API 格式的问题，统一为网页链接。
+*   **Feature**: 新增上下文感知功能，根据当前浏览问题自动过滤用户的相关回答。
+*   **Feature**: 新增"分析模式"设置（快/均衡/深），深模式支持反讽识别。
+*   **Feature**: 个人标签添加置信概率显示。
+*   **Feature**: 增强调试模式，显示主题分类和抓取策略。
+*   **Fix**: 优化注入逻辑，精确定位到昵称右侧，排除头像干扰。
+*   **Fix**: 修复引文链接为API格式的问题，统一转换为网页链接。
 
-### v0.1.0 (2024-01-02) - MVP 发布
-*   **Feature**: 完成基础架构 (Plasmo + React + TypeScript)。
-*   **Feature**: 实现知乎 API 抓取与清洗。
-*   **Feature**: 对接 OpenAI/Gemini/Ollama 接口。
-*   **Feature**: 实现基础 UI 注入与画像展示卡片。
-*   **Feature**: Supports API Key configuration.
+### v0.1.0 (2024-01-02) - MVP发布
+*   **Feature**: 完成基本架构(Plasmo + React + TypeScript)。
+*   **Feature**: 实现知乎API抓取和清理。
+*   **Feature**: 连接OpenAI/Gemini/Ollama接口。
+*   **Feature**: 实现基本UI注入和资料展示卡片。
+*   **Feature**: 支持API Key配置。
 `;

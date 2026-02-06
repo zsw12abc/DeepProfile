@@ -1,27 +1,33 @@
-﻿import type { UserHistoryRecord, CategoryProfile, SupportedPlatform, UserBasicInfo } from "~types";
+import type {
+  UserHistoryRecord,
+  CategoryProfile,
+  SupportedPlatform,
+  UserBasicInfo,
+} from "~types";
 
 const STORAGE_KEY = "deep_profile_history";
 const MAX_USERS = 200; // Keep history for last 200 users
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
 export class HistoryService {
-  
   /**
    * Saves or updates a profile for a specific category within a user's record.
    */
   static async saveProfile(
-    userId: string, 
-    platform: SupportedPlatform, 
-    category: string, 
+    userId: string,
+    platform: SupportedPlatform,
+    category: string,
     profileData: any,
     context: string,
     model: string,
-    userInfo?: UserBasicInfo
+    userInfo?: UserBasicInfo,
   ): Promise<void> {
     const history = await this.getAllUserRecords();
-    
+
     // 1. Find existing user record
-    let userRecordIndex = history.findIndex(r => r.userId === userId && r.platform === platform);
+    let userRecordIndex = history.findIndex(
+      (r) => r.userId === userId && r.platform === platform,
+    );
     let userRecord: UserHistoryRecord;
 
     if (userRecordIndex !== -1) {
@@ -33,13 +39,13 @@ export class HistoryService {
         userId,
         platform,
         profiles: {},
-        lastUpdated: 0
+        lastUpdated: 0,
       };
     }
 
     // Update user info if provided
     if (userInfo) {
-        userRecord.userInfo = { ...userRecord.userInfo, ...userInfo };
+      userRecord.userInfo = { ...userRecord.userInfo, ...userInfo };
     }
 
     // Ensure profiles object exists
@@ -53,7 +59,7 @@ export class HistoryService {
       profileData,
       context,
       timestamp: Date.now(),
-      model
+      model,
     };
     userRecord.lastUpdated = Date.now();
 
@@ -64,17 +70,23 @@ export class HistoryService {
     if (history.length > MAX_USERS) {
       history.length = MAX_USERS;
     }
-    
+
     await chrome.storage.local.set({ [STORAGE_KEY]: history });
   }
 
   /**
    * Retrieves a specific category profile for a user.
    */
-  static async getProfile(userId: string, platform: SupportedPlatform, category: string): Promise<CategoryProfile | null> {
+  static async getProfile(
+    userId: string,
+    platform: SupportedPlatform,
+    category: string,
+  ): Promise<CategoryProfile | null> {
     const history = await this.getAllUserRecords();
-    const userRecord = history.find(r => r.userId === userId && r.platform === platform);
-    
+    const userRecord = history.find(
+      (r) => r.userId === userId && r.platform === platform,
+    );
+
     if (!userRecord || !userRecord.profiles || !userRecord.profiles[category]) {
       return null;
     }
@@ -92,9 +104,15 @@ export class HistoryService {
   /**
    * Retrieves the full history record for a user (all categories).
    */
-  static async getUserRecord(userId: string, platform: SupportedPlatform): Promise<UserHistoryRecord | null> {
+  static async getUserRecord(
+    userId: string,
+    platform: SupportedPlatform,
+  ): Promise<UserHistoryRecord | null> {
     const history = await this.getAllUserRecords();
-    return history.find(r => r.userId === userId && r.platform === platform) || null;
+    return (
+      history.find((r) => r.userId === userId && r.platform === platform) ||
+      null
+    );
   }
 
   /**
@@ -102,23 +120,52 @@ export class HistoryService {
    */
   static async getAllUserRecords(): Promise<UserHistoryRecord[]> {
     const result = await chrome.storage.local.get(STORAGE_KEY);
-    return (result[STORAGE_KEY] as UserHistoryRecord[]) || [];
+    const history = (result[STORAGE_KEY] as UserHistoryRecord[]) || [];
+
+    // Clean up expired records to optimize memory usage
+    const cleanedHistory = history.filter((userRecord) => {
+      if (!userRecord.profiles) return false;
+
+      // Filter out expired profiles within each user record
+      const now = Date.now();
+      for (const category in userRecord.profiles) {
+        if (now - userRecord.profiles[category].timestamp > CACHE_DURATION) {
+          delete userRecord.profiles[category];
+        }
+      }
+
+      // Remove user record if no profiles remain
+      return Object.keys(userRecord.profiles).length > 0;
+    });
+
+    // Only update storage if we cleaned up any records
+    if (cleanedHistory.length < history.length) {
+      await chrome.storage.local.set({ [STORAGE_KEY]: cleanedHistory });
+    }
+
+    return cleanedHistory;
   }
 
   /**
    * Deletes a specific category profile for a user.
    * If it's the last profile, the user record is removed entirely.
    */
-  static async deleteProfile(userId: string, platform: SupportedPlatform, category: string): Promise<void> {
+  static async deleteProfile(
+    userId: string,
+    platform: SupportedPlatform,
+    category: string,
+  ): Promise<void> {
     const history = await this.getAllUserRecords();
-    const index = history.findIndex(r => r.userId === userId && r.platform === platform);
-    
+    const index = history.findIndex(
+      (r) => r.userId === userId && r.platform === platform,
+    );
+
     if (index !== -1) {
       const userRecord = history[index];
-      
+
       if (userRecord.profiles && userRecord.profiles[category]) {
         delete userRecord.profiles[category];
-        
+
         // If no profiles left, remove the user record
         if (Object.keys(userRecord.profiles).length === 0) {
           history.splice(index, 1);
@@ -126,7 +173,7 @@ export class HistoryService {
           // Otherwise just update the array (it's a reference, but let's be safe)
           history[index] = userRecord;
         }
-        
+
         await chrome.storage.local.set({ [STORAGE_KEY]: history });
       }
     }
@@ -135,9 +182,14 @@ export class HistoryService {
   /**
    * Deletes an entire user record.
    */
-  static async deleteUserRecord(userId: string, platform: SupportedPlatform): Promise<void> {
+  static async deleteUserRecord(
+    userId: string,
+    platform: SupportedPlatform,
+  ): Promise<void> {
     const history = await this.getAllUserRecords();
-    const filtered = history.filter(r => !(r.userId === userId && r.platform === platform));
+    const filtered = history.filter(
+      (r) => !(r.userId === userId && r.platform === platform),
+    );
     await chrome.storage.local.set({ [STORAGE_KEY]: filtered });
   }
 
@@ -146,5 +198,14 @@ export class HistoryService {
    */
   static async clearAll(): Promise<void> {
     await chrome.storage.local.remove(STORAGE_KEY);
+  }
+
+  /**
+   * Cleans up expired records from storage
+   */
+  static async cleanupExpiredRecords(): Promise<void> {
+    const history = await this.getAllUserRecords();
+    // The getAllUserRecords method already handles cleanup, so we just need to save the cleaned history
+    await chrome.storage.local.set({ [STORAGE_KEY]: history });
   }
 }

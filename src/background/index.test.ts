@@ -1,24 +1,26 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { LLMService } from '../services/LLMService';
-import { ZhihuClient } from '../services/ZhihuClient';
-import { ConfigService } from '../services/ConfigService';
-import { ProfileService } from '../services/ProfileService';
-import { HistoryService } from '../services/HistoryService';
-import { TopicService } from '../services/TopicService';
-import { CommentAnalysisService } from '../services/CommentAnalysisService';
-import { I18nService } from '../services/I18nService';
-import { LabelService } from '../services/LabelService';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { LLMService } from "../services/LLMService";
+import { ZhihuClient } from "../services/ZhihuClient";
+import { ConfigService } from "../services/ConfigService";
+import { ProfileService } from "../services/ProfileService";
+import { HistoryService } from "../services/HistoryService";
+import { TopicService } from "../services/TopicService";
+import { CommentAnalysisService } from "../services/CommentAnalysisService";
+import { I18nService } from "../services/I18nService";
+import { LabelService } from "../services/LabelService";
+import { TelemetryService } from "../services/TelemetryService";
 
 // Mock dependencies
-vi.mock('../services/LLMService');
-vi.mock('../services/ZhihuClient');
-vi.mock('../services/ConfigService');
-vi.mock('../services/ProfileService');
-vi.mock('../services/HistoryService');
-vi.mock('../services/TopicService');
-vi.mock('../services/CommentAnalysisService');
-vi.mock('../services/I18nService');
-vi.mock('../services/LabelService');
+vi.mock("../services/LLMService");
+vi.mock("../services/ZhihuClient");
+vi.mock("../services/ConfigService");
+vi.mock("../services/ProfileService");
+vi.mock("../services/HistoryService");
+vi.mock("../services/TopicService");
+vi.mock("../services/CommentAnalysisService");
+vi.mock("../services/I18nService");
+vi.mock("../services/LabelService");
+vi.mock("../services/TelemetryService");
 
 // Mock chrome API
 const mockSendMessage = vi.fn();
@@ -32,28 +34,28 @@ global.chrome = {
     sendMessage: mockSendMessage,
     onMessage: {
       addListener: mockAddListener,
-      removeListener: mockRemoveListener
+      removeListener: mockRemoveListener,
     },
     onInstalled: {
-      addListener: mockAddListener
+      addListener: mockAddListener,
     },
     openOptionsPage: mockOpenOptionsPage,
-    getManifest: mockGetManifest
+    getManifest: mockGetManifest,
   },
   action: {
     onClicked: {
-      addListener: mockAddListener
-    }
+      addListener: mockAddListener,
+    },
   },
   tabs: {
-    sendMessage: mockSendMessage
+    sendMessage: mockSendMessage,
   },
   storage: {
     local: {
       get: vi.fn(),
-      set: vi.fn()
-    }
-  }
+      set: vi.fn(),
+    },
+  },
 } as any;
 
 // Mock the actual background service logic to test the message handlers
@@ -64,24 +66,28 @@ global.chrome = {
 // It relies on chrome.runtime.onMessage.addListener.
 // So we need to simulate the message listener callback.
 
-describe('Background Service', () => {
+describe("Background Service", () => {
   let messageListener: Function;
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    
+
     // Reset mocks
     vi.mocked(ConfigService.getConfig).mockResolvedValue({
       analyzeLimit: 15,
-      enableDebug: false
+      enableDebug: false,
     } as any);
-    
+
     vi.mocked(LabelService.getInstance).mockReturnValue({
-      refreshCategories: vi.fn()
+      refreshCategories: vi.fn(),
     } as any);
-    
+
     vi.mocked(I18nService.t).mockImplementation((key) => key);
     vi.mocked(I18nService.init).mockResolvedValue(undefined);
+    vi.mocked(TelemetryService.recordEvent).mockResolvedValue(undefined);
+    vi.mocked(TelemetryService.recordError).mockResolvedValue(undefined);
+    vi.mocked(TelemetryService.recordPerformance).mockResolvedValue(undefined);
+    vi.mocked(TelemetryService.recordCompliance).mockResolvedValue(undefined);
 
     // Capture the message listener
     mockAddListener.mockImplementation((callback) => {
@@ -89,11 +95,11 @@ describe('Background Service', () => {
     });
 
     // Import the background script to register listeners
-    // We use dynamic import to re-execute for each test if needed, 
+    // We use dynamic import to re-execute for each test if needed,
     // but since it's a module, it might be cached.
     // For this test, we assume the listeners are registered once.
-    await import('./index');
-    
+    await import("./index");
+
     // Find the onMessage listener
     // The background script registers onInstalled, onClicked, and onMessage.
     // We need to find the one that handles messages.
@@ -101,21 +107,23 @@ describe('Background Service', () => {
     // But since we can't easily distinguish which addListener call corresponds to onMessage
     // without more complex mocking, we'll assume the last one or iterate.
     // Actually, we can just look at chrome.runtime.onMessage.addListener calls.
-    
+
     // Re-setup mock to capture specifically onMessage listener
-    const onMessageAddListener = vi.fn((cb) => { messageListener = cb; });
+    const onMessageAddListener = vi.fn((cb) => {
+      messageListener = cb;
+    });
     global.chrome.runtime.onMessage.addListener = onMessageAddListener;
-    
+
     // Re-import to trigger registration (might need to clear cache in real env, but here we just hope)
     // Since we can't easily clear require cache in vitest for esm, we might need to rely on
     // the fact that we can manually invoke the logic if we extracted it.
     // But the logic is inside the listener.
-    
+
     // Workaround: We will manually implement the logic found in index.ts for testing purposes
     // or try to extract the handler if we refactor index.ts.
-    // Given the constraints, let's try to simulate the behavior by copying the logic 
+    // Given the constraints, let's try to simulate the behavior by copying the logic
     // or assuming the listener is registered.
-    
+
     // Let's assume the listener is registered and we captured it.
     // If import happened before, messageListener might be set.
   });
@@ -133,104 +141,111 @@ describe('Background Service', () => {
         }
       } else {
         // If listener not cached, try to find it from calls
-        const calls = (global.chrome.runtime.onMessage.addListener as any).mock.calls;
+        const calls = (global.chrome.runtime.onMessage.addListener as any).mock
+          .calls;
         if (calls.length > 0) {
           const cb = calls[0][0];
           const result = cb(message, sender, resolve);
-           if (result !== true) resolve(undefined);
+          if (result !== true) resolve(undefined);
         } else {
-            resolve('No listener found');
+          resolve("No listener found");
         }
       }
     });
   };
 
-  it('should handle ANALYZE_PROFILE message', async () => {
+  it("should handle ANALYZE_PROFILE message", async () => {
     // Setup mocks
-    vi.mocked(TopicService.classify).mockReturnValue('technology');
-    vi.mocked(TopicService.getCategoryName).mockReturnValue('Technology');
+    vi.mocked(TopicService.classify).mockReturnValue("technology");
+    vi.mocked(TopicService.getCategoryName).mockReturnValue("Technology");
     vi.mocked(HistoryService.getProfile).mockResolvedValue(null); // No cache
     vi.mocked(ProfileService.fetchUserProfile).mockResolvedValue({
-      name: 'Test User',
-      headline: 'Test Headline',
-      avatar_url: 'http://example.com/avatar.jpg',
-      url_token: 'test-user'
+      name: "Test User",
+      headline: "Test Headline",
+      avatar_url: "http://example.com/avatar.jpg",
+      url_token: "test-user",
     } as any);
-    vi.mocked(ProfileService.fetchUserContent).mockResolvedValue({ items: [{ id: '1' }], totalFetched: 1, totalRelevant: 1 } as any);
-    vi.mocked(ProfileService.cleanContentData).mockReturnValue('Cleaned content');
+    vi.mocked(ProfileService.fetchUserContent).mockResolvedValue({
+      items: [{ id: "1" }],
+      totalFetched: 1,
+      totalRelevant: 1,
+    } as any);
+    vi.mocked(ProfileService.cleanContentData).mockReturnValue(
+      "Cleaned content",
+    );
     vi.mocked(LLMService.generateProfileForPlatform).mockResolvedValue({
-      content: { summary: 'Analysis result' },
-      model: 'gpt-4',
+      content: { summary: "Analysis result" },
+      model: "gpt-4",
       durationMs: 100,
-      usage: {}
+      usage: {},
     } as any);
 
     const response: any = await sendMessage({
-      type: 'ANALYZE_PROFILE',
-      userId: 'test-user',
-      context: 'test context',
-      platform: 'zhihu',
-      forceRefresh: false
+      type: "ANALYZE_PROFILE",
+      userId: "test-user",
+      context: "test context",
+      platform: "zhihu",
+      forceRefresh: false,
     });
 
     expect(response.success).toBe(true);
-    expect(response.data.profile.summary).toBe('Analysis result');
+    expect(response.data.profile.summary).toBe("Analysis result");
     expect(HistoryService.saveProfile).toHaveBeenCalled();
   });
 
-  it('should use cache if available', async () => {
-    vi.mocked(TopicService.classify).mockReturnValue('technology');
+  it("should use cache if available", async () => {
+    vi.mocked(TopicService.classify).mockReturnValue("technology");
     vi.mocked(HistoryService.getProfile).mockResolvedValue({
-      profileData: { summary: 'Cached result' },
+      profileData: { summary: "Cached result" },
       timestamp: 1234567890,
-      context: 'test context'
+      context: "test context",
     } as any);
 
     const response: any = await sendMessage({
-      type: 'ANALYZE_PROFILE',
-      userId: 'test-user',
-      context: 'test context',
-      platform: 'zhihu',
-      forceRefresh: false
+      type: "ANALYZE_PROFILE",
+      userId: "test-user",
+      context: "test context",
+      platform: "zhihu",
+      forceRefresh: false,
     });
 
     expect(response.success).toBe(true);
     expect(response.data.fromCache).toBe(true);
-    expect(response.data.profile.summary).toBe('Cached result');
+    expect(response.data.profile.summary).toBe("Cached result");
     expect(LLMService.generateProfileForPlatform).not.toHaveBeenCalled();
   });
 
-  it('should handle ANALYZE_COMMENTS message', async () => {
+  it("should handle ANALYZE_COMMENTS message", async () => {
     vi.mocked(CommentAnalysisService.analyzeComments).mockResolvedValue({
-      summary: 'Comments analysis',
-      sentiment: 'positive'
+      summary: "Comments analysis",
+      sentiment: "positive",
     } as any);
 
     const response: any = await sendMessage({
-      type: 'ANALYZE_COMMENTS',
-      comments: ['comment 1'],
-      contextTitle: 'Title',
-      platform: 'zhihu'
+      type: "ANALYZE_COMMENTS",
+      comments: ["comment 1"],
+      contextTitle: "Title",
+      platform: "zhihu",
     });
 
     expect(response.success).toBe(true);
-    expect(response.data.summary).toBe('Comments analysis');
+    expect(response.data.summary).toBe("Comments analysis");
   });
 
-  it('should handle LIST_MODELS message', async () => {
+  it("should handle LIST_MODELS message", async () => {
     // Mock fetch for listModels
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ data: [{ id: 'gpt-4' }, { id: 'gpt-3.5-turbo' }] })
+      json: async () => ({ data: [{ id: "gpt-4" }, { id: "gpt-3.5-turbo" }] }),
     });
 
     const response: any = await sendMessage({
-      type: 'LIST_MODELS',
-      provider: 'openai',
-      apiKey: 'sk-test'
+      type: "LIST_MODELS",
+      provider: "openai",
+      apiKey: "sk-test",
     });
 
     expect(response.success).toBe(true);
-    expect(response.data).toContain('gpt-4');
+    expect(response.data).toContain("gpt-4");
   });
 });

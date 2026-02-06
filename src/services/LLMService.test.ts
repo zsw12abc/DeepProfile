@@ -21,14 +21,14 @@ describe("LLMService", () => {
       // Mock the dependencies
       const mockLabelService = {
         refreshCategories: vi.fn(),
-        getLabelsForContext: vi.fn().mockReturnValue("Mock label library")
+        getLabelsForContext: vi.fn().mockReturnValue("Mock label library"),
       };
       LabelService.getInstance = vi.fn().mockReturnValue(mockLabelService);
       TopicService.getCategoryName = vi.fn().mockReturnValue("Politics");
       I18nService.getLanguage = vi.fn().mockReturnValue("en-US");
-      
+
       const prompt = LLMService.getSystemPrompt("fast", "politics");
-      
+
       expect(prompt).toContain("You are a sociology researcher");
       expect(prompt).toContain("You must format your output as a JSON value");
       expect(prompt).toContain("Current Research Field: 【Politics】");
@@ -41,14 +41,14 @@ describe("LLMService", () => {
       // Mock the dependencies
       const mockLabelService = {
         refreshCategories: vi.fn(),
-        getLabelsForContext: vi.fn().mockReturnValue("Mock label library")
+        getLabelsForContext: vi.fn().mockReturnValue("Mock label library"),
       };
       LabelService.getInstance = vi.fn().mockReturnValue(mockLabelService);
       TopicService.getCategoryName = vi.fn().mockReturnValue("Society");
       I18nService.getLanguage = vi.fn().mockReturnValue("en-US");
-      
+
       const prompt = LLMService.getSystemPrompt("balanced", "society");
-      
+
       expect(prompt).toContain("You are a sociology researcher");
       expect(prompt).toContain("You must format your output as a JSON value");
       expect(prompt).toContain("reasoning");
@@ -61,14 +61,14 @@ describe("LLMService", () => {
       // Mock the dependencies
       const mockLabelService = {
         refreshCategories: vi.fn(),
-        getLabelsForContext: vi.fn().mockReturnValue("Mock label library")
+        getLabelsForContext: vi.fn().mockReturnValue("Mock label library"),
       };
       LabelService.getInstance = vi.fn().mockReturnValue(mockLabelService);
       TopicService.getCategoryName = vi.fn().mockReturnValue("Technology");
       I18nService.getLanguage = vi.fn().mockReturnValue("en-US");
-      
+
       const prompt = LLMService.getSystemPrompt("deep", "technology");
-      
+
       expect(prompt).toContain("You are a sociology researcher");
       expect(prompt).toContain("You must format your output as a JSON value");
       expect(prompt).toContain("reasoning");
@@ -82,14 +82,14 @@ describe("LLMService", () => {
       // Mock the dependencies
       const mockLabelService = {
         refreshCategories: vi.fn(),
-        getLabelsForContext: vi.fn().mockReturnValue("Mock label library")
+        getLabelsForContext: vi.fn().mockReturnValue("Mock label library"),
       };
       LabelService.getInstance = vi.fn().mockReturnValue(mockLabelService);
       TopicService.getCategoryName = vi.fn().mockReturnValue("Politics");
       I18nService.getLanguage = vi.fn().mockReturnValue("en-US");
-      
+
       const prompt = LLMService.getSystemPrompt("balanced", "politics");
-      
+
       expect(prompt).toContain("【Few-Shot Examples】");
       expect(prompt).toContain("Text:");
     });
@@ -98,14 +98,14 @@ describe("LLMService", () => {
       // Mock the dependencies
       const mockLabelService = {
         refreshCategories: vi.fn(),
-        getLabelsForContext: vi.fn().mockReturnValue("Mock label library")
+        getLabelsForContext: vi.fn().mockReturnValue("Mock label library"),
       };
       LabelService.getInstance = vi.fn().mockReturnValue(mockLabelService);
       TopicService.getCategoryName = vi.fn().mockReturnValue("Politics");
       I18nService.getLanguage = vi.fn().mockReturnValue("zh-CN");
-      
+
       const prompt = LLMService.getSystemPrompt("balanced", "politics");
-      
+
       expect(prompt).toContain("【Few-Shot Examples】");
       expect(prompt).toContain("文本:");
     });
@@ -133,12 +133,37 @@ describe("LLMService", () => {
     });
   });
 
+  describe("provider configuration", () => {
+    it("should throw missing api key error before creating provider", async () => {
+      (ConfigService.getConfig as any).mockResolvedValue({
+        selectedProvider: "openai",
+        apiKeys: {},
+        customBaseUrls: {},
+        customModelNames: {},
+        analysisMode: "balanced",
+        enableDebug: false,
+        platformAnalysisModes: {},
+      });
+      (I18nService.t as any).mockReturnValue("missing key");
+
+      await expect(LLMService.generateRawText("test")).rejects.toThrow(
+        "missing key",
+      );
+    });
+  });
+
   describe("normalizeLabelId", () => {
     it("should normalize common label variations correctly", () => {
       const testCases = [
         { input: "nationalism_globalism", expected: "geopolitics" },
-        { input: "individualism_vs_collectivism", expected: "individualism_vs_collectivism" },
-        { input: "competition_vs_equality", expected: "competition_vs_equality" },
+        {
+          input: "individualism_vs_collectivism",
+          expected: "individualism_vs_collectivism",
+        },
+        {
+          input: "competition_vs_equality",
+          expected: "competition_vs_equality",
+        },
         { input: "liberty_order", expected: "authority" },
         { input: "tradition_change", expected: "change" },
         { input: "authoritarian_hierarchy", expected: "authority" },

@@ -5,7 +5,7 @@ import type { Language } from "../types";
 import { ConfigService } from "./ConfigService";
 
 export class I18nService {
-  private static currentLang: Language = 'zh-CN';
+  private static currentLang: Language = "zh-CN";
   private static dict: LocaleDict = zhCN;
 
   static async init() {
@@ -14,14 +14,14 @@ export class I18nService {
       this.setLanguage(config.language);
     } catch (e) {
       // 如果无法获取配置，使用默认语言
-      this.setLanguage('zh-CN');
-      console.warn('Failed to get language config, using default:', e);
+      this.setLanguage("zh-CN");
+      console.warn("Failed to get language config, using default:", e);
     }
   }
 
   static setLanguage(lang: Language) {
     this.currentLang = lang;
-    this.dict = lang === 'en-US' ? enUS : zhCN;
+    this.dict = lang === "en-US" ? enUS : zhCN;
   }
 
   static getLanguage(): Language {

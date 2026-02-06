@@ -14,39 +14,62 @@ export interface FetchResult {
   platform: SupportedPlatform;
 }
 
+interface CleanContentOptions {
+  redactSensitive?: boolean;
+  minRelevantRatio?: number;
+  includeMetadata?: boolean;
+  includeExcerpt?: boolean;
+}
+
 export class ProfileService {
   static async fetchUserContent(
     platform: SupportedPlatform,
     userId: string,
     limit: number = 15,
-    context?: string
+    context?: string,
   ): Promise<FetchResult> {
     switch (platform) {
-      case 'zhihu':
-        const zhihuResult = await ZhihuClient.fetchUserContent(userId, limit, context);
+      case "zhihu":
+        const zhihuResult = await ZhihuClient.fetchUserContent(
+          userId,
+          limit,
+          context,
+        );
         return {
           ...zhihuResult,
-          platform: 'zhihu'
+          platform: "zhihu",
         };
-      case 'reddit':
-        const redditResult = await RedditClient.fetchUserContent(userId, limit, context);
+      case "reddit":
+        const redditResult = await RedditClient.fetchUserContent(
+          userId,
+          limit,
+          context,
+        );
         return {
           ...redditResult,
-          platform: 'reddit'
+          platform: "reddit",
         };
-      case 'twitter':
-        const twitterResult = await TwitterClient.fetchUserContent(userId, limit, context);
+      case "twitter":
+        const twitterResult = await TwitterClient.fetchUserContent(
+          userId,
+          limit,
+          context,
+        );
         return {
           ...twitterResult,
-          platform: 'twitter'
+          platform: "twitter",
         };
-      case 'quora':
-        const quoraResult = await QuoraClient.fetchUserContent(userId, limit, context);
+      case "quora":
+        const quoraResult = await QuoraClient.fetchUserContent(
+          userId,
+          limit,
+          context,
+        );
         return {
           ...quoraResult,
-          platform: 'quora'
+          platform: "quora",
         };
-      case 'weibo':
+      case "weibo":
       default:
         throw new Error(`Platform ${platform} is not implemented yet`);
     }
@@ -54,176 +77,273 @@ export class ProfileService {
 
   static async fetchUserProfile(
     platform: SupportedPlatform,
-    userId: string
+    userId: string,
   ): Promise<UserProfile | null> {
     switch (platform) {
-      case 'zhihu':
+      case "zhihu":
         return await ZhihuClient.fetchUserProfile(userId);
-      case 'reddit':
+      case "reddit":
         return await RedditClient.fetchUserProfile(userId);
-      case 'twitter':
+      case "twitter":
         return await TwitterClient.fetchUserProfile(userId);
-      case 'quora':
+      case "quora":
         return await QuoraClient.fetchUserProfile(userId);
-      case 'weibo':
+      case "weibo":
       default:
         throw new Error(`Platform ${platform} is not implemented yet`);
     }
   }
 
-  static async identifyPlatform(url: string): Promise<SupportedPlatform | null> {
+  static async identifyPlatform(
+    url: string,
+  ): Promise<SupportedPlatform | null> {
     const config = await ConfigService.getConfig();
-    
-    if (url.includes('zhihu.com') && config.enabledPlatforms.zhihu) {
-      return 'zhihu';
-    } else if (url.includes('reddit.com') && config.enabledPlatforms.reddit) {
-      return 'reddit';
-    } else if ((url.includes('twitter.com') || url.includes('x.com')) && config.enabledPlatforms.twitter) {
-      return 'twitter';
-    } else if (url.includes('quora.com') && config.enabledPlatforms.quora) {
-      return 'quora';
-    } else if (url.includes('weibo.com') && config.enabledPlatforms.weibo) {
-      return 'weibo';
+
+    if (url.includes("zhihu.com") && config.enabledPlatforms.zhihu) {
+      return "zhihu";
+    } else if (url.includes("reddit.com") && config.enabledPlatforms.reddit) {
+      return "reddit";
+    } else if (
+      (url.includes("twitter.com") || url.includes("x.com")) &&
+      config.enabledPlatforms.twitter
+    ) {
+      return "twitter";
+    } else if (url.includes("quora.com") && config.enabledPlatforms.quora) {
+      return "quora";
+    } else if (url.includes("weibo.com") && config.enabledPlatforms.weibo) {
+      return "weibo";
     }
-    
+
     return null;
   }
 
   static cleanContentData(
     platform: SupportedPlatform,
     items: ZhihuContent[],
-    userProfile?: UserProfile | null
+    userProfile?: UserProfile | null,
+    options: CleanContentOptions = {},
   ): string {
     let text = `Platform: ${platform}\n`;
-    
+
     if (userProfile) {
       text += `User Nickname: ${userProfile.name}\nUser Headline: ${userProfile.headline}\n\n`;
     }
 
     if (!items || items.length === 0) {
       switch (platform) {
-        case 'zhihu':
-          text += 'This user has no public answers or articles.';
+        case "zhihu":
+          text += "This user has no public answers or articles.";
           break;
-        case 'reddit':
-          text += 'This user has no public posts or comments.';
+        case "reddit":
+          text += "This user has no public posts or comments.";
           break;
-        case 'twitter':
-          text += 'This user has no public tweets or replies.';
+        case "twitter":
+          text += "This user has no public tweets or replies.";
           break;
-        case 'quora':
-          text += 'This user has no public answers or questions.';
+        case "quora":
+          text += "This user has no public answers or questions.";
           break;
-        case 'weibo':
+        case "weibo":
         default:
-          text += 'This user has no public content.';
+          text += "This user has no public content.";
           break;
       }
       return text;
     }
 
-    const relevantItems = items.filter(item => item.is_relevant);
-    let otherItems = items.filter(item => !item.is_relevant);
+    const relevantItems = items.filter((item) => item.is_relevant);
+    let otherItems = items.filter((item) => !item.is_relevant);
+
+    const minRelevantRatio = options.minRelevantRatio ?? 0.8;
+    if (relevantItems.length > 0 && items.length > 0) {
+      const maxOther = Math.floor(
+        (relevantItems.length * (1 - minRelevantRatio)) / minRelevantRatio,
+      );
+      if (otherItems.length > maxOther) {
+        otherItems = otherItems.slice(0, Math.max(0, maxOther));
+      }
+    }
 
     // --- Aggressive Filtering Strategy ---
     // If we have enough relevant items (e.g. >= 3), we drastically reduce the noise.
-    // We only keep a few "other" items to give a hint of general personality, 
+    // We only keep a few "other" items to give a hint of general personality,
     // but not enough to overwhelm the topic classification.
     if (relevantItems.length >= 3) {
-        console.log(`Found ${relevantItems.length} relevant items. Trimming noise.`);
-        // Keep max 3 other items just for personality context
-        otherItems = otherItems.slice(0, 3);
+      console.log(
+        `Found ${relevantItems.length} relevant items. Trimming noise.`,
+      );
+      // Keep max 3 other items just for personality context
+      otherItems = otherItems.slice(0, 3);
     }
 
-    const formatItem = (item: ZhihuContent) => {
-        // Prefer full content, strip HTML, and take a longer slice (e.g. 1000 chars to capture more of the answer)
-        let content = '';
-        if (item.content) {
-          content = this.stripHtml(item.content);
-        } else {
-          content = item.excerpt || '';
-        }
-        
-        // 增加敏感内容过滤
+    const formatItem = (item: ZhihuContent, maxContentLength: number) => {
+      // Prefer full content, strip HTML, and take a longer slice (e.g. 1000 chars to capture more of the answer)
+      let content = "";
+      if (item.content) {
+        content = this.stripHtml(item.content);
+      } else {
+        content = item.excerpt || "";
+      }
+
+      // 增加敏感内容过滤（可配置）
+      if (options.redactSensitive) {
         content = this.filterSensitiveContent(content);
-        
-        // Increase content length to capture more meaningful content
-        content = content.slice(0, 1000); 
-        
-        const actionTag = item.action_type === 'voted' ? '【Upvoted】' : '【Original】';
-        let typeTag = '';
-        
-        if (platform === 'zhihu') {
-            typeTag = item.type === 'answer' ? '【Answer】' : (item.type === 'article' ? '【Article】' : '【Activity】');
-        } else if (platform === 'reddit') {
-            typeTag = item.type === 'article' ? '【Post】' : '【Comment】';
-        } else if (platform === 'twitter') {
-            typeTag = item.type === 'article' ? '【Tweet】' : '【Reply】';
-        } else if (platform === 'quora') {
-            typeTag = item.type === 'answer' ? '【Answer】' : '【Question】';
-        }
-        
-        return `[ID:${item.id}] ${actionTag}${typeTag} Title: 【${item.title}】\nContent: ${content}`;
+      }
+
+      // Increase content length to capture more meaningful content
+      content = content.slice(0, maxContentLength);
+
+      const actionTag =
+        item.action_type === "voted" ? "【Upvoted】" : "【Original】";
+      let typeTag = "";
+
+      if (platform === "zhihu") {
+        typeTag =
+          item.type === "answer"
+            ? "【Answer】"
+            : item.type === "article"
+              ? "【Article】"
+              : "【Activity】";
+      } else if (platform === "reddit") {
+        typeTag = item.type === "article" ? "【Post】" : "【Comment】";
+      } else if (platform === "twitter") {
+        typeTag = item.type === "article" ? "【Tweet】" : "【Reply】";
+      } else if (platform === "quora") {
+        typeTag = item.type === "answer" ? "【Answer】" : "【Question】";
+      }
+
+      const includeMetadata = options.includeMetadata ?? true;
+      const includeExcerpt = options.includeExcerpt ?? true;
+      const metaParts: string[] = [];
+      if (includeMetadata) {
+        metaParts.push(`platform=${platform}`);
+        if (item.created_time) metaParts.push(`time=${item.created_time}`);
+        if (item.action_type) metaParts.push(`action=${item.action_type}`);
+        const votes =
+          (item as any).voteup_count ??
+          (item as any).score ??
+          (item as any).ups;
+        if (typeof votes === "number") metaParts.push(`votes=${votes}`);
+      }
+      const metaLine = includeMetadata ? `Meta: ${metaParts.join(", ")}\n` : "";
+      const excerpt = item.excerpt ? item.excerpt.slice(0, 120) : "";
+      const excerptLine =
+        includeExcerpt && excerpt ? `Excerpt: ${excerpt}\n` : "";
+      return `[ID:${item.id}] ${actionTag}${typeTag} Title: 【${item.title}】\n${metaLine}${excerptLine}Content: ${content}`;
     };
 
-    let contentText = '';
-    if (relevantItems.length > 0) {
-        contentText += '--- RELEVANT CONTENT (★ Key Analysis) ---\n';
-        contentText += relevantItems.map(formatItem).join('\n\n');
-        contentText += '\n\n';
-    }
+    const MAX_TOTAL_CHARS = 20000;
+    const RELEVANT_SLICE = 1000;
+    const OTHER_SLICE = 500;
 
-    if (otherItems.length > 0) {
-        contentText += '--- OTHER RECENT CONTENT (For Personality Reference Only) ---\n';
-        contentText += otherItems.map(formatItem).join('\n\n');
-    }
-    
+    let contentText = "";
+    let remaining = MAX_TOTAL_CHARS;
+
+    const appendSection = (
+      header: string,
+      itemsToAdd: ZhihuContent[],
+      sliceLimit: number,
+    ) => {
+      if (itemsToAdd.length === 0 || remaining <= 0) return;
+      const headerWithNewline = header + "\n";
+      if (headerWithNewline.length > remaining) return;
+      contentText += headerWithNewline;
+      remaining -= headerWithNewline.length;
+
+      for (const item of itemsToAdd) {
+        const formatted = formatItem(item, sliceLimit);
+        const block =
+          (contentText.endsWith("\n") ? "" : "\n") + formatted + "\n\n";
+        if (block.length > remaining) break;
+        contentText += block;
+        remaining -= block.length;
+      }
+    };
+
+    const uniqueRelevant = this.deduplicateItems(relevantItems);
+    const uniqueOthers = this.deduplicateItems(otherItems);
+
+    appendSection(
+      "--- RELEVANT CONTENT (★ Key Analysis) ---",
+      uniqueRelevant,
+      RELEVANT_SLICE,
+    );
+    appendSection(
+      "--- OTHER RECENT CONTENT (For Personality Reference Only) ---",
+      uniqueOthers,
+      OTHER_SLICE,
+    );
+
     return text + contentText;
   }
 
   private static stripHtml(html: string): string {
-    if (!html) return '';
-    return html.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ');
+    if (!html) return "";
+    return html.replace(/<[^>]*>?/gm, "").replace(/&nbsp;/g, " ");
   }
-  
+
+  private static deduplicateItems(items: ZhihuContent[]): ZhihuContent[] {
+    const seen = new Set<string>();
+    const result: ZhihuContent[] = [];
+    for (const item of items) {
+      const title = item.title || "";
+      const content = item.content || item.excerpt || "";
+      const signature = `${title.trim().toLowerCase()}|${content.trim().toLowerCase().slice(0, 200)}`;
+      if (seen.has(signature)) continue;
+      seen.add(signature);
+      result.push(item);
+    }
+    return result;
+  }
+
   // 敏感内容过滤函数，移除或替换可能触发AI安全过滤的词汇
   private static filterSensitiveContent(content: string): string {
     if (!content) return content;
-    
-    // 定义敏感词列表，这些词可能会触发AI的安全过滤机制
+
+    // 仅对高风险内容进行替换，避免过度削弱语义
     const sensitivePatterns = [
-      // 政治敏感词
-      /中国政治|政治体制|政府政策|国家领导人|政治改革|政治制度|政治体制|政治问题/gi,
-      /政治敏感|敏感话题|禁忌话题|敏感内容|审查内容/gi,
-      // 违法犯罪相关
-      /违法|犯罪|非法|禁品|危险品|管制刀具|毒品|枪支|爆炸物/gi,
-      // 暴力血腥
-      /血腥|暴力|恐怖|极端|自残|自杀|杀人|凶杀|枪击|爆炸/gi,
-      // 色情低俗
-      /色情|低俗|下流|黄色|成人|性|露骨|暴露/gi,
-      // 诈骗相关
-      /诈骗|赌博|非法集资|传销|洗钱|套现|刷单|虚假/gi,
-      // 侵犯隐私
-      /隐私|个人信息|身份证|电话号码|地址|住址/gi,
-      // 其他可能触发过滤的词汇
-      /禁言|封号|举报|投诉|屏蔽|过滤|敏感|违规/gi
+      // 自伤/自杀
+      /自杀|自残/gi,
+      /\b(suicide|self-harm|self harm)\b/gi,
+      // 暴力与恐怖活动
+      /恐怖主义|恐怖袭击/gi,
+      /\b(terrorism|terrorist)\b/gi,
+      /爆炸物|炸弹/gi,
+      /\b(explosive|bomb)\b/gi,
+      /枪支|枪械/gi,
+      /\b(firearm|gun)\b/gi,
+      /屠杀|大屠杀/gi,
+      /\b(genocide|massacre)\b/gi,
+      /谋杀|杀人|杀害/gi,
+      /\b(murder|homicide)\b/gi,
+      // 性暴力/儿童性剥削
+      /强奸|性侵/gi,
+      /\b(rape|sexual assault)\b/gi,
+      /儿童色情/gi,
+      /\b(child porn|child pornography)\b/gi,
+      // 毒品与制毒贩毒
+      /毒品|制毒|贩毒/gi,
+      /\b(drug trafficking|cocaine|heroin|meth)\b/gi,
     ];
-    
+
     let filteredContent = content;
     for (const pattern of sensitivePatterns) {
       // 将敏感词替换为中性词汇或删除
-      filteredContent = filteredContent.replace(pattern, '[REDACTED]');
+      filteredContent = filteredContent.replace(pattern, "[REDACTED]");
     }
-    
+
     return filteredContent;
   }
-  
+
   // 使用标准化标签系统分析用户内容
   static async analyzeWithStandardLabels(
     content: string,
-    topicClassification: string
+    topicClassification: string,
   ) {
     const labelService = LabelService.getInstance();
-    return labelService.analyzeContentWithStandardLabels(content, topicClassification);
+    return labelService.analyzeContentWithStandardLabels(
+      content,
+      topicClassification,
+    );
   }
 }

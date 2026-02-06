@@ -6,38 +6,38 @@ const mockAddListener = vi.fn();
 const mockRemoveListener = vi.fn();
 
 // Mock global objects
-Object.defineProperty(global, 'chrome', {
+Object.defineProperty(global, "chrome", {
   value: {
     runtime: {
       sendMessage: mockSendMessage,
       onMessage: {
         addListener: mockAddListener,
-        removeListener: mockRemoveListener
-      }
+        removeListener: mockRemoveListener,
+      },
     },
     storage: {
       onChanged: {
         addListener: vi.fn(),
-        removeListener: vi.fn()
-      }
-    }
+        removeListener: vi.fn(),
+      },
+    },
   },
-  writable: true
+  writable: true,
 });
 
 describe("Overlay Logic Test", () => {
   beforeEach(() => {
     // Reset mocks before each test
     vi.clearAllMocks();
-    
+
     // Setup default response for chrome API
     mockSendMessage.mockResolvedValue({
       success: true,
       data: {
         profile: { nickname: "testuser", summary: "Test user profile" },
         items: [],
-        userProfile: null
-      }
+        userProfile: null,
+      },
     });
   });
 
@@ -48,7 +48,7 @@ describe("Overlay Logic Test", () => {
       userId: "testuser",
       context: "test context",
       platform: "reddit",
-      forceRefresh: false
+      forceRefresh: false,
     });
 
     expect(mockSendMessage).toHaveBeenCalledWith({
@@ -56,9 +56,9 @@ describe("Overlay Logic Test", () => {
       userId: "testuser",
       context: "test context",
       platform: "reddit",
-      forceRefresh: false
+      forceRefresh: false,
     });
-    
+
     expect(response.success).toBe(true);
   });
 
@@ -69,7 +69,7 @@ describe("Overlay Logic Test", () => {
       userId: "testuser",
       context: "test question",
       platform: "zhihu",
-      forceRefresh: false
+      forceRefresh: false,
     });
 
     expect(mockSendMessage).toHaveBeenCalledWith({
@@ -77,9 +77,9 @@ describe("Overlay Logic Test", () => {
       userId: "testuser",
       context: "test question",
       platform: "zhihu",
-      forceRefresh: false
+      forceRefresh: false,
     });
-    
+
     expect(response.success).toBe(true);
   });
 
@@ -87,7 +87,7 @@ describe("Overlay Logic Test", () => {
     // Mock error response
     mockSendMessage.mockResolvedValue({
       success: false,
-      error: "User not found"
+      error: "User not found",
     });
 
     const response = await global.chrome.runtime.sendMessage({
@@ -95,7 +95,7 @@ describe("Overlay Logic Test", () => {
       userId: "nonexistent",
       context: "",
       platform: "zhihu",
-      forceRefresh: false
+      forceRefresh: false,
     });
 
     expect(response.success).toBe(false);
@@ -112,7 +112,7 @@ describe("Overlay Logic Test", () => {
         userId: "testuser",
         context: "",
         platform: "reddit",
-        forceRefresh: false
+        forceRefresh: false,
       });
     }).rejects.toThrow("Network error");
 
@@ -121,7 +121,7 @@ describe("Overlay Logic Test", () => {
       userId: "testuser",
       context: "",
       platform: "reddit",
-      forceRefresh: false
+      forceRefresh: false,
     });
   });
 
@@ -132,7 +132,7 @@ describe("Overlay Logic Test", () => {
       userId: "testuser",
       context: "",
       platform: "zhihu",
-      forceRefresh: true
+      forceRefresh: true,
     });
 
     expect(mockSendMessage).toHaveBeenCalledWith({
@@ -140,7 +140,7 @@ describe("Overlay Logic Test", () => {
       userId: "testuser",
       context: "",
       platform: "zhihu",
-      forceRefresh: true
+      forceRefresh: true,
     });
   });
 });

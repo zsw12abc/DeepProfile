@@ -11,7 +11,8 @@ export const enUS: LocaleDict = {
   delete: "Delete",
   confirm_delete: "Are you sure?",
   clear_all: "Clear All",
-  confirm_clear_all: "Are you sure you want to clear all history? This action cannot be undone.",
+  confirm_clear_all:
+    "Are you sure you want to clear all history? This action cannot be undone.",
   export_markdown: "Export as Markdown",
   export_image: "Export as Image",
   export_image_failed: "Export as Image Failed",
@@ -25,12 +26,41 @@ export const enUS: LocaleDict = {
   settings_quora: "Quora Settings",
   debug_mode: "Debug Mode",
   debug_mode_desc: "Enable detailed logging",
+  analysis_button_toggle: "Show analysis buttons",
+  analysis_button_toggle_desc:
+    "Control whether analysis buttons appear on this site.",
+  comment_analysis_toggle: "Enable comment analysis",
+  comment_analysis_toggle_desc: "Show the comment analysis button on Zhihu.",
+  observability_settings: "Observability",
+  observability_error: "Error monitoring",
+  observability_error_desc: "Capture runtime errors and exceptions.",
+  observability_analytics: "Behavior analytics",
+  observability_analytics_desc: "Track feature usage and button interactions.",
+  observability_performance: "Performance monitoring",
+  observability_performance_desc:
+    "Record analysis durations and runtime metrics.",
+  observability_compliance: "Compliance monitoring",
+  observability_compliance_desc:
+    "Track redaction and compliance-related signals.",
+  observability_endpoint: "Telemetry endpoint",
+  observability_endpoint_desc:
+    "Optional. If provided, data will be posted to this endpoint.",
+  observability_endpoint_placeholder: "https://telemetry.example.com/ingest",
+  observability_sample_rate: "Sample rate",
+  observability_prod_allow: "Allow in production",
+  observability_prod_allow_desc:
+    "Production builds require explicit permission to enable telemetry.",
+  observability_prod_consent: "Confirm production consent",
+  observability_prod_consent_desc:
+    "I understand telemetry will be collected in production.",
   settings_history: "History",
   settings_debug: "Developer Options",
   plugin_enabled: "✅ Plugin Enabled",
   plugin_disabled: "⛔ Plugin Disabled",
-  plugin_enabled_desc: "DeepProfile is working normally and will display analysis buttons on target websites.",
-  plugin_disabled_desc: "DeepProfile is completely turned off and will not inject code into any website.",
+  plugin_enabled_desc:
+    "DeepProfile is working normally and will display analysis buttons on target websites.",
+  plugin_disabled_desc:
+    "DeepProfile is completely turned off and will not inject code into any website.",
   ai_provider: "AI Provider",
   api_key: "API Key",
   api_base_url: "API Base URL",
@@ -46,7 +76,7 @@ export const enUS: LocaleDict = {
   mode_fast_desc: "Minimal content, fastest analysis",
   mode_balanced_desc: "Moderate content, balanced speed and quality",
   mode_deep_desc: "Maximum content, most comprehensive analysis",
-  
+
   // Categories
   category_politics: "🏛️ Politics",
   category_economy: "💰 Economy",
@@ -57,7 +87,7 @@ export const enUS: LocaleDict = {
   category_entertainment: "🎮 Entertainment",
   category_lifestyle_career: "💼 Lifestyle & Career",
   category_general: "🌐 General",
-  
+
   // Profile Card
   analyzing: "Analyzing",
   topic_classification: "Topic Classification",
@@ -80,18 +110,27 @@ export const enUS: LocaleDict = {
   data_breakdown: "Data Breakdown",
   unknown_user: "Unknown User",
   unknown_topic: "Unknown Topic",
-  
+
   // Errors
-  error_401: "Authentication Failed (401) 🔐: Please check if your API Key is correct.",
-  error_402: "Insufficient Balance (402) 💸: Please check your API Key balance.",
+  error_401:
+    "Authentication Failed (401) 🔐: Please check if your API Key is correct.",
+  error_402:
+    "Insufficient Balance (402) 💸: Please check your API Key balance.",
   error_404: "Model Not Found (404) 🗺️: Please check your model configuration.",
   error_429: "Too Many Requests (429) 🔥: AI is busy, please try again later.",
   error_500: "AI Provider Error (500) 💥: Please try again later.",
-  error_network: "Network Error 🌐: Please check your internet connection or proxy settings.",
-  error_zhihu_403: "Access Denied by Zhihu (403) 🚧. Please try refreshing the page or logging in.",
-  error_user_not_found: "User data not found 🕵️‍♂️. The account might be banned or set to private.",
-  error_extension_context: "Extension context invalidated. Please refresh the page to retry.",
-  error_content_filter: "Content Safety Review Failed: The input content was flagged by the AI provider as potentially inappropriate. Please try switching to a different model like DeepSeek or OpenAI.",
+  error_network:
+    "Network Error 🌐: Please check your internet connection or proxy settings.",
+  error_zhihu_403:
+    "Access Denied by Zhihu (403) 🚧. Please try refreshing the page or logging in.",
+  error_user_not_found:
+    "User data not found 🕵️‍♂️. The account might be banned or set to private.",
+  error_extension_context:
+    "Extension context invalidated. Please refresh the page to retry.",
+  error_content_filter:
+    "Content Safety Review Failed: The input content was flagged by the AI provider as potentially inappropriate. Please try switching to a different model like DeepSeek or OpenAI.",
+  error_missing_api_key:
+    "API Key is missing 🔑: Please set your API Key for the selected provider.",
 
   // Export
   click_jump: "Click to Jump",
@@ -101,7 +140,7 @@ export const enUS: LocaleDict = {
   start_ai_journey: "Start your AI journey",
   ai_profile_analysis: "AI-powered User Profile Analysis",
   date_label: "Date",
-  
+
   // Comment Analysis
   analyzing_comments: "Analyzing comments on current page...",
   expanding_comments: "Expanding comment section...",
@@ -129,9 +168,15 @@ export const enUS: LocaleDict = {
   theme_zhihu_black_name: "Zhihu Dark Theme",
   theme_zhihu_black_desc: "Zhihu-inspired dark theme with blue accents",
   theme_reddit_white_name: "Reddit White Theme",
-  theme_reddit_white_desc: "Reddit-inspired light theme with orange-blue accents",
+  theme_reddit_white_desc:
+    "Reddit-inspired light theme with orange-blue accents",
   theme_reddit_black_name: "Reddit Dark Theme",
-  theme_reddit_black_desc: "Reddit-inspired dark theme with orange-blue accents",
+  theme_reddit_black_desc:
+    "Reddit-inspired dark theme with orange-blue accents",
+  theme_future_day_name: "Future Daylight",
+  theme_future_day_desc: "Bright glassy tech theme with crisp neon highlights",
+  theme_future_night_name: "Future Night",
+  theme_future_night_desc: "Neon night glass theme with deep cyber contrast",
   failed_load_themes: "Failed to load themes",
   failed_apply_theme: "Failed to apply theme",
   failed_create_theme: "Failed to create theme",
@@ -139,7 +184,8 @@ export const enUS: LocaleDict = {
   failed_save_theme: "Failed to save theme",
   theme_id_name_required: "Please enter theme ID and name",
   cannot_delete_builtin_theme: "Cannot delete built-in themes",
-  confirm_delete_theme: "Are you sure you want to delete this theme? This action cannot be undone.",
+  confirm_delete_theme:
+    "Are you sure you want to delete this theme? This action cannot be undone.",
   edit: "Edit",
   color_settings: "Color Settings",
   color_primary: "Primary Color",
@@ -154,23 +200,25 @@ export const enUS: LocaleDict = {
   color_error: "Error Color",
   color_accent: "Accent Color",
   save_changes: "Save Changes",
-  
+
   // Context Invalidated Error
   extension_context_invalidated: "Extension context invalidated",
   extension_context_invalidated_title: "Extension Context Invalidated",
-  extension_context_invalidated_desc: "Extension context has been invalidated. Please refresh the page to retry.",
-  
+  extension_context_invalidated_desc:
+    "Extension context has been invalidated. Please refresh the page to retry.",
+
   // Version Info
   version_info: "Version Information",
   current_version: "Current Version",
   changelog: "Changelog",
   version_history: "Version History",
-  
+
   // Comment Analysis
   comment_summary_btn: "Analyze Comments",
   anonymous_user: "Anonymous User",
   not_enough_comments: "Not enough comments for analysis",
-  comment_analysis_instruction: ", please try increasing the number of comments displayed.",
+  comment_analysis_instruction:
+    ", please try increasing the number of comments displayed.",
   comment_analysis_summary: "Comment Analysis Summary",
   comment_analysis_ai_generated: "AI Generated",
   sentiment_support: "Support",
@@ -182,34 +230,56 @@ export const enUS: LocaleDict = {
   logic_fallacy: "Logical Fallacy Detected",
   unknown_type: "Unknown Type",
   example_quote: "Example Quote",
-  
+
   // Reddit Overlay
   deep_profile_analysis: "Deep Profile Analysis",
 
   // Progress Messages
   reading_user_profile: "Reading user profile",
   reading_content: "Reading user content",
-  ai_analyzing: "AI is analyzing"
+  ai_analyzing: "AI is analyzing",
+  progress_eta: "ETA",
+  progress_overdue: "Overdue",
 };
 
 // DeepProfile Current Version Changelog
 export const enUSChangelog = `# DeepProfile Current Version Changelog
 
-## Current Version: v0.8.0 (Beta)
+## Current Version: v0.8.1 (Beta) - Memory Optimization & Leak Fixes
 
-### ✅ Features Achieved
-
-### Core Feature (v0.8.0) - Twitter and Quora Platform Support
-- ✅ **Twitter Platform Support**: Added user profile analysis support for Twitter(X) platform, including content scraping and analysis features.
-- ✅ **Quora Platform Support**: Added user profile analysis support for Quora platform, including content scraping and analysis features.
-- ✅ **Multi-platform Architecture**: Extended underlying architecture to support multiple platforms, facilitating addition of more social platforms in the future.
-- ✅ **Interface Integration**: Added Twitter and Quora settings entries in the options page, along with corresponding icons.
-- ✅ **Permission Configuration**: Updated manifest file to include access permissions for Twitter and Quora.
+### 🚀 Memory Optimization (v0.8.1)
+- **Memory Leak Fixes**: Fixed memory leaks caused by timers not being properly cleared in the background service
+- **Event Listener Management**: Improved registration and deregistration mechanisms for event listeners in content scripts to prevent duplicate bindings
+- **Cache Strategy Optimization**: Optimized cache cleanup mechanisms for history records, regularly cleaning up expired data
+- **Component Unmount Optimization**: Improved unmount logic for React components to ensure DOM nodes and event handlers are properly cleaned up
+- **Resource Management**: Added tracking for active timers to prevent timer accumulation
+- **Observability (Dev-only)**: Added error/behavior/performance/compliance telemetry with optional endpoint; production requires explicit consent
+- **Per-site Controls**: Added per-platform analysis button switches and Zhihu comment analysis toggle
+- **CI Quality Gates**: Added CI tests, coverage thresholds, lint/format checks, and build artifact packaging
+- **Theme Updates**: Added Future Daylight/Night themes and removed Neo Tech
 
 `;
 
 // DeepProfile Version History
 export const enUSVersionHistory = `# DeepProfile Version History
+
+### Memory Optimization (v0.8.1) - Memory Management & Leak Fixes
+- ✅ **Memory Leak Fixes**: Fixed memory leaks caused by timers not being properly cleared in the background service
+- ✅ **Event Listener Management**: Improved registration and deregistration mechanisms for event listeners in content scripts to prevent duplicate bindings
+- ✅ **Cache Strategy Optimization**: Optimized cache cleanup mechanisms for history records, regularly cleaning up expired data
+- ✅ **Component Unmount Optimization**: Improved unmount logic for React components to ensure DOM nodes and event handlers are properly cleaned up
+- ✅ **Resource Management**: Added tracking for active timers to prevent timer accumulation
+- ✅ **Observability (Dev-only)**: Added error/behavior/performance/compliance telemetry with optional endpoint; production requires explicit consent
+- ✅ **Per-site Controls**: Added per-platform analysis button switches and Zhihu comment analysis toggle
+- ✅ **CI Quality Gates**: Added CI tests, coverage thresholds, lint/format checks, and build artifact packaging
+- ✅ **Theme Updates**: Added Future Daylight/Night themes and removed Neo Tech
+
+### Core Feature (v0.8.0) - Platform Expansion & UI Modernization
+- ✅ **Quora Platform Support**: Added user profile analysis support for Quora platform, including content scraping and user info extraction
+- ✅ **Twitter/X Platform Support**: Added user profile analysis support for Twitter/X platform, adapting to new API interfaces
+- ✅ **UI Modernization**: Adopted modern UI design, updated settings page layout with card-based design for improved visual experience
+- ✅ **Icon Updates**: Added dedicated icons for all supported platforms, enhancing interface aesthetics
+- ✅ **Responsive Enhancement**: Optimized interface display across different screen sizes
 
 ### Core Feature (v0.7.1) - Label Display & LLM Output Optimization
 - ✅ **Label Display Fix**: Resolved issues where certain labels (e.g., \`competition_vs_equality\`, \`speculation_vs_value\`) were not displaying correctly in the frontend.
@@ -220,23 +290,21 @@ export const enUSVersionHistory = `# DeepProfile Version History
 ### Core Feature (v0.7.0) - Improved Profile Analysis Accuracy & Consistency
 - ✅ **AI Summary Consistency**: Ensure AI-generated summaries are consistent with numerical label scores
 - ✅ **Consistency Verification Mechanism**: Added ConsistencyService to verify and fix summary-label consistency
-- ✅ **Label-Summary Association**: High-scoring labels will be explicitly reflected in summaries
+- ✅ **Label-Summary Association**: High-scoring labels are clearly reflected in summaries
 - ✅ **Evidence Support**: Ensure analysis evidence matches label scores
 
 ### Core Feature (v0.6.3) - Analysis Progress Visualization & Label Display Optimization
-- ✅ **Progress Estimation**: Display estimated remaining time based on analysis mode (e.g., "Analyzing... (15s)")
-- ✅ **Progress Bar Animation**: Show dynamic progress bar reflecting analysis progress.
-- ✅ **Mode Differentiation**: Different analysis modes (Fast/Balanced/Deep) display different estimated times.
-- ✅ **Bidirectional Divergent Bar Chart Optimization**: Value labels are aligned left and right, with percentage displayed above the bidirectional divergent bar.
-
-
+- ✅ **Progress Estimation**: Show estimated remaining time based on analysis mode (e.g., "Analyzing... (15s)")
+- ✅ **Progress Bar Animation**: Display dynamic progress bar for intuitive analysis progress indication.
+- ✅ **Mode Differentiation**: Different analysis modes (Fast/Balanced/Deep) show different estimated times.
+- ✅ **Bidirectional Divergent Bar Chart Optimization**: Value labels are left-right aligned, with percentages displayed above bidirectional divergent bars.
 
 ### v0.6.2 (2024-01-09) - Theme System
-*   **Feature**: **Theme Customization**, supports user-defined appearance themes, including color schemes, fonts, and sizes.
-*   **Feature**: **Multiple Built-in Themes**, provides multiple preset themes, including Zhihu White/Black themes and Reddit White/Black themes.
-*   **Feature**: **Dynamic Theme Switching**, supports real-time theme switching without page refresh.
+*   **Feature**: **Theme Customization**, supports user-defined appearance themes, including color schemes, fonts, sizes, etc.
+*   **Feature**: **Multiple Built-in Themes**, provides multiple preset themes, including Zhihu White/Black themes, Reddit White/Black themes.
+*   **Feature**: **Dynamic Theme Switching**, supports real-time theme switching without refreshing the page.
 *   **Feature**: **CSS Variable Driven**, uses CSS variables to implement global theme dynamic application, ensuring all components update synchronously.
-*   **Feature**: **Theme Management**, supports creating, editing, and deleting custom themes, with import/export functionality.
+*   **Feature**: **Theme Management**, supports creating, editing, deleting custom themes, and provides theme import/export functionality.
 
 ### v0.6.1 (2024-01-09) - Real-time Settings Save
 *   **Feature**: Implemented **real-time settings save functionality** on the settings page, all configuration changes are immediately saved to storage automatically.
@@ -250,45 +318,34 @@ export const enUSVersionHistory = `# DeepProfile Version History
 *   **Feature**: Ensured that Reddit platform analysis buttons and user profile cards support Chinese/English interface switching.
 *   **Feature**: Implemented consistent button injection mechanism aligned with Zhihu platform, including configuration checks, cleanup functions, and orphaned button removal features.
 *   **Feature**: Updated internationalization support for loading, analysis, and error status messages to ensure interface fully follows user language settings.
-*   **Feature**: Fixed useCallback import issue in Reddit overlay, optimizing component performance.
 
-### v0.5.1 (2024-01-10) - Multi-language Support
-*   **Major Feature**: Full support for **Simplified Chinese** and **English** bilingual switching.
-*   **Feature**: AI analysis results automatically adapt to selected language.
-*   **Refactor**: Introduced \`I18nService\` to manage text resources uniformly.
+### v0.5.0 (2024-01-07) - Reddit Platform Support
+*   **Feature**: **Reddit Platform Support**, added support for analyzing Reddit user profiles.
+*   **Feature**: **Cross-Platform Architecture**, refactored code to support multi-social platform expansion.
+*   **Feature**: **Platform-Specific Configuration**, allows setting different analysis parameters for different platforms.
+*   **Feature**: **Reddit Content Scraping**, implemented content extraction and parsing for Reddit API.
+*   **Feature**: **Platform-Specific UI**, adapted user interface styles for Reddit.
 
-### v0.5.0 (2024-01-09) - Comment Sentiment Summary
-*   **Major Feature**: **Comment Sentiment Summary**, one-click generation of page sentiment profile, including position distribution, core views, and emotion detection.
-*   **Security**: Adopted **zero-risk analysis** strategy, only analyzing loaded DOM text, not calling Zhihu API, completely avoiding risk control.
+### v0.4.0 (2024-01-06) - Comment Analysis Feature
+*   **Feature**: **Comment Analysis**, added specialized comment analysis feature to analyze user comments under specific posts.
+*   **Feature**: **Sentiment Analysis**, implemented emotional tendency analysis of user comments (support/oppose/neutral).
+*   **Feature**: **Opinion Clustering**, automatically clusters main opinions in user comments.
+*   **Feature**: **Position Identification**, identifies user positions on controversial topics.
+*   **Feature**: **Public Opinion Overview**, generates AI summary of overall public opinion.
 
-### v0.4.2 (2024-01-08) - Enhanced Export and UX Optimization
-*   **Feature**: Export images support displaying user avatars and QR codes.
-*   **Feature**: History record management supports image export.
-*   **Fix**: Fixed user nickname display issue in history records.
-*   **Fix**: Optimized Zhihu API request headers, resolving 403 issue.
-*   **UX**: Error prompt copy optimized, more friendly and witty.
+### v0.3.0 (2024-01-05) - Value Label System
+*   **Feature**: **Value Label System**, established multi-dimensional value orientation label system (political, economic, social, cultural, technological, etc.).
+*   **Feature**: **Quantitative Analysis**, transforms value orientations into quantitative scores between -1 and 1.
+*   **Feature**: **Bipolar Coordinates**, uses bipolar coordinate system to intuitively display value orientations.
+*   **Feature**: **Label Visualization**, displays value distributions in various dimensions through chart form.
+*   **Feature**: **Label Explanations**, provides detailed explanations for each label.
 
-### v0.4.1 (2024-01-07) - Performance Optimization
-*   **Optimization**: **Dynamic Prompt Trimming**, based on topic category only loads relevant label definitions, significantly reducing Token consumption and improving response speed.
-*   **Refactor**: Optimized label service and topic service, improving code maintainability.
-
-### v0.4.0 (2024-01-06) - History Records and Intelligent Classification
-*   **Major Feature**: **History Record System**, supporting local cache, second-level response, and visual management.
-*   **Major Feature**: **Eight-dimensional Full Spectrum Classification**, introducing 30+ sub-dimensions in politics, economy, society, technology, etc., making profiles more three-dimensional.
-*   **Feature**: **Hybrid Classification Strategy**, combining keyword matching with LLM intelligent classification, ensuring accurate topic categorization.
-*   **Feature**: **Domain Adaptive Analysis**, LLM automatically judges content relevance, avoiding incorrect analysis due to topic mismatch.
-*   **Optimization**: **Deep Prompt Desensitization**, significantly reducing probability of triggering content security risk control.
-*   **UI**: Added "History Records" panel to settings page, supporting expansion view and fine-grained management.
-
-### v0.3.0 (2024-01-04) - Precise Focus and UX Optimization
-*   **Major Feature**: **Refactored Context-aware Algorithm**, using topic tags for precise matching and adopting dynamic truncation strategy, completely solving topic deviation issues.
-*   **Major Feature**: **Refactored Prompt**, using "value orientation" instead of "political orientation", avoiding domestic model risk control, and requiring AI to explain contradiction points.
-*   **Feature**: **New "Connection Test" Function**, providing friendly Chinese error prompts.
-*   **Feature**: **Dynamic Model List Loading**, upgraded model name input box to dropdown selection box.
-*   **Feature**: Added support for **Qwen (Tongyi Qianwen)** and **Custom OpenAI Compatible Interface**.
-*   **Feature**: Data source adds **user like activity**, and can display source ratio in Debug panel.
-*   **Fix**: Prioritizes extracting and analyzing **complete body** of answers/articles, not brief summaries.
-*   **UI**: Modernized settings page UI, adopting card-based layout.
+### v0.2.1 (2024-01-04) - Optimization & Fixes
+*   **Fix**: Optimized content scraping logic, added handling for API rate limiting.
+*   **Fix**: Fixed issues where analysis results were incomplete in certain situations.
+*   **Fix**: Improved error handling mechanisms, providing clearer error messages.
+*   **UI**: Fine-tuned UI component styles, enhancing visual effects.
+*   **Performance**: Optimized caching mechanisms, improving response speed for repeated queries.
 
 ### v0.2.0 (2024-01-03) - Deep Analysis and Context Awareness
 *   **Feature**: Added context-aware functionality, automatically filtering user's relevant answers based on current browsing question.

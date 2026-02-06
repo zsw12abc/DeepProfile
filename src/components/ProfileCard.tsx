@@ -1,20 +1,22 @@
-import React, { useState, useRef, useEffect } from "react"
-import type { ZhihuContent, UserProfile } from "../services/ZhihuClient"
-import { ZhihuClient } from "../services/ZhihuClient"
-import { calculateFinalLabel, parseLabelName } from "../services/LabelUtils"
-import { TopicService, type MacroCategory } from "../services/TopicService"
-import { ExportService } from "../services/ExportService"
-import { ThemeService } from "../services/ThemeService"
-import html2canvas from "html2canvas"
+import React, { useState, useRef, useEffect } from "react";
+import type { ZhihuContent, UserProfile } from "../services/ZhihuClient";
+import { ZhihuClient } from "../services/ZhihuClient";
+import { calculateFinalLabel, parseLabelName } from "../services/LabelUtils";
+import { TopicService, type MacroCategory } from "../services/TopicService";
+import { ExportService } from "../services/ExportService";
+import { ThemeService } from "../services/ThemeService";
+import html2canvas from "html2canvas";
 // Mock icon for testing
-const icon = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR7BQAAAABJRU5ErkJggg==";
-import { I18nService } from "../services/I18nService"
-import { 
-  type ThemeConfig, 
-  type UserHistoryRecord, 
+const icon =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR7BQAAAABJRU5ErkJggg==";
+import { I18nService } from "../services/I18nService";
+import {
+  type ThemeConfig,
+  type UserHistoryRecord,
   type ProfileData,
+  type AnalysisProgress,
   type SupportedPlatform,
-  ZHIHU_WHITE_THEME
+  ZHIHU_WHITE_THEME,
 } from "../types";
 
 interface DebugInfo {
@@ -28,102 +30,118 @@ interface DebugInfo {
   fetchStrategy?: string;
   tokens?: {
     prompt_tokens: number;
-    completion_tokens: number,
+    completion_tokens: number;
     total_tokens: number;
   };
 }
 
 interface ProfileCardProps {
-  record: UserHistoryRecord
-  platform: SupportedPlatform
-  isLoading?: boolean
-  statusMessage?: string
-  error?: string
-  onRefresh?: () => void
-  onClose?: () => void
-  onExport?: () => void
-  progressPercentage?: number // 添加进度百分比参数
+  record: UserHistoryRecord;
+  platform: SupportedPlatform;
+  isLoading?: boolean;
+  statusMessage?: string;
+  error?: string;
+  onRefresh?: () => void;
+  onClose?: () => void;
+  onExport?: () => void;
+  progressInfo?: AnalysisProgress;
 }
 
-const ProfileCard: React.FC<ProfileCardProps> = ({ 
-  record, 
-  platform, 
-  isLoading = false, 
-  statusMessage, 
-  error, 
-  onRefresh, 
-  onClose, 
+const ProfileCard: React.FC<ProfileCardProps> = ({
+  record,
+  platform,
+  isLoading = false,
+  statusMessage,
+  error,
+  onRefresh,
+  onClose,
   onExport,
-  progressPercentage
+  progressInfo,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [theme, setTheme] = useState<ThemeConfig>(ZHIHU_WHITE_THEME);
   const [showDebug, setShowDebug] = useState(false);
   const [expandedEvidence, setExpandedEvidence] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  const cardRef = useRef<HTMLDivElement>(null)
-  
+  const cardRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const loadTheme = async () => {
       const themeService = ThemeService.getInstance();
       await themeService.initialize();
       setTheme(themeService.getCurrentTheme());
     };
-    
+
     loadTheme();
   }, []);
 
-  let nickname = record.nickname || I18nService.t('unknown_user')
-  let topicClassification = I18nService.t('unknown_topic')
-  let valueOrientation: Array<{ label: string; score: number }> = []
-  let summary = ""
-  let evidence: Array<{ quote: string; analysis: string; source_title: string; source_id?: string }> = []
-  let debugInfo: DebugInfo | undefined
-  let items: ZhihuContent[] = []
-  let fromCache = false
-  let cachedAt = 0
-  let cachedContext = ""
-  let userProfile: UserProfile | null = null
+  let nickname = record.nickname || I18nService.t("unknown_user");
+  let topicClassification = I18nService.t("unknown_topic");
+  let valueOrientation: Array<{ label: string; score: number }> = [];
+  let summary = "";
+  let evidence: Array<{
+    quote: string;
+    analysis: string;
+    source_title: string;
+    source_id?: string;
+  }> = [];
+  let debugInfo: DebugInfo | undefined;
+  let items: ZhihuContent[] = [];
+  let fromCache = false;
+  let cachedAt = 0;
+  let cachedContext = "";
+  let userProfile: UserProfile | null = null;
 
   if (record.profileData) {
     try {
       const parsedProfile: ProfileData = record.profileData;
-      nickname = parsedProfile.nickname || nickname
-      topicClassification = parsedProfile.topic_classification || topicClassification
-      
+      nickname = parsedProfile.nickname || nickname;
+      topicClassification =
+        parsedProfile.topic_classification || topicClassification;
+
       if (Array.isArray(parsedProfile.value_orientation)) {
         valueOrientation = parsedProfile.value_orientation;
       }
-      
-      summary = parsedProfile.summary || ""
-      evidence = parsedProfile.evidence || []
-      debugInfo = record.debugInfo
-      items = record.items || []
-      fromCache = record.fromCache || false
-      cachedAt = record.cachedAt || 0
-      cachedContext = record.cachedContext || ""
-      userProfile = record.userProfile
+
+      summary = parsedProfile.summary || "";
+      evidence = parsedProfile.evidence || [];
+      debugInfo = record.debugInfo;
+      items = record.items || [];
+      fromCache = record.fromCache || false;
+      cachedAt = record.cachedAt || 0;
+      cachedContext = record.cachedContext || "";
+      userProfile = record.userProfile;
     } catch (e) {
-      console.error("Failed to parse profile data:", e)
+      console.error("Failed to parse profile data:", e);
     }
   }
 
-  const displayName = nickname || `${I18nService.t('unknown_user')}${record.userId.substring(0, 8)}`
-  const userHomeUrl = `https://www.zhihu.com/people/${record.userId}`
+  const displayName =
+    nickname ||
+    `${I18nService.t("unknown_user")}${record.userId.substring(0, 8)}`;
+  const userHomeUrl = `https://www.zhihu.com/people/${record.userId}`;
+  const visibleValueOrientation = valueOrientation.filter(
+    (item) => Math.abs(item.score) > 1e-6,
+  );
 
-  const toggleDebug = () => setShowDebug(!showDebug)
-  const toggleEvidence = () => setExpandedEvidence(!expandedEvidence)
+  const toggleDebug = () => setShowDebug(!showDebug);
+  const toggleEvidence = () => setExpandedEvidence(!expandedEvidence);
 
   // 导出 Markdown
   const handleExportMarkdown = () => {
     if (!record.profileData) return;
-    
+
     const category = TopicService.classify(cachedContext || "");
-    const md = ExportService.toMarkdown(record.profileData as ProfileData, category, userHomeUrl, cachedAt || Date.now());
-    
-    const blob = new Blob([md], { type: 'text/markdown' });
+    const md = ExportService.toMarkdown(
+      record.profileData as ProfileData,
+      category,
+      userHomeUrl,
+      cachedAt || Date.now(),
+    );
+
+    const blob = new Blob([md], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = `DeepProfile_${displayName}_${new Date().toISOString().slice(0, 10)}.md`;
     document.body.appendChild(a);
@@ -136,55 +154,62 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   const handleExportImage = async () => {
     if (!cardRef.current) return;
     setIsExporting(true);
-    
+
     try {
       // 临时展开所有内容以确保截图完整
       const wasEvidenceExpanded = expandedEvidence;
       const wasDebugShown = showDebug;
       setExpandedEvidence(true);
       setShowDebug(false); // 截图通常不需要调试信息
-      
+
       // 创建一个临时的、样式化的容器用于截图
-      const exportContainer = document.createElement('div');
-      exportContainer.style.position = 'absolute';
-      exportContainer.style.top = '-9999px';
-      exportContainer.style.left = '-9999px';
-      exportContainer.style.width = '400px'; // 固定宽度，类似身份证
+      const exportContainer = document.createElement("div");
+      exportContainer.style.position = "absolute";
+      exportContainer.style.top = "-9999px";
+      exportContainer.style.left = "-9999px";
+      exportContainer.style.width = "400px"; // 固定宽度，类似身份证
       exportContainer.style.backgroundColor = theme.colors.background; // 使用主题背景色
-      exportContainer.style.padding = '20px';
+      exportContainer.style.padding = "20px";
       exportContainer.style.fontFamily = theme.typography.fontFamily; // 使用主题字体
       document.body.appendChild(exportContainer);
 
       // 构建 ID 卡片样式的内容
-      const dateStr = new Date().toLocaleDateString(I18nService.getLanguage() === 'en-US' ? 'en-US' : 'zh-CN');
-      
+      const dateStr = new Date().toLocaleDateString(
+        I18nService.getLanguage() === "en-US" ? "en-US" : "zh-CN",
+      );
+
       // 渲染价值取向条
-      let valueOrientationHtml = '';
-      if (valueOrientation && valueOrientation.length > 0) {
-          valueOrientationHtml = valueOrientation.map(item => {
-              const parsedLabel = parseLabelName(item.label);
-              const leftLabel = parsedLabel.left || 'Left';
-              const rightLabel = parsedLabel.right || 'Right';
-              
-              // 确保分数在-1到1的范围内
-              const normalizedScore = Math.max(-1, Math.min(1, item.score));
-              
-              // 计算百分比（取分数绝对值并转换为百分比）
-              const percentage = Math.abs(normalizedScore) * 100;
-              
-              // 根据分数正负决定哪边高亮
-              const leftIntensity = normalizedScore < 0 ? Math.abs(normalizedScore) * 100 : 0;
-              const rightIntensity = normalizedScore > 0 ? normalizedScore * 100 : 0;
-              
-              // 根据强度计算颜色，从中心向外着色
-              const leftColor = normalizedScore < 0 
-                ? `hsl(0, 70%, ${70 - Math.abs(normalizedScore) * 70}%)`  // 红色代表负值
+      let valueOrientationHtml = "";
+      if (visibleValueOrientation.length > 0) {
+        valueOrientationHtml = visibleValueOrientation
+          .map((item) => {
+            const parsedLabel = parseLabelName(item.label);
+            const leftLabel = parsedLabel.left || "Left";
+            const rightLabel = parsedLabel.right || "Right";
+
+            // 确保分数在-1到1的范围内
+            const normalizedScore = Math.max(-1, Math.min(1, item.score));
+
+            // 计算百分比（取分数绝对值并转换为百分比）
+            const percentage = Math.abs(normalizedScore) * 100;
+
+            // 根据分数正负决定哪边高亮
+            const leftIntensity =
+              normalizedScore < 0 ? Math.abs(normalizedScore) * 100 : 0;
+            const rightIntensity =
+              normalizedScore > 0 ? normalizedScore * 100 : 0;
+
+            // 根据强度计算颜色，从中心向外着色
+            const leftColor =
+              normalizedScore < 0
+                ? `hsl(0, 70%, ${70 - Math.abs(normalizedScore) * 70}%)` // 红色代表负值
                 : `hsl(210, 70%, 80%)`; // 浅蓝色代表正值时的左侧
-              const rightColor = normalizedScore > 0 
-                ? `hsl(210, 70%, ${70 - normalizedScore * 70}%)`  // 蓝色代表正值
+            const rightColor =
+              normalizedScore > 0
+                ? `hsl(210, 70%, ${70 - normalizedScore * 70}%)` // 蓝色代表正值
                 : `hsl(0, 70%, 80%)`; // 浅红色代表负值时的右侧
-              
-              return `
+
+            return `
                 <div style="display: flex; align-items: center; margin-bottom: 8px; font-size: 12px;">
                     <span style="width: 80px; font-weight: 500; color: ${theme.colors.text};">${leftLabel}</span>
                     <div style="flex: 1; height: 8px; background-color: ${theme.colors.border}; border-radius: 4px 0 0 4px; overflow: hidden;">
@@ -198,18 +223,21 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     <span style="width: 30px; text-align: right; font-size: 11px; color: ${theme.colors.textSecondary}; margin-left: 8px;">${Math.round(percentage)}%</span>
                 </div>
               `;
-          }).join('');
+          })
+          .join("");
       }
 
       // 获取 Base64 编码的头像
       let avatarSrc = icon;
       if (userProfile?.avatar_url) {
-        const base64Avatar = await ZhihuClient.fetchImageAsBase64(userProfile.avatar_url);
+        const base64Avatar = await ZhihuClient.fetchImageAsBase64(
+          userProfile.avatar_url,
+        );
         if (base64Avatar) {
           avatarSrc = base64Avatar;
         }
       }
-      
+
       // 二维码链接
       const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent("https://chrome.google.com/webstore/detail/deepprofile")}`;
 
@@ -222,41 +250,45 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     </div>
                     <div>
                         <h2 style="margin: 0; font-size: 20px; font-weight: 700; font-family: ${theme.typography.fontFamily};">${displayName}</h2>
-                        <div style="font-size: 12px; opacity: 0.9; margin-top: 4px; font-family: ${theme.typography.fontFamily};">DeepProfile ${I18nService.t('app_description')}</div>
+                        <div style="font-size: 12px; opacity: 0.9; margin-top: 4px; font-family: ${theme.typography.fontFamily};">DeepProfile ${I18nService.t("app_description")}</div>
                     </div>
                 </div>
                 <div style="position: absolute; top: 20px; right: 20px; text-align: right;">
-                    <div style="font-size: 10px; opacity: 0.8; font-family: ${theme.typography.fontFamily};">${I18nService.t('date_label')}</div>
+                    <div style="font-size: 10px; opacity: 0.8; font-family: ${theme.typography.fontFamily};">${I18nService.t("date_label")}</div>
                     <div style="font-size: 14px; font-weight: 600; font-family: ${theme.typography.fontFamily};">${dateStr}</div>
                 </div>
             </div>
             
             <div style="padding: 24px;">
                 <div style="margin-bottom: 20px;">
-                    <div style="font-size: 12px; color: ${theme.colors.textSecondary}; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; font-family: ${theme.typography.fontFamily};">${I18nService.t('topic_classification')}</div>
+                    <div style="font-size: 12px; color: ${theme.colors.textSecondary}; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; font-family: ${theme.typography.fontFamily};">${I18nService.t("topic_classification")}</div>
                     <div style="font-size: 16px; font-weight: 600; color: ${theme.colors.text}; background-color: ${theme.colors.background}; display: inline-block; padding: 4px 12px; border-radius: 20px; font-family: ${theme.typography.fontFamily};">${topicClassification}</div>
                 </div>
 
                 <div style="margin-bottom: 24px;">
-                    <div style="font-size: 12px; color: ${theme.colors.textSecondary}; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; font-family: ${theme.typography.fontFamily};">${I18nService.t('ai_summary')}</div>
+                    <div style="font-size: 12px; color: ${theme.colors.textSecondary}; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; font-family: ${theme.typography.fontFamily};">${I18nService.t("ai_summary")}</div>
                     <div style="font-size: 14px; line-height: 1.6; color: ${theme.colors.text}; background-color: ${theme.colors.background}; padding: 12px; border-radius: 8px; border-left: 3px solid ${theme.colors.primary}; font-family: ${theme.typography.fontFamily};">
                         ${summary}
                     </div>
                 </div>
 
-                ${valueOrientationHtml ? `
+                ${
+                  valueOrientationHtml
+                    ? `
                 <div style="margin-bottom: 20px;">
-                    <div style="font-size: 12px; color: ${theme.colors.textSecondary}; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-family: ${theme.typography.fontFamily};">${I18nService.t('value_orientation')}</div>
+                    <div style="font-size: 12px; color: ${theme.colors.textSecondary}; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-family: ${theme.typography.fontFamily};">${I18nService.t("value_orientation")}</div>
                     ${valueOrientationHtml}
                 </div>
-                ` : ''}
+                `
+                    : ""
+                }
                 
                 <div style="border-top: 1px dashed ${theme.colors.border}; margin-top: 20px; padding-top: 16px; display: flex; justify-content: space-between; align-items: center;">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <img src="${qrCodeUrl}" style="width: 48px; height: 48px; border-radius: 4px;" crossOrigin="anonymous" />
                         <div>
                             <div style="font-size: 12px; font-weight: 600; color: ${theme.colors.text}; font-family: ${theme.typography.fontFamily};">DeepProfile</div>
-                            <div style="font-size: 10px; color: ${theme.colors.textSecondary}; font-family: ${theme.typography.fontFamily};">${I18nService.t('ai_profile_analysis')}</div>
+                            <div style="font-size: 10px; color: ${theme.colors.textSecondary}; font-family: ${theme.typography.fontFamily};">${I18nService.t("ai_profile_analysis")}</div>
                         </div>
                     </div>
                     <div style="font-size: 10px; color: ${theme.colors.textSecondary}; text-align: right; font-family: ${theme.typography.fontFamily};">
@@ -268,30 +300,30 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       `;
 
       // 等待图片加载
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       const canvas = await html2canvas(exportContainer, {
         useCORS: true,
         backgroundColor: null,
         scale: 2,
-        logging: false
+        logging: false,
       });
-      
+
       const image = canvas.toDataURL("image/png");
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = image;
       a.download = `DeepProfile_Card_${displayName}_${new Date().toISOString().slice(0, 10)}.png`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       document.body.removeChild(exportContainer);
-      
+
       // 恢复状态
       setExpandedEvidence(wasEvidenceExpanded);
       setShowDebug(wasDebugShown);
     } catch (e) {
       console.error("Export image failed:", e);
-      alert(I18nService.t('export_image_failed'));
+      alert(I18nService.t("export_image_failed"));
     } finally {
       setIsExporting(false);
     }
@@ -300,89 +332,131 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   // 计算进度条
   const renderProgressBar = () => {
     // 显示进度条的条件：要么正在加载，要么有状态消息但还没有LLM响应
-    const hasLLMResponse = record.profileData !== null && record.profileData !== undefined;
-    
+    const hasLLMResponse =
+      record.profileData !== null && record.profileData !== undefined;
+
     // 如果已经有LLM响应，则不显示进度条和状态消息
     if (hasLLMResponse) return null;
-    
+
     // 如果既没有加载状态也没有状态消息，则不显示
     if (!isLoading && !statusMessage) return null;
-    
+
+    const percentage = progressInfo?.percentage;
+    const hasPercentage = typeof percentage === "number";
+    const overdue = progressInfo?.overdue;
+    const elapsedMs = progressInfo?.elapsedMs;
+    const estimatedMs = progressInfo?.estimatedMs;
+    const displayWidth = hasPercentage
+      ? Math.max(2, Math.min(99, percentage as number))
+      : 0;
+    const etaSeconds =
+      !overdue && elapsedMs !== undefined && estimatedMs !== undefined
+        ? Math.max(1, Math.ceil((estimatedMs - elapsedMs) / 1000))
+        : null;
+    const overdueSeconds =
+      overdue && elapsedMs !== undefined && estimatedMs !== undefined
+        ? Math.max(1, Math.ceil((elapsedMs - estimatedMs) / 1000))
+        : null;
+
     return (
-      <div style={{ 
-        marginBottom: theme.spacing.md, 
-        fontSize: theme.typography.fontSizeBase, 
-        color: theme.colors.textSecondary 
-      }}>
-        {/* 左上角状态消息 - 告诉用户当前在做什么 */}
-        <div style={{
-          marginBottom: theme.spacing.sm,
-          fontWeight: theme.typography.fontWeightBold,
-          color: theme.colors.primary,
-          fontSize: '16px'  // 设置字体大小，符合您提到的样式
-        }}>
-          {statusMessage || I18nService.t('analyzing')}
-          {progressPercentage !== undefined && progressPercentage < 100 && (
-            <span> ({Math.max(1, Math.ceil((100 - progressPercentage) * 0.25))}s)</span>
-          )}
+      <div
+        style={{
+          marginBottom: theme.spacing.md,
+          fontSize: theme.typography.fontSizeBase,
+          color: theme.colors.textSecondary,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: theme.spacing.sm,
+            marginBottom: theme.spacing.sm,
+          }}
+        >
+          <div
+            style={{
+              fontWeight: theme.typography.fontWeightBold,
+              color: theme.colors.primary,
+              fontSize: "16px",
+            }}
+          >
+            {statusMessage || I18nService.t("analyzing")}
+          </div>
+          <div style={{ display: "flex", gap: theme.spacing.xs }}>
+            {etaSeconds !== null && (
+              <span className="dp-chip dp-chip--info">
+                {I18nService.t("progress_eta")} {etaSeconds}s
+              </span>
+            )}
+            {overdueSeconds !== null && (
+              <span className="dp-chip dp-chip--warn">
+                {I18nService.t("progress_overdue")} +{overdueSeconds}s
+              </span>
+            )}
+          </div>
         </div>
-        
-        {/* 中间进度条 - 占据最大部分，根据分析模式调整速度 */}
-        {progressPercentage !== undefined && progressPercentage < 100 && (
-          <div style={{
-            height: "8px",
-            backgroundColor: theme.colors.border,
-            borderRadius: "4px",
-            overflow: "hidden",
-            position: "relative",
-            margin: `${theme.spacing.sm} 0`
-          }}>
-            {/* 进度条：从左到右填充 */}
-            <div 
+
+        {hasPercentage && percentage < 100 && (
+          <div
+            className="dp-progress-track"
+            style={{ backgroundColor: theme.colors.border }}
+          >
+            <div
+              className={`dp-progress-fill${overdue ? " dp-progress-fill--overdue" : ""}`}
               style={{
-                height: "100%",
-                width: `${progressPercentage}%`,
-                backgroundColor: theme.colors.primary,
-                transition: "width 0.3s ease",
-                borderRadius: "4px",
-                position: "absolute",
-                left: 0,
-                top: 0
+                width: `${displayWidth}%`,
+                background: `linear-gradient(90deg, ${theme.colors.primary}, ${theme.colors.accent})`,
               }}
             />
+            {overdue && <div className="dp-progress-shimmer" />}
           </div>
         )}
       </div>
     );
-  }
+  };
 
   // Render cache status bar
   const renderCacheStatus = () => {
     if (!fromCache) return null;
-    
+
     const date = new Date(cachedAt);
-    const timeStr = date.toLocaleString(I18nService.getLanguage() === 'en-US' ? 'en-US' : 'zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-    
+    const timeStr = date.toLocaleString(
+      I18nService.getLanguage() === "en-US" ? "en-US" : "zh-CN",
+      { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" },
+    );
+
     const category = TopicService.classify(cachedContext);
     const categoryName = TopicService.getCategoryName(category);
 
     return (
-      <div style={{
-        backgroundColor: theme.colors.primary + "20", // 20% opacity
-        border: `1px solid ${theme.colors.primary}40`, // 40% opacity
-        borderRadius: theme.borderRadius.medium,
-        padding: theme.spacing.sm,
-        marginBottom: theme.spacing.md,
-        fontSize: theme.typography.fontSizeSmall,
-        color: theme.colors.primary,
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center"
-      }}>
+      <div
+        style={{
+          backgroundColor: theme.colors.primary + "20", // 20% opacity
+          border: `1px solid ${theme.colors.primary}40`, // 40% opacity
+          borderRadius: theme.borderRadius.medium,
+          padding: theme.spacing.sm,
+          marginBottom: theme.spacing.md,
+          fontSize: theme.typography.fontSizeSmall,
+          color: theme.colors.primary,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
         <div>
-          <span style={{ fontWeight: theme.typography.fontWeightBold }}>{I18nService.t('history_record')} ({timeStr})</span>
-          <div style={{ fontSize: theme.typography.fontSizeSmall, marginTop: theme.spacing.xs, opacity: 0.8 }}>
-            {I18nService.t('topic_classification')}: {categoryName}
+          <span style={{ fontWeight: theme.typography.fontWeightBold }}>
+            {I18nService.t("history_record")} ({timeStr})
+          </span>
+          <div
+            style={{
+              fontSize: theme.typography.fontSizeSmall,
+              marginTop: theme.spacing.xs,
+              opacity: 0.8,
+            }}
+          >
+            {I18nService.t("topic_classification")}: {categoryName}
           </div>
         </div>
         {onRefresh && (
@@ -396,23 +470,26 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
               fontSize: theme.typography.fontSizeSmall,
               cursor: "pointer",
-              fontWeight: theme.typography.fontWeightBold
+              fontWeight: theme.typography.fontWeightBold,
             }}
-            onMouseOver={e => {
-                e.currentTarget.style.backgroundColor = theme.colors.primary;
-                e.currentTarget.style.color = theme.colors.surface;
+            onMouseOver={(e) => {
+              e.currentTarget.style.backgroundColor = theme.colors.primary;
+              e.currentTarget.style.color = theme.colors.surface;
             }}
-            onMouseOut={e => {
-                e.currentTarget.style.backgroundColor = theme.colors.surface;
-                e.currentTarget.style.color = theme.colors.primary;
+            onMouseOut={(e) => {
+              e.currentTarget.style.backgroundColor = theme.colors.surface;
+              e.currentTarget.style.color = theme.colors.primary;
             }}
           >
-            {I18nService.t('reanalyze')}
+            {I18nService.t("reanalyze")}
           </button>
         )}
       </div>
     );
-  }
+  };
+
+  const cardAccent = `linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.secondary})`;
+  const cardBackground = `linear-gradient(180deg, ${theme.colors.surface} 0%, ${theme.colors.background} 100%)`;
 
   return (
     <div
@@ -421,18 +498,84 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         position: "fixed",
         bottom: theme.spacing.lg,
         right: theme.spacing.lg,
-        width: "380px",
+        width: "min(380px, 92vw)",
         maxHeight: "80vh",
         overflowY: "auto",
-        backgroundColor: theme.colors.surface,
+        background: cardBackground,
         boxShadow: theme.shadows.large,
         borderRadius: theme.borderRadius.large,
         padding: theme.spacing.lg,
+        border: `1px solid ${theme.colors.border}`,
+        backdropFilter: "blur(10px)",
         zIndex: 9999,
         fontFamily: theme.typography.fontFamily,
         fontSize: theme.typography.fontSizeBase,
-        color: theme.colors.text
-      }}>
+        color: theme.colors.text,
+      }}
+    >
+      <style>{`
+        .dp-progress-track {
+          position: relative;
+          height: 8px;
+          border-radius: 999px;
+          overflow: hidden;
+          margin: ${theme.spacing.sm} 0;
+        }
+        .dp-progress-fill {
+          height: 100%;
+          border-radius: 999px;
+          transition: width 0.4s ease;
+          box-shadow: 0 0 12px rgba(37, 99, 235, 0.35);
+        }
+        .dp-progress-fill--overdue {
+          animation: dp-pulse 1.4s ease-in-out infinite;
+        }
+        .dp-progress-shimmer {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.4) 50%, transparent 100%);
+          animation: dp-shimmer 1.2s linear infinite;
+        }
+        .dp-chip {
+          display: inline-flex;
+          align-items: center;
+          padding: 4px 10px;
+          border-radius: 999px;
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: 0.02em;
+          background: rgba(37, 99, 235, 0.08);
+          color: ${theme.colors.primary};
+        }
+        .dp-chip--info {
+          background: rgba(37, 99, 235, 0.08);
+          color: ${theme.colors.primary};
+        }
+        .dp-chip--warn {
+          background: rgba(245, 158, 11, 0.12);
+          color: ${theme.colors.warning};
+        }
+        @keyframes dp-shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+        @keyframes dp-pulse {
+          0% { opacity: 0.6; }
+          50% { opacity: 1; }
+          100% { opacity: 0.6; }
+        }
+      `}</style>
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: "3px",
+          borderRadius: `${theme.borderRadius.large} ${theme.borderRadius.large} 0 0`,
+          background: cardAccent,
+        }}
+      />
       <div
         style={{
           display: "flex",
@@ -440,35 +583,74 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           alignItems: "center",
           marginBottom: theme.spacing.md,
           borderBottom: `1px solid ${theme.colors.border}`,
-          paddingBottom: theme.spacing.sm
-        }}>
-        <div style={{ display: "flex", alignItems: "center", gap: theme.spacing.md }}>
+          paddingBottom: theme.spacing.sm,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: theme.spacing.md,
+          }}
+        >
           {userProfile?.avatar_url && (
-            <img 
-              src={userProfile.avatar_url} 
-              alt="avatar" 
-              style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" }} 
+            <img
+              src={userProfile.avatar_url}
+              alt="avatar"
+              style={{
+                width: "40px",
+                height: "40px",
+                borderRadius: "50%",
+                objectFit: "cover",
+              }}
             />
           )}
           <div>
-            <h3 style={{ margin: 0, fontSize: theme.typography.fontSizeMedium, fontWeight: theme.typography.fontWeightBold, color: theme.colors.text }}>
+            <h3
+              style={{
+                margin: 0,
+                fontSize: theme.typography.fontSizeMedium,
+                fontWeight: theme.typography.fontWeightBold,
+                color: theme.colors.text,
+              }}
+            >
               {isLoading ? (
-                  <span>{I18nService.t('analyzing')}: {displayName}</span>
+                <span>
+                  {I18nService.t("analyzing")}: {displayName}
+                </span>
               ) : (
-                  <a 
-                    href={userHomeUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    style={{ color: theme.colors.text, textDecoration: "none" }}
-                    onMouseOver={e => e.currentTarget.style.color = theme.colors.primary}
-                    onMouseOut={e => e.currentTarget.style.color = theme.colors.text}
-                  >
-                    {displayName}
-                  </a>
+                <a
+                  href={userHomeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: theme.colors.text, textDecoration: "none" }}
+                  onMouseOver={(e) =>
+                    (e.currentTarget.style.color = theme.colors.primary)
+                  }
+                  onMouseOut={(e) =>
+                    (e.currentTarget.style.color = theme.colors.text)
+                  }
+                >
+                  {displayName}
+                </a>
               )}
             </h3>
-            <div style={{ fontSize: theme.typography.fontSizeSmall, color: theme.colors.textSecondary, marginTop: theme.spacing.xs }}>
-              {I18nService.t('topic_classification')}: <span style={{ fontWeight: theme.typography.fontWeightBold, color: theme.colors.primary }}>{topicClassification}</span>
+            <div
+              style={{
+                fontSize: theme.typography.fontSizeSmall,
+                color: theme.colors.textSecondary,
+                marginTop: theme.spacing.xs,
+              }}
+            >
+              {I18nService.t("topic_classification")}:{" "}
+              <span
+                style={{
+                  fontWeight: theme.typography.fontWeightBold,
+                  color: theme.colors.primary,
+                }}
+              >
+                {topicClassification}
+              </span>
             </div>
           </div>
         </div>
@@ -477,7 +659,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             <>
               <button
                 onClick={handleExportMarkdown}
-                title={I18nService.t('export_markdown')}
+                title={I18nService.t("export_markdown")}
                 style={{
                   background: "none",
                   border: "none",
@@ -486,16 +668,21 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   padding: theme.spacing.xs,
                   borderRadius: theme.borderRadius.small,
                   transition: "background-color 0.2s",
-                  color: theme.colors.textSecondary
+                  color: theme.colors.textSecondary,
                 }}
-                onMouseOver={e => e.currentTarget.style.backgroundColor = theme.colors.textSecondary + "20"}
-                onMouseOut={e => e.currentTarget.style.backgroundColor = "transparent"}
+                onMouseOver={(e) =>
+                  (e.currentTarget.style.backgroundColor =
+                    theme.colors.textSecondary + "20")
+                }
+                onMouseOut={(e) =>
+                  (e.currentTarget.style.backgroundColor = "transparent")
+                }
               >
                 📝
               </button>
               <button
                 onClick={handleExportImage}
-                title={I18nService.t('export_image')}
+                title={I18nService.t("export_image")}
                 disabled={isExporting}
                 style={{
                   background: "none",
@@ -506,10 +693,15 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   borderRadius: theme.borderRadius.small,
                   transition: "background-color 0.2s",
                   opacity: isExporting ? 0.5 : 1,
-                  color: theme.colors.textSecondary
+                  color: theme.colors.textSecondary,
                 }}
-                onMouseOver={e => e.currentTarget.style.backgroundColor = theme.colors.textSecondary + "20"}
-                onMouseOut={e => e.currentTarget.style.backgroundColor = "transparent"}
+                onMouseOver={(e) =>
+                  (e.currentTarget.style.backgroundColor =
+                    theme.colors.textSecondary + "20")
+                }
+                onMouseOut={(e) =>
+                  (e.currentTarget.style.backgroundColor = "transparent")
+                }
               >
                 📸
               </button>
@@ -528,10 +720,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               height: "24px",
               display: "flex",
               alignItems: "center",
-              justifyContent: "center"
+              justifyContent: "center",
             }}
-            onMouseOver={(e) => (e.currentTarget.style.color = theme.colors.text)}
-            onMouseOut={(e) => (e.currentTarget.style.color = theme.colors.textSecondary)}
+            onMouseOver={(e) =>
+              (e.currentTarget.style.color = theme.colors.text)
+            }
+            onMouseOut={(e) =>
+              (e.currentTarget.style.color = theme.colors.textSecondary)
+            }
           >
             ×
           </button>
@@ -542,50 +738,80 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       {renderCacheStatus()}
 
       {error && (
-        <div style={{ 
-          marginBottom: theme.spacing.md, 
-          padding: theme.spacing.sm, 
-          backgroundColor: theme.colors.error + "20", 
-          borderRadius: theme.borderRadius.small, 
-          color: theme.colors.error 
-        }}>
+        <div
+          style={{
+            marginBottom: theme.spacing.md,
+            padding: theme.spacing.sm,
+            backgroundColor: theme.colors.error + "20",
+            borderRadius: theme.borderRadius.small,
+            color: theme.colors.error,
+          }}
+        >
           Error: {error}
         </div>
       )}
 
       {isLoading ? (
-        <div style={{ textAlign: "center", padding: `${parseInt(theme.spacing.lg) * 1.25}px 0` }}>
+        <div
+          style={{
+            textAlign: "center",
+            padding: `${parseInt(theme.spacing.lg) * 1.25}px 0`,
+          }}
+        >
           {/* 这里不再显示单独的分析文本，因为 renderProgressBar 已经处理了 */}
           {/* 移除重复的“正在分析...”文本 */}
         </div>
       ) : record.profileData ? (
         <div>
-          {valueOrientation && valueOrientation.length > 0 && (
+          {visibleValueOrientation.length > 0 && (
             <div style={{ marginBottom: theme.spacing.md }}>
-              <h4 style={{ margin: "0 0 8px 0", fontSize: theme.typography.fontSizeBase, fontWeight: theme.typography.fontWeightBold, color: theme.colors.text }}>{I18nService.t('value_orientation')}</h4>
-              <div style={{ display: "flex", flexDirection: "column", gap: theme.spacing.sm }}>
-                {valueOrientation.map((item, index) => {
+              <h4
+                style={{
+                  margin: "0 0 8px 0",
+                  fontSize: theme.typography.fontSizeBase,
+                  fontWeight: theme.typography.fontWeightBold,
+                  color: theme.colors.text,
+                }}
+              >
+                {I18nService.t("value_orientation")}
+              </h4>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: theme.spacing.sm,
+                }}
+              >
+                {visibleValueOrientation.map((item, index) => {
                   const parsedLabel = parseLabelName(item.label);
                   const leftLabel = parsedLabel.left;
                   const rightLabel = parsedLabel.right;
-                  
+
                   // 确保分数在-1到1的范围内
                   const normalizedScore = Math.max(-1, Math.min(1, item.score));
-                  
+
                   // 计算百分比（取分数绝对值并转换为百分比）
                   const percentage = Math.abs(normalizedScore) * 100;
-                  
+
                   // 计算左侧和右侧的填充百分比
                   // 负数（左侧）：从中间向左填充，宽度为绝对值 * 50%
                   // 正数（右侧）：从中间向右填充，宽度为绝对值 * 50%
-                  const leftFillPercentage = normalizedScore < 0 ? Math.abs(normalizedScore) * 50 : 0;
-                  const rightFillPercentage = normalizedScore > 0 ? normalizedScore * 50 : 0;
-                  
+                  const leftFillPercentage =
+                    normalizedScore < 0 ? Math.abs(normalizedScore) * 50 : 0;
+                  const rightFillPercentage =
+                    normalizedScore > 0 ? normalizedScore * 50 : 0;
+
                   // 计算颜色强度 - 红色代表负值，蓝色代表正值
                   const colorIntensity = Math.abs(normalizedScore) * 100;
-                  const leftColor = normalizedScore < 0 ? `hsl(0, 70%, ${70 - colorIntensity * 0.3}%)` : theme.colors.background; // 红色代表负值
-                  const rightColor = normalizedScore > 0 ? `hsl(210, 70%, ${70 - colorIntensity * 0.3}%)` : theme.colors.background; // 蓝色代表正值
-                  
+                  const leftColor =
+                    normalizedScore < 0
+                      ? `hsl(0, 70%, ${70 - colorIntensity * 0.3}%)`
+                      : theme.colors.background; // 红色代表负值
+                  const rightColor =
+                    normalizedScore > 0
+                      ? `hsl(210, 70%, ${70 - colorIntensity * 0.3}%)`
+                      : theme.colors.background; // 蓝色代表正值
+
                   return (
                     <div
                       key={index}
@@ -596,89 +822,101 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
                         backgroundColor: theme.colors.background,
                         borderRadius: theme.borderRadius.medium,
-                        fontSize: theme.typography.fontSizeSmall
+                        fontSize: theme.typography.fontSizeSmall,
                       }}
                     >
                       {/* 百分比显示在条形图上方 */}
-                      <div style={{ 
-                        width: "100%", 
-                        textAlign: "center", 
-                        marginBottom: theme.spacing.xs,
-                        fontWeight: theme.typography.fontWeightBold,
-                        color: theme.colors.text
-                      }}>
+                      <div
+                        style={{
+                          width: "100%",
+                          textAlign: "center",
+                          marginBottom: theme.spacing.xs,
+                          fontWeight: theme.typography.fontWeightBold,
+                          color: theme.colors.text,
+                        }}
+                      >
                         {Math.round(percentage)}%
                       </div>
-                      
-                      <div style={{ 
-                        display: "flex", 
-                        alignItems: "center", 
-                        width: "100%" 
-                      }}>
-                        <div style={{ 
-                          flex: "0 0 auto", 
-                          minWidth: "80px", 
-                          color: theme.colors.text,
-                          textAlign: "right",
-                          marginRight: theme.spacing.sm
-                        }}>
-                          {leftLabel || I18nService.t('unknown_type')}
+
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          width: "100%",
+                        }}
+                      >
+                        <div
+                          style={{
+                            flex: "0 0 auto",
+                            minWidth: "80px",
+                            color: theme.colors.text,
+                            textAlign: "right",
+                            marginRight: theme.spacing.sm,
+                          }}
+                        >
+                          {leftLabel || I18nService.t("unknown_type")}
                         </div>
-                        
+
                         {/* 双向发散条形图 - 从中间往左是红色(负值)，从中间往右是蓝色(正值) */}
-                        <div style={{
-                          flex: "1",
-                          height: "12px",
-                          backgroundColor: theme.colors.border,
-                          borderRadius: "6px",
-                          overflow: "hidden",
-                          position: "relative"
-                        }}>
+                        <div
+                          style={{
+                            flex: "1",
+                            height: "12px",
+                            backgroundColor: theme.colors.border,
+                            borderRadius: "6px",
+                            overflow: "hidden",
+                            position: "relative",
+                          }}
+                        >
                           {/* 左侧进度条 (负值，红色) - 从中间向左填充，填充比例等于数值绝对值 */}
-                          <div 
+                          <div
                             style={{
                               height: "100%",
                               width: `${leftFillPercentage}%`,
                               backgroundColor: leftColor,
                               position: "absolute",
                               right: "50%",
-                              transform: "translateX(0)" // 从中间向左填充
+                              transform: "translateX(0)", // 从中间向左填充
                             }}
                           />
-                          
+
                           {/* 中央分割线 */}
-                          <div style={{
-                            position: "absolute",
-                            left: "50%",
-                            top: 0,
-                            height: "100%",
-                            width: "2px",
-                            backgroundColor: theme.colors.text,
-                            transform: "translateX(-1px)",
-                            zIndex: 1
-                          }} />
-                          
+                          <div
+                            style={{
+                              position: "absolute",
+                              left: "50%",
+                              top: 0,
+                              height: "100%",
+                              width: "2px",
+                              backgroundColor: theme.colors.text,
+                              transform: "translateX(-1px)",
+                              zIndex: 1,
+                            }}
+                          />
+
                           {/* 右側進度條 (正值，蓝色) - 从中间向右填充，填充比例等于数值 */}
-                          <div 
+                          <div
                             style={{
                               height: "100%",
                               width: `${rightFillPercentage}%`,
                               backgroundColor: rightColor,
                               position: "absolute",
                               left: "50%",
-                              transform: "translateX(0)" // 从中间向右填充
+                              transform: "translateX(0)", // 从中间向右填充
                             }}
                           />
                         </div>
-                        
-                        <div style={{ 
-                          flex: "0 0 auto", 
-                          minWidth: "80px", 
-                          color: theme.colors.text,
-                          textAlign: "left",
-                          marginLeft: theme.spacing.sm
-                        }}>
-                          {rightLabel || I18nService.t('unknown_type')}
+
+                        <div
+                          style={{
+                            flex: "0 0 auto",
+                            minWidth: "80px",
+                            color: theme.colors.text,
+                            textAlign: "left",
+                            marginLeft: theme.spacing.sm,
+                          }}
+                        >
+                          {rightLabel || I18nService.t("unknown_type")}
                         </div>
                       </div>
                     </div>
@@ -689,9 +927,29 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           )}
 
           {summary && (
-            <div style={{ marginBottom: theme.spacing.md, lineHeight: theme.typography.lineHeight.toString() }}>
-              <h4 style={{ margin: "0 0 8px 0", fontSize: theme.typography.fontSizeBase, fontWeight: theme.typography.fontWeightBold, color: theme.colors.text }}>{I18nService.t('ai_summary')}</h4>
-              <div style={{ fontSize: theme.typography.fontSizeSmall, color: theme.colors.text, lineHeight: theme.typography.lineHeight.toString() }}>
+            <div
+              style={{
+                marginBottom: theme.spacing.md,
+                lineHeight: theme.typography.lineHeight.toString(),
+              }}
+            >
+              <h4
+                style={{
+                  margin: "0 0 8px 0",
+                  fontSize: theme.typography.fontSizeBase,
+                  fontWeight: theme.typography.fontWeightBold,
+                  color: theme.colors.text,
+                }}
+              >
+                {I18nService.t("ai_summary")}
+              </h4>
+              <div
+                style={{
+                  fontSize: theme.typography.fontSizeSmall,
+                  color: theme.colors.text,
+                  lineHeight: theme.typography.lineHeight.toString(),
+                }}
+              >
                 {summary}
               </div>
             </div>
@@ -699,8 +957,24 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
           {evidence && evidence.length > 0 && (
             <div style={{ marginBottom: theme.spacing.md }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: theme.spacing.sm }}>
-                <h4 style={{ margin: "0", fontSize: theme.typography.fontSizeBase, fontWeight: theme.typography.fontWeightBold, color: theme.colors.text }}>{I18nService.t('evidence')}</h4>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: theme.spacing.sm,
+                }}
+              >
+                <h4
+                  style={{
+                    margin: "0",
+                    fontSize: theme.typography.fontSizeBase,
+                    fontWeight: theme.typography.fontWeightBold,
+                    color: theme.colors.text,
+                  }}
+                >
+                  {I18nService.t("evidence")}
+                </h4>
                 <button
                   onClick={toggleEvidence}
                   style={{
@@ -709,53 +983,96 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     color: theme.colors.primary,
                     cursor: "pointer",
                     fontSize: theme.typography.fontSizeSmall,
-                    fontWeight: theme.typography.fontWeightBold
+                    fontWeight: theme.typography.fontWeightBold,
                   }}
                 >
-                  {expandedEvidence ? I18nService.t('collapse') : I18nService.t('expand')}
+                  {expandedEvidence
+                    ? I18nService.t("collapse")
+                    : I18nService.t("expand")}
                 </button>
               </div>
-              
+
               {expandedEvidence && (
                 <div style={{ fontSize: theme.typography.fontSizeSmall }}>
                   {evidence.map((item, index) => {
-                    let sourceItem = items.find(i => i.id === item.source_id);
+                    let sourceItem = items.find((i) => i.id === item.source_id);
                     // Fallback: try matching by title if ID match fails
                     if (!sourceItem && item.source_title) {
-                        sourceItem = items.find(i => i.title && (i.title === item.source_title || i.title.includes(item.source_title) || item.source_title.includes(i.title)));
+                      sourceItem = items.find(
+                        (i) =>
+                          i.title &&
+                          (i.title === item.source_title ||
+                            i.title.includes(item.source_title) ||
+                            item.source_title.includes(i.title)),
+                      );
                     }
 
                     const sourceUrl = sourceItem?.url;
                     const sourceTitle = sourceItem?.title || item.source_title;
 
                     return (
-                      <div key={index} style={{ marginBottom: theme.spacing.sm, paddingBottom: theme.spacing.sm, borderBottom: index < evidence.length - 1 ? `1px solid ${theme.colors.border}` : "none" }}>
-                        <div style={{ fontStyle: "italic", color: theme.colors.textSecondary, marginBottom: theme.spacing.xs }}>
+                      <div
+                        key={index}
+                        style={{
+                          marginBottom: theme.spacing.sm,
+                          paddingBottom: theme.spacing.sm,
+                          borderBottom:
+                            index < evidence.length - 1
+                              ? `1px solid ${theme.colors.border}`
+                              : "none",
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontStyle: "italic",
+                            color: theme.colors.textSecondary,
+                            marginBottom: theme.spacing.xs,
+                          }}
+                        >
                           "{item.quote}"
                         </div>
-                        <div style={{ color: theme.colors.textSecondary, marginBottom: theme.spacing.xs }}>
+                        <div
+                          style={{
+                            color: theme.colors.textSecondary,
+                            marginBottom: theme.spacing.xs,
+                          }}
+                        >
                           {item.analysis}
                         </div>
-                        <div style={{ fontSize: theme.typography.fontSizeSmall, color: theme.colors.textSecondary }}>
-                          {I18nService.t('source')}: 
+                        <div
+                          style={{
+                            fontSize: theme.typography.fontSizeSmall,
+                            color: theme.colors.textSecondary,
+                          }}
+                        >
+                          {I18nService.t("source")}:
                           {sourceUrl ? (
-                            <a 
-                              href={sourceUrl} 
-                              target="_blank" 
+                            <a
+                              href={sourceUrl}
+                              target="_blank"
                               rel="noopener noreferrer"
-                              style={{ 
-                                color: theme.colors.primary, 
+                              style={{
+                                color: theme.colors.primary,
                                 textDecoration: "none",
-                                marginLeft: theme.spacing.xs
+                                marginLeft: theme.spacing.xs,
                               }}
-                              onMouseOver={e => e.currentTarget.style.textDecoration = "underline"}
-                              onMouseOut={e => e.currentTarget.style.textDecoration = "none"}
+                              onMouseOver={(e) =>
+                                (e.currentTarget.style.textDecoration =
+                                  "underline")
+                              }
+                              onMouseOut={(e) =>
+                                (e.currentTarget.style.textDecoration = "none")
+                              }
                             >
-                              {sourceTitle?.length > 30 ? sourceTitle.substring(0, 30) + "..." : sourceTitle}
+                              {sourceTitle?.length > 30
+                                ? sourceTitle.substring(0, 30) + "..."
+                                : sourceTitle}
                             </a>
                           ) : (
                             <span style={{ marginLeft: theme.spacing.xs }}>
-                              {sourceTitle?.length > 30 ? sourceTitle.substring(0, 30) + "..." : sourceTitle}
+                              {sourceTitle?.length > 30
+                                ? sourceTitle.substring(0, 30) + "..."
+                                : sourceTitle}
                             </span>
                           )}
                         </div>
@@ -768,9 +1085,30 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           )}
 
           {debugInfo && (
-            <div style={{ borderTop: `1px solid ${theme.colors.border}`, paddingTop: theme.spacing.lg }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: theme.spacing.sm }}>
-                <h4 style={{ margin: "0", fontSize: theme.typography.fontSizeBase, fontWeight: theme.typography.fontWeightBold, color: theme.colors.text }}>{I18nService.t('debug_info')}</h4>
+            <div
+              style={{
+                borderTop: `1px solid ${theme.colors.border}`,
+                paddingTop: theme.spacing.lg,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: theme.spacing.sm,
+                }}
+              >
+                <h4
+                  style={{
+                    margin: "0",
+                    fontSize: theme.typography.fontSizeBase,
+                    fontWeight: theme.typography.fontWeightBold,
+                    color: theme.colors.text,
+                  }}
+                >
+                  {I18nService.t("debug_info")}
+                </h4>
                 <button
                   onClick={toggleDebug}
                   style={{
@@ -779,24 +1117,50 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     color: theme.colors.primary,
                     cursor: "pointer",
                     fontSize: theme.typography.fontSizeSmall,
-                    fontWeight: theme.typography.fontWeightBold
+                    fontWeight: theme.typography.fontWeightBold,
                   }}
                 >
-                  {showDebug ? I18nService.t('collapse') : I18nService.t('expand')}
+                  {showDebug
+                    ? I18nService.t("collapse")
+                    : I18nService.t("expand")}
                 </button>
               </div>
-              
+
               {showDebug && (
-                <div style={{ fontSize: theme.typography.fontSizeSmall, color: theme.colors.textSecondary, lineHeight: theme.typography.lineHeight.toString() }}>
-                  <div>{I18nService.t('token_usage')}: {debugInfo.model}</div>
-                  <div>{I18nService.t('total_duration')}: {(debugInfo.totalDurationMs / 1000).toFixed(1)}s</div>
-                  <div>{I18nService.t('llm_duration')}: {(debugInfo.llmDurationMs / 1000).toFixed(1)}s</div>
-                  <div>{I18nService.t('data_items')}: {debugInfo.itemsCount}</div>
-                  <div>{I18nService.t('data_breakdown')}: {debugInfo.itemsBreakdown}</div>
-                  <div>{I18nService.t('source')}: {debugInfo.sourceInfo}</div>
+                <div
+                  style={{
+                    fontSize: theme.typography.fontSizeSmall,
+                    color: theme.colors.textSecondary,
+                    lineHeight: theme.typography.lineHeight.toString(),
+                  }}
+                >
+                  <div>
+                    {I18nService.t("token_usage")}: {debugInfo.model}
+                  </div>
+                  <div>
+                    {I18nService.t("total_duration")}:{" "}
+                    {(debugInfo.totalDurationMs / 1000).toFixed(1)}s
+                  </div>
+                  <div>
+                    {I18nService.t("llm_duration")}:{" "}
+                    {(debugInfo.llmDurationMs / 1000).toFixed(1)}s
+                  </div>
+                  <div>
+                    {I18nService.t("data_items")}: {debugInfo.itemsCount}
+                  </div>
+                  <div>
+                    {I18nService.t("data_breakdown")}:{" "}
+                    {debugInfo.itemsBreakdown}
+                  </div>
+                  <div>
+                    {I18nService.t("source")}: {debugInfo.sourceInfo}
+                  </div>
                   {debugInfo.tokens && (
                     <div>
-                      {I18nService.t('token_usage')}: {debugInfo.tokens.prompt_tokens}+{debugInfo.tokens.completion_tokens}={debugInfo.tokens.total_tokens}
+                      {I18nService.t("token_usage")}:{" "}
+                      {debugInfo.tokens.prompt_tokens}+
+                      {debugInfo.tokens.completion_tokens}=
+                      {debugInfo.tokens.total_tokens}
                     </div>
                   )}
                 </div>
@@ -806,8 +1170,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         </div>
       ) : null}
     </div>
-  )
-}
+  );
+};
 
 export { ProfileCard };
 export default ProfileCard;

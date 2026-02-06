@@ -4,7 +4,8 @@ import { StructuredOutputService } from "./StructuredOutputService";
 describe("StructuredOutputService", () => {
   describe("getFormatInstructions", () => {
     it("should return format instructions for fast mode", () => {
-      const instructions = StructuredOutputService.getFormatInstructions("fast");
+      const instructions =
+        StructuredOutputService.getFormatInstructions("fast");
       expect(instructions).toContain("nickname");
       expect(instructions).toContain("topic_classification");
       expect(instructions).toContain("value_orientation");
@@ -14,7 +15,8 @@ describe("StructuredOutputService", () => {
     });
 
     it("should return format instructions for balanced mode", () => {
-      const instructions = StructuredOutputService.getFormatInstructions("balanced");
+      const instructions =
+        StructuredOutputService.getFormatInstructions("balanced");
       expect(instructions).toContain("nickname");
       expect(instructions).toContain("topic_classification");
       expect(instructions).toContain("value_orientation");
@@ -24,7 +26,8 @@ describe("StructuredOutputService", () => {
     });
 
     it("should return format instructions for deep mode", () => {
-      const instructions = StructuredOutputService.getFormatInstructions("deep");
+      const instructions =
+        StructuredOutputService.getFormatInstructions("deep");
       expect(instructions).toContain("nickname");
       expect(instructions).toContain("topic_classification");
       expect(instructions).toContain("value_orientation");
@@ -45,7 +48,10 @@ describe("StructuredOutputService", () => {
         "summary": "Test summary"
       }`;
 
-      const result = await StructuredOutputService.parseOutput(validFastOutput, "fast");
+      const result = await StructuredOutputService.parseOutput(
+        validFastOutput,
+        "fast",
+      );
       expect(result.nickname).toBe("Test User");
       expect(result.topic_classification).toBe("Politics");
       expect(result.value_orientation).toHaveLength(1);
@@ -74,7 +80,10 @@ describe("StructuredOutputService", () => {
         ]
       }`;
 
-      const result = await StructuredOutputService.parseOutput(validBalancedOutput, "balanced");
+      const result = await StructuredOutputService.parseOutput(
+        validBalancedOutput,
+        "balanced",
+      );
       expect(result.nickname).toBe("Test User");
       expect(result.topic_classification).toBe("Politics");
       expect(result.reasoning).toBe("Step-by-step analysis");
@@ -92,7 +101,9 @@ describe("StructuredOutputService", () => {
         "topic_classification": "Politics"
       }`;
 
-      await expect(StructuredOutputService.parseOutput(invalidOutput, "fast")).rejects.toThrow();
+      await expect(
+        StructuredOutputService.parseOutput(invalidOutput, "fast"),
+      ).rejects.toThrow();
     });
 
     it("should validate score ranges correctly", async () => {
@@ -105,7 +116,9 @@ describe("StructuredOutputService", () => {
         "summary": "Test summary"
       }`;
 
-      await expect(StructuredOutputService.parseOutput(invalidScoreOutput, "fast")).rejects.toThrow();
+      await expect(
+        StructuredOutputService.parseOutput(invalidScoreOutput, "fast"),
+      ).rejects.toThrow();
     });
   });
 });

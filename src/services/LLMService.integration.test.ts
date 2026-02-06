@@ -22,7 +22,7 @@ describe("LLMService Integration", () => {
       // Mock the dependencies
       const mockLabelService = {
         refreshCategories: vi.fn(),
-        getLabelsForContext: vi.fn().mockReturnValue("Mock label library")
+        getLabelsForContext: vi.fn().mockReturnValue("Mock label library"),
       };
       LabelService.getInstance = vi.fn().mockReturnValue(mockLabelService);
       TopicService.getCategoryName = vi.fn().mockReturnValue("Politics");
@@ -42,7 +42,7 @@ describe("LLMService Integration", () => {
       // Mock the dependencies
       const mockLabelService = {
         refreshCategories: vi.fn(),
-        getLabelsForContext: vi.fn().mockReturnValue("Mock label library")
+        getLabelsForContext: vi.fn().mockReturnValue("Mock label library"),
       };
       LabelService.getInstance = vi.fn().mockReturnValue(mockLabelService);
       TopicService.getCategoryName = vi.fn().mockReturnValue("Politics");
@@ -62,17 +62,21 @@ describe("LLMService Integration", () => {
       const validFastOutput = JSON.stringify({
         nickname: "Test User",
         topic_classification: "Politics",
-        value_orientation: [
-          { label: "ideology", score: 0.5 }
-        ],
-        summary: "Test summary"
+        value_orientation: [{ label: "ideology", score: 0.5 }],
+        summary: "Test summary",
       });
 
-      const result = await StructuredOutputService.parseOutput(validFastOutput, "fast");
+      const result = await StructuredOutputService.parseOutput(
+        validFastOutput,
+        "fast",
+      );
       expect(result.nickname).toBe("Test User");
       expect(result.topic_classification).toBe("Politics");
       expect(Array.isArray(result.value_orientation)).toBe(true);
-      expect(result.value_orientation[0]).toEqual({ label: "ideology", score: 0.5 });
+      expect(result.value_orientation[0]).toEqual({
+        label: "ideology",
+        score: 0.5,
+      });
       expect(result.summary).toBe("Test summary");
     });
 
@@ -81,20 +85,21 @@ describe("LLMService Integration", () => {
         nickname: "Test User",
         topic_classification: "Politics",
         reasoning: "Step-by-step analysis",
-        value_orientation: [
-          { label: "ideology", score: 0.5 }
-        ],
+        value_orientation: [{ label: "ideology", score: 0.5 }],
         summary: "Test summary",
         evidence: [
           {
             quote: "Sample quote",
             analysis: "Sample analysis",
-            source_title: "Source title"
-          }
-        ]
+            source_title: "Source title",
+          },
+        ],
       });
 
-      const result = await StructuredOutputService.parseOutput(validBalancedOutput, "balanced");
+      const result = await StructuredOutputService.parseOutput(
+        validBalancedOutput,
+        "balanced",
+      );
       expect(result.nickname).toBe("Test User");
       expect(result.reasoning).toBe("Step-by-step analysis");
       expect(result.evidence).toHaveLength(1);
@@ -106,21 +111,25 @@ describe("LLMService Integration", () => {
         nickname: "Test User",
         topic_classification: "Politics",
         value_orientation: [
-          { label: "ideology", score: 2.5 } // Invalid score > 1
+          { label: "ideology", score: 2.5 }, // Invalid score > 1
         ],
-        summary: "Test summary"
+        summary: "Test summary",
       });
 
-      await expect(StructuredOutputService.parseOutput(invalidOutput, "fast")).rejects.toThrow();
+      await expect(
+        StructuredOutputService.parseOutput(invalidOutput, "fast"),
+      ).rejects.toThrow();
     });
 
     it("should reject missing required fields", async () => {
       const incompleteOutput = JSON.stringify({
-        nickname: "Test User"
+        nickname: "Test User",
         // Missing required fields
       });
 
-      await expect(StructuredOutputService.parseOutput(incompleteOutput, "fast")).rejects.toThrow();
+      await expect(
+        StructuredOutputService.parseOutput(incompleteOutput, "fast"),
+      ).rejects.toThrow();
     });
   });
 });

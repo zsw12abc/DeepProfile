@@ -35,3 +35,4 @@ Thumbs.db
 # Local config (if any specific local config files are created later)
 config.local.json
 secrets.ts
+/.ai/mcp/mcp.json
