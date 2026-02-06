@@ -26,6 +26,16 @@ module.exports = {
   },
   rules: {
     "react/react-in-jsx-scope": "off",
-    "@typescript-eslint/no-explicit-any": "off"
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-unused-vars": "warn",
+    "prefer-const": "warn",
+    "no-useless-catch": "warn",
+    "no-useless-escape": "warn",
+    "no-case-declarations": "warn",
+    "@typescript-eslint/ban-types": "warn",
+    "@typescript-eslint/ban-ts-comment": "warn",
+    "@typescript-eslint/no-var-requires": "warn",
+    "@typescript-eslint/no-non-null-asserted-optional-chain": "warn",
+    "react/no-unescaped-entities": "warn"
   }
 };

@@ -38,6 +38,7 @@ describe("LLMRetry", () => {
       shouldRetry: () => true
     });
 
+    await Promise.resolve();
     await vi.runAllTimersAsync();
     const result = await resultPromise;
     expect(result).toBe("ok");

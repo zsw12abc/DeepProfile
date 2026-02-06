@@ -22,6 +22,7 @@ const createStorageMock = () => {
 describe("TelemetryService", () => {
   const originalEnv = process.env.NODE_ENV;
   let storageMock: ReturnType<typeof createStorageMock>;
+  let randomSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     storageMock = createStorageMock();
@@ -30,7 +31,7 @@ describe("TelemetryService", () => {
         local: storageMock
       }
     };
-    vi.spyOn(Math, "random").mockReturnValue(0);
+    randomSpy = vi.spyOn(Math, "random").mockReturnValue(0);
   });
 
   afterEach(() => {
@@ -108,7 +109,7 @@ describe("TelemetryService", () => {
 
   it("skips sampling when sampleRate is zero", async () => {
     process.env.NODE_ENV = "development";
-    vi.spyOn(Math, "random").mockReturnValue(0.5);
+    randomSpy.mockReturnValue(0.5);
     vi.mocked(ConfigService.getConfig).mockResolvedValue({
       observability: {
         errorMonitoringEnabled: true,
