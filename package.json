@@ -16,12 +16,12 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,md}\""
   },
   "dependencies": {
-    "@langchain/community": "^0.0.23",
+    "@langchain/community": "^1.1.14",
     "@langchain/core": "^0.1.63",
     "@langchain/google-genai": "^0.0.10",
     "@langchain/openai": "^0.0.14",
     "html2canvas": "^1.4.1",
-    "langchain": "^0.1.21",
+    "langchain": "^1.2.21",
     "plasmo": "^0.90.5",
     "react": "18.2.0",
     "react-dom": "18.2.0",
