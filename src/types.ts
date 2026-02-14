@@ -49,7 +49,13 @@ export interface PlatformConfig {
   apiEndpoint?: string;
   analysisButtonEnabled?: boolean;
   commentAnalysisEnabled?: boolean;
+  replyAssistantEnabled?: boolean;
   settings?: Record<string, any>;
+}
+
+export interface ReplyAssistantSettings {
+  tone: string;
+  autoFill: boolean;
 }
 
 export interface AppConfig {
@@ -479,7 +485,7 @@ export const REDDIT_BLACK_THEME: ThemeConfig = {
   },
 };
 
-export const CONFIG_VERSION = 4;
+export const CONFIG_VERSION = 5;
 
 export const DEFAULT_CONFIG: ExtendedAppConfig = {
   configVersion: CONFIG_VERSION,
@@ -525,6 +531,13 @@ export const DEFAULT_CONFIG: ExtendedAppConfig = {
       apiEndpoint: "https://www.zhihu.com/api/v4",
       analysisButtonEnabled: true,
       commentAnalysisEnabled: true,
+      replyAssistantEnabled: true,
+      settings: {
+        replyAssistant: {
+          tone: "客观",
+          autoFill: false,
+        } as ReplyAssistantSettings,
+      },
     },
     reddit: {
       enabled: true,

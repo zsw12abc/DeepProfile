@@ -245,6 +245,35 @@ export class ConfigService {
       };
     }
 
+    if (currentVersion < 5) {
+      const zhihuConfig = (migrated.platformConfigs?.zhihu || {}) as Record<
+        string,
+        any
+      >;
+      const zhihuSettings = (zhihuConfig.settings || {}) as Record<string, any>;
+      const replyAssistant = {
+        ...(DEFAULT_CONFIG.platformConfigs.zhihu.settings?.replyAssistant ||
+          {}),
+        ...(zhihuSettings.replyAssistant || {}),
+      };
+
+      migrated = {
+        ...migrated,
+        platformConfigs: {
+          ...DEFAULT_CONFIG.platformConfigs,
+          ...(migrated.platformConfigs || {}),
+          zhihu: {
+            ...DEFAULT_CONFIG.platformConfigs.zhihu,
+            ...zhihuConfig,
+            settings: {
+              ...zhihuSettings,
+              replyAssistant,
+            },
+          },
+        },
+      };
+    }
+
     return {
       ...migrated,
       configVersion: CONFIG_VERSION,
