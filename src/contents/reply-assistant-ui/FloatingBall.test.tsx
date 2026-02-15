@@ -27,4 +27,3 @@ describe("FloatingBall", () => {
     expect(img).toHaveStyle({ transform: "translateY(2px)" });
   });
 });
-

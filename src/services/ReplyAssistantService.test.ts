@@ -73,6 +73,8 @@ describe("ReplyAssistantService", () => {
     expect(reply).toBe("这是中文输出");
     expect(generateRawTextMock).toHaveBeenCalledTimes(2);
     const secondPrompt = generateRawTextMock.mock.calls[1][0];
-    expect(secondPrompt).toContain("Rewrite the following reply in Chinese only");
+    expect(secondPrompt).toContain(
+      "Rewrite the following reply in Chinese only",
+    );
   });
 });

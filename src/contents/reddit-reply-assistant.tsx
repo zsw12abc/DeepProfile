@@ -101,7 +101,7 @@ const findEditableInContainer = (container: Element): EditableTarget | null => {
   return (visibleInput as EditableTarget) || null;
 };
 
-  const findPublishButton = (root: Element): HTMLButtonElement | null => {
+const findPublishButton = (root: Element): HTMLButtonElement | null => {
   // Standard buttons
   const buttons = Array.from(root.querySelectorAll("button"));
   const publish = buttons.find((btn) => {
@@ -644,7 +644,10 @@ const FloatingReplyAssistant = () => {
       const bar = ensureFloatingInlineBar();
       const rect = target.getBoundingClientRect();
       const left = Math.max(8, Math.min(rect.left, window.innerWidth - 360));
-      const top = Math.max(8, Math.min(rect.bottom + 8, window.innerHeight - 60));
+      const top = Math.max(
+        8,
+        Math.min(rect.bottom + 8, window.innerHeight - 60),
+      );
       bar.style.left = `${left}px`;
       bar.style.top = `${top}px`;
       bar.style.display = "inline-flex";
@@ -656,7 +659,10 @@ const FloatingReplyAssistant = () => {
       if (!target || !bar || bar.style.display === "none") return;
       const rect = target.getBoundingClientRect();
       const left = Math.max(8, Math.min(rect.left, window.innerWidth - 360));
-      const top = Math.max(8, Math.min(rect.bottom + 8, window.innerHeight - 60));
+      const top = Math.max(
+        8,
+        Math.min(rect.bottom + 8, window.innerHeight - 60),
+      );
       bar.style.left = `${left}px`;
       bar.style.top = `${top}px`;
     };
@@ -668,7 +674,9 @@ const FloatingReplyAssistant = () => {
       );
       if (isEditableTarget(inSame)) return inSame;
 
-      const composer = node.closest("shreddit-comment-composer, shreddit-post-composer");
+      const composer = node.closest(
+        "shreddit-comment-composer, shreddit-post-composer",
+      );
       if (composer) {
         const found = findEditableInContainer(composer);
         if (found) return found;
@@ -688,7 +696,10 @@ const FloatingReplyAssistant = () => {
     const onPointerDown = (event: PointerEvent) => {
       const target = event.target as Element | null;
       if (!target) return;
-      if (target instanceof HTMLOptionElement || target instanceof HTMLSelectElement) {
+      if (
+        target instanceof HTMLOptionElement ||
+        target instanceof HTMLSelectElement
+      ) {
         return;
       }
       const bar = floatingInlineBarRef.current;

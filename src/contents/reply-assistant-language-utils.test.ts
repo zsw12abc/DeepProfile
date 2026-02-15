@@ -47,7 +47,10 @@ describe("reply-assistant-language-utils", () => {
 
     const sendMessageMock = vi
       .spyOn(chrome.runtime, "sendMessage")
-      .mockResolvedValue({ success: true, data: { reply: "respuesta" } } as any);
+      .mockResolvedValue({
+        success: true,
+        data: { reply: "respuesta" },
+      } as any);
 
     const reply = await requestGeneratedReply({
       platform: "quora",

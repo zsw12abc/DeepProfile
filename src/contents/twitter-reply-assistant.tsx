@@ -538,7 +538,9 @@ const FloatingReplyAssistant = () => {
 
     controlContainer.appendChild(toneSelect);
     controlContainer.appendChild(aiBtn);
-    const replyActionGroup = toolbar.querySelector("[data-testid='tweetButton']");
+    const replyActionGroup = toolbar.querySelector(
+      "[data-testid='tweetButton']",
+    );
     if (replyActionGroup?.parentElement) {
       replyActionGroup.parentElement.insertBefore(
         controlContainer,

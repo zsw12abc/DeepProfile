@@ -503,7 +503,10 @@ const FloatingReplyAssistant = () => {
     const isLikelyQuoraEditor = (el: Element): el is EditableTarget => {
       if (
         !(el instanceof HTMLTextAreaElement) &&
-        !(el instanceof HTMLElement && el.getAttribute("contenteditable") === "true")
+        !(
+          el instanceof HTMLElement &&
+          el.getAttribute("contenteditable") === "true"
+        )
       ) {
         return false;
       }
@@ -520,7 +523,9 @@ const FloatingReplyAssistant = () => {
         hint.includes("answer") ||
         hint.includes("write") ||
         hint.includes("doc") ||
-        !!el.closest(".q-flex.qu-my--tiny.qu-alignItems--flex-end, .q-textArea, #editor")
+        !!el.closest(
+          ".q-flex.qu-my--tiny.qu-alignItems--flex-end, .q-textArea, #editor",
+        )
       );
     };
 
@@ -535,7 +540,10 @@ const FloatingReplyAssistant = () => {
       const bar = ensureFloatingInlineBar();
       const rect = target.getBoundingClientRect();
       const left = Math.max(8, Math.min(rect.left, window.innerWidth - 340));
-      const top = Math.max(8, Math.min(rect.bottom + 8, window.innerHeight - 60));
+      const top = Math.max(
+        8,
+        Math.min(rect.bottom + 8, window.innerHeight - 60),
+      );
       bar.style.left = `${left}px`;
       bar.style.top = `${top}px`;
       bar.style.display = "inline-flex";
@@ -547,7 +555,10 @@ const FloatingReplyAssistant = () => {
       if (!target || !bar || bar.style.display === "none") return;
       const rect = target.getBoundingClientRect();
       const left = Math.max(8, Math.min(rect.left, window.innerWidth - 340));
-      const top = Math.max(8, Math.min(rect.bottom + 8, window.innerHeight - 60));
+      const top = Math.max(
+        8,
+        Math.min(rect.bottom + 8, window.innerHeight - 60),
+      );
       bar.style.left = `${left}px`;
       bar.style.top = `${top}px`;
     };
@@ -557,7 +568,8 @@ const FloatingReplyAssistant = () => {
       const editor = node.querySelector(
         ".doc[contenteditable='true'], [data-placeholder*='reply'][contenteditable='true'], textarea, div[contenteditable='true']",
       );
-      if (editor && isLikelyQuoraEditor(editor)) return editor as EditableTarget;
+      if (editor && isLikelyQuoraEditor(editor))
+        return editor as EditableTarget;
       return null;
     };
 
@@ -571,7 +583,10 @@ const FloatingReplyAssistant = () => {
     const onPointerDown = (event: PointerEvent) => {
       const target = event.target as Element | null;
       if (!target) return;
-      if (target instanceof HTMLOptionElement || target instanceof HTMLSelectElement) {
+      if (
+        target instanceof HTMLOptionElement ||
+        target instanceof HTMLSelectElement
+      ) {
         return;
       }
       const bar = floatingInlineBarRef.current;
