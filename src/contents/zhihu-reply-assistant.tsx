@@ -857,6 +857,34 @@ const FloatingReplyAssistant = () => {
     window.addEventListener("pointerup", handleUp);
   };
 
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (!open) return;
+      const target = e.target as HTMLElement;
+      // 检查点击是否在面板内部
+      // 面板是直接渲染在 root 下的第二个 div (第一个是 button)，但 button 有自己的 click 处理
+      // 这里的逻辑主要是防点外面关闭
+      // 使用更稳健的判断：
+      const root = document.getElementById("deep-profile-reply-assistant-root");
+      if (!root) return;
+
+      const panel = root.querySelector("div[style*='position: fixed']");
+      const ball = root.querySelector("button");
+
+      if (panel && panel.contains(target)) return;
+      if (ball && ball.contains(target)) return;
+
+      setOpen(false);
+    };
+
+    if (open) {
+      document.addEventListener("pointerdown", handleOutsideClick);
+    }
+    return () => {
+      document.removeEventListener("pointerdown", handleOutsideClick);
+    };
+  }, [open]);
+
   const clearInlineControls = () => {
     document
       .querySelectorAll(`.${INLINE_CONTAINER_CLASS}`)
