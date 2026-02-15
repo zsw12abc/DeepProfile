@@ -8,6 +8,7 @@ import { CommentAnalysisService } from "../services/CommentAnalysisService";
 import { I18nService } from "../services/I18nService";
 import { LabelService } from "../services/LabelService";
 import { TelemetryService } from "../services/TelemetryService";
+import { ReplyAssistantService } from "../services/ReplyAssistantService";
 import type { SupportedPlatform } from "../types";
 
 export {};
@@ -112,6 +113,41 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         });
         sendResponse({ success: false, error: error.message });
       });
+    return true;
+  }
+
+  if (request.type === "GENERATE_REPLY") {
+    const startTime = Date.now();
+    TelemetryService.recordEvent("reply_generation_requested", {
+      platform: request.platform || "zhihu",
+      tone: request.tone,
+      replyLength: request.replyLength || "medium",
+    });
+
+    ReplyAssistantService.generateReply(
+      request.tone,
+      request.context,
+      request.replyLength || "medium",
+      request.preferredLanguage,
+      request.preferredLanguageName,
+      request.languageDetectionSource,
+    )
+      .then((reply) => {
+        TelemetryService.recordPerformance("reply_generation_completed", {
+          platform: request.platform || "zhihu",
+          durationMs: Date.now() - startTime,
+          length: reply.length,
+        });
+        sendResponse({ success: true, data: { reply } });
+      })
+      .catch((error) => {
+        TelemetryService.recordError("reply_generation_failed", {
+          platform: request.platform || "zhihu",
+          message: error.message,
+        });
+        sendResponse({ success: false, error: error.message });
+      });
+
     return true;
   }
 

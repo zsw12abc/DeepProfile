@@ -245,9 +245,9 @@ export const enUS: LocaleDict = {
 // DeepProfile Current Version Changelog
 export const enUSChangelog = `# DeepProfile Current Version Changelog
 
-## Current Version: v0.8.1 (Beta) - Memory Optimization & Leak Fixes
+## Current Version: v0.9.0 (Beta) - Memory Optimization & Leak Fixes
 
-### 🚀 Memory Optimization (v0.8.1)
+### 🚀 Memory Optimization (v0.9.0)
 - **Memory Leak Fixes**: Fixed memory leaks caused by timers not being properly cleared in the background service
 - **Event Listener Management**: Improved registration and deregistration mechanisms for event listeners in content scripts to prevent duplicate bindings
 - **Cache Strategy Optimization**: Optimized cache cleanup mechanisms for history records, regularly cleaning up expired data
@@ -263,7 +263,7 @@ export const enUSChangelog = `# DeepProfile Current Version Changelog
 // DeepProfile Version History
 export const enUSVersionHistory = `# DeepProfile Version History
 
-### Memory Optimization (v0.8.1) - Memory Management & Leak Fixes
+### Memory Optimization (v0.9.0) - Memory Management & Leak Fixes
 - ✅ **Memory Leak Fixes**: Fixed memory leaks caused by timers not being properly cleared in the background service
 - ✅ **Event Listener Management**: Improved registration and deregistration mechanisms for event listeners in content scripts to prevent duplicate bindings
 - ✅ **Cache Strategy Optimization**: Optimized cache cleanup mechanisms for history records, regularly cleaning up expired data

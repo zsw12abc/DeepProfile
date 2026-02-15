@@ -2,6 +2,7 @@ import {
   CONFIG_VERSION,
   DEFAULT_CONFIG,
   type ExtendedAppConfig,
+  type SupportedPlatform,
 } from "../types";
 
 export class ConfigService {
@@ -241,6 +242,114 @@ export class ConfigService {
         observability: {
           ...DEFAULT_CONFIG.observability,
           ...(migrated.observability || {}),
+        },
+      };
+    }
+
+    if (currentVersion < 5) {
+      const zhihuConfig = (migrated.platformConfigs?.zhihu || {}) as Record<
+        string,
+        any
+      >;
+      const zhihuSettings = (zhihuConfig.settings || {}) as Record<string, any>;
+      const replyAssistant = {
+        ...(DEFAULT_CONFIG.platformConfigs.zhihu.settings?.replyAssistant ||
+          {}),
+        ...(zhihuSettings.replyAssistant || {}),
+      };
+
+      migrated = {
+        ...migrated,
+        platformConfigs: {
+          ...DEFAULT_CONFIG.platformConfigs,
+          ...(migrated.platformConfigs || {}),
+          zhihu: {
+            ...DEFAULT_CONFIG.platformConfigs.zhihu,
+            ...zhihuConfig,
+            settings: {
+              ...zhihuSettings,
+              replyAssistant,
+            },
+          },
+        },
+      };
+    }
+
+    if (currentVersion < 6) {
+      const zhihuConfig = (migrated.platformConfigs?.zhihu || {}) as Record<
+        string,
+        any
+      >;
+      const zhihuSettings = (zhihuConfig.settings || {}) as Record<string, any>;
+      const replyAssistant = {
+        ...(DEFAULT_CONFIG.platformConfigs.zhihu.settings?.replyAssistant ||
+          {}),
+        ...(zhihuSettings.replyAssistant || {}),
+      };
+
+      migrated = {
+        ...migrated,
+        platformConfigs: {
+          ...DEFAULT_CONFIG.platformConfigs,
+          ...(migrated.platformConfigs || {}),
+          zhihu: {
+            ...DEFAULT_CONFIG.platformConfigs.zhihu,
+            ...zhihuConfig,
+            settings: {
+              ...zhihuSettings,
+              replyAssistant,
+            },
+          },
+        },
+      };
+    }
+
+    if (currentVersion < 7) {
+      const defaultReplySettings = {
+        tone: "客观",
+        autoFill: false,
+        replyLength: "medium",
+      };
+
+      const updatePlatform = (
+        config: Partial<ExtendedAppConfig>,
+        platform: SupportedPlatform,
+      ) => {
+        const pConfig = (config.platformConfigs?.[platform] || {}) as Record<
+          string,
+          any
+        >;
+        const pSettings = (pConfig.settings || {}) as Record<string, any>;
+        const replyAssistant = {
+          ...defaultReplySettings,
+          ...(pSettings.replyAssistant || {}),
+        };
+
+        const defaultConfig = DEFAULT_CONFIG.platformConfigs[platform];
+
+        return {
+          ...pConfig,
+          settings: {
+            ...pSettings,
+            replyAssistant,
+          },
+          replyAssistantEnabled:
+            pConfig.replyAssistantEnabled ??
+            defaultConfig.replyAssistantEnabled ??
+            true,
+          enabled: pConfig.enabled ?? defaultConfig.enabled,
+          baseUrl: pConfig.baseUrl ?? defaultConfig.baseUrl,
+        } as any;
+      };
+
+      migrated = {
+        ...migrated,
+        platformConfigs: {
+          ...DEFAULT_CONFIG.platformConfigs,
+          ...(migrated.platformConfigs || {}),
+          reddit: updatePlatform(migrated, "reddit"),
+          twitter: updatePlatform(migrated, "twitter"),
+          quora: updatePlatform(migrated, "quora"),
         },
       };
     }
