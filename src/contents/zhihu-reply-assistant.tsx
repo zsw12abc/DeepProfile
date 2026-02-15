@@ -12,6 +12,13 @@ import {
   computeFloatingPanelPosition,
   isDarkThemeId,
 } from "./zhihu-reply-assistant-utils";
+import { FloatingBall } from "./reply-assistant-ui/FloatingBall";
+import { SettingsPanel } from "./reply-assistant-ui/SettingsPanel";
+import {
+  FLOATING_BALL_MARGIN,
+  FLOATING_BALL_SIZE,
+  colorWithAlpha,
+} from "./reply-assistant-ui/utils";
 
 export const config: PlasmoCSConfig = {
   matches: ["https://www.zhihu.com/*"],
@@ -33,34 +40,14 @@ type ReplyContext = {
   targetInput: EditableTarget;
 };
 
+const BALL_POSITION_STORAGE_KEY = "deep_profile_zhihu_ball_pos";
+
 const toneOptions = ["客观", "讽刺", "学术", "友好", "犀利", "简洁"];
 const replyLengthOptions = [
   { value: "short", label: "简略" },
   { value: "medium", label: "标准" },
   { value: "long", label: "详细" },
 ] as const;
-
-const FLOATING_BALL_SIZE = 38;
-const FLOATING_BALL_MARGIN = 8;
-const BALL_POSITION_STORAGE_KEY = "deep_profile_zhihu_ball_pos";
-
-const colorWithAlpha = (color: string, alpha: number): string => {
-  const hex = color.trim().replace("#", "");
-  if (/^[0-9a-fA-F]{6}$/.test(hex)) {
-    const r = parseInt(hex.slice(0, 2), 16);
-    const g = parseInt(hex.slice(2, 4), 16);
-    const b = parseInt(hex.slice(4, 6), 16);
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-  }
-  if (/^[0-9a-fA-F]{3}$/.test(hex)) {
-    const r = parseInt(hex[0] + hex[0], 16);
-    const g = parseInt(hex[1] + hex[1], 16);
-    const b = parseInt(hex[2] + hex[2], 16);
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-  }
-  return color;
-};
-const analysisModes: AnalysisMode[] = ["fast", "balanced", "deep"];
 
 const REPLY_HINT_KEYS = ["回复", "reply", "评论", "comment"];
 const INLINE_REPLY_BTN_CLASS = "deep-profile-inline-reply-btn";
@@ -924,9 +911,6 @@ const FloatingReplyAssistant = () => {
     let toneSelect = container.querySelector(
       `.${INLINE_TONE_CLASS}`,
     ) as HTMLSelectElement | null;
-    let lengthSelect = container.querySelector(
-      `.${INLINE_LENGTH_CLASS}`,
-    ) as HTMLSelectElement | null;
     let inlineBtn = container.querySelector(
       `.${INLINE_REPLY_BTN_CLASS}`,
     ) as HTMLButtonElement | null;
@@ -941,18 +925,6 @@ const FloatingReplyAssistant = () => {
         toneSelect!.appendChild(option);
       });
       container.appendChild(toneSelect);
-    }
-
-    if (!lengthSelect) {
-      lengthSelect = document.createElement("select");
-      lengthSelect.className = INLINE_LENGTH_CLASS;
-      replyLengthOptions.forEach((item) => {
-        const option = document.createElement("option");
-        option.value = item.value;
-        option.textContent = item.label;
-        lengthSelect!.appendChild(option);
-      });
-      container.appendChild(lengthSelect);
     }
 
     if (!inlineBtn) {
@@ -974,19 +946,6 @@ const FloatingReplyAssistant = () => {
     toneSelect.style.color = "#34495e";
     toneSelect.style.fontSize = "14px";
     toneSelect.style.fontWeight = "600";
-
-    lengthSelect.disabled = loading;
-    lengthSelect.value = settings.replyLength;
-    lengthSelect.style.height = "36px";
-    lengthSelect.style.minWidth = "84px";
-    lengthSelect.style.marginRight = "8px";
-    lengthSelect.style.padding = "0 8px";
-    lengthSelect.style.borderRadius = "8px";
-    lengthSelect.style.border = "1px solid #d0d7e2";
-    lengthSelect.style.background = "#f5f7fa";
-    lengthSelect.style.color = "#34495e";
-    lengthSelect.style.fontSize = "13px";
-    lengthSelect.style.fontWeight = "600";
 
     inlineBtn.textContent = loading ? "生成中..." : "AI回复";
     inlineBtn.disabled = loading;
@@ -1010,16 +969,6 @@ const FloatingReplyAssistant = () => {
       activeTargetRef.current = target;
     };
 
-    lengthSelect.onmousedown = (event) => event.stopPropagation();
-    lengthSelect.onclick = (event) => event.stopPropagation();
-    lengthSelect.onchange = async (event) => {
-      event.stopPropagation();
-      const value = (event.target as HTMLSelectElement)
-        .value as ReplyAssistantSettings["replyLength"];
-      await onReplyLengthChange(value);
-      activeTargetRef.current = target;
-    };
-
     inlineBtn.onclick = async (event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -1027,11 +976,6 @@ const FloatingReplyAssistant = () => {
       activeTargetRef.current = latestTarget;
       if (toneSelect && toneSelect.value !== settings.tone) {
         await onToneChange(toneSelect.value);
-      }
-      if (lengthSelect && lengthSelect.value !== settings.replyLength) {
-        await onReplyLengthChange(
-          lengthSelect.value as ReplyAssistantSettings["replyLength"],
-        );
       }
       await generateReplyForTarget(latestTarget);
     };
@@ -1126,29 +1070,11 @@ const FloatingReplyAssistant = () => {
           transform: translateY(0);
         }
       `}</style>
-      <button
+      <FloatingBall
+        ballPos={ballPos}
+        themeState={themeState}
+        logoSrc={logoSrc || logoCandidates[0]}
         onPointerDown={onBallPointerDown}
-        title="DeepProfile 回复设置（可拖动）"
-        style={{
-          position: "fixed",
-          left: ballPos.left,
-          top: ballPos.top,
-          zIndex: 2147483646,
-          width: FLOATING_BALL_SIZE,
-          height: FLOATING_BALL_SIZE,
-          borderRadius: 12,
-          border: "none",
-          background: `linear-gradient(135deg, ${themeState.primary}, ${themeState.secondary})`,
-          boxShadow: `0 8px 20px ${colorWithAlpha(themeState.primary, 0.4)}`,
-          cursor: "grab",
-          userSelect: "none",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: 0,
-          overflow: "hidden",
-          transition: "transform 0.2s, box-shadow 0.2s",
-        }}
         onMouseEnter={(e) => {
           e.currentTarget.style.transform = "scale(1.05)";
           e.currentTarget.style.boxShadow = `0 12px 24px ${colorWithAlpha(themeState.primary, 0.5)}`;
@@ -1157,424 +1083,145 @@ const FloatingReplyAssistant = () => {
           e.currentTarget.style.transform = "scale(1)";
           e.currentTarget.style.boxShadow = `0 8px 20px ${colorWithAlpha(themeState.primary, 0.4)}`;
         }}
-      >
-        <img
-          src={logoSrc || logoCandidates[0]}
-          alt="DeepProfile"
-          onError={() => {
-            const current = logoSrc || logoCandidates[0];
-            const index = logoCandidates.indexOf(current);
-            const next = logoCandidates[index + 1];
-            if (next) {
-              setLogoSrc(next);
-            }
-          }}
-          style={{
-            width: 26,
-            height: 26,
-            objectFit: "contain",
-            pointerEvents: "none",
-          }}
-        />
-      </button>
+        onError={() => {
+          const current = logoSrc || logoCandidates[0];
+          const index = logoCandidates.indexOf(current);
+          const next = logoCandidates[index + 1];
+          if (next) {
+            setLogoSrc(next);
+          }
+        }}
+      />
 
       {open && (
-        <div
-          style={{
-            position: "fixed",
-            left: panelLeft,
-            top: panelTop,
-            width: panelWidth,
-            maxHeight: "78vh",
-            overflowY: "auto",
-            zIndex: 2147483646,
-            padding: 14,
-            borderRadius: 16,
-            border: `1px solid ${themeState.border}`,
-            backgroundColor: themeState.background,
-            backgroundImage: backgroundGlows,
-            backgroundSize: "100% 100%",
-            boxShadow: `0 0 0 1px ${themeState.border}, 0 20px 50px ${colorWithAlpha(themeState.primary, 0.2)}, ${themeState.shadow}`,
-            color: themeState.text,
-            fontFamily: themeState.fontFamily,
-            backdropFilter: "blur(24px) saturate(140%) brightness(1.02)",
-            WebkitBackdropFilter: "blur(24px) saturate(140%) brightness(1.02)",
-          }}
-        >
-          <div
-            style={{
-              fontSize: 15,
-              fontWeight: 800,
-              color: themeState.text,
-              marginBottom: 10,
-              padding: "10px 12px",
-              borderRadius: 12,
-              background: `linear-gradient(135deg, ${colorWithAlpha(themeState.primary, 0.2)}, ${colorWithAlpha(themeState.secondary, 0.16)})`,
-              boxShadow: `0 4px 12px ${colorWithAlpha(themeState.primary, 0.15)}`,
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-            }}
-          >
-            <img
-              src={logoSrc || logoCandidates[0]}
-              alt=""
-              style={{ width: 24, height: 24 }}
-            />
-            复眼助手 · 知乎设置
-          </div>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 10,
-              marginBottom: 12,
-              padding: 2,
-              borderRadius: 12,
-              boxShadow: `inset 0 0 0 1px ${themeState.border}`,
-            }}
-          >
-            <label
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "8px 10px",
-                borderRadius: 10,
-                border: subtleBorder,
-                background: chipBg,
-                fontSize: 12,
-              }}
-            >
-              平台启用
-              <input
-                type="checkbox"
-                checked={siteSettings.platformEnabled}
-                onChange={(e) =>
-                  onSiteToggleChange("platformEnabled", e.target.checked)
-                }
-              />
-            </label>
-
-            <label
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "8px 10px",
-                borderRadius: 10,
-                border: subtleBorder,
-                background: chipBg,
-                fontSize: 12,
-              }}
-            >
-              回复助手开关
-              <input
-                type="checkbox"
-                checked={siteSettings.replyAssistantEnabled}
-                onChange={(e) =>
-                  onSiteToggleChange("replyAssistantEnabled", e.target.checked)
-                }
-              />
-            </label>
-
-            <label
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "8px 10px",
-                borderRadius: 10,
-                border: subtleBorder,
-                background: chipBg,
-                fontSize: 12,
-              }}
-            >
-              用户分析按钮
-              <input
-                type="checkbox"
-                checked={siteSettings.analysisButtonEnabled}
-                onChange={(e) =>
-                  onSiteToggleChange("analysisButtonEnabled", e.target.checked)
-                }
-              />
-            </label>
-
-            <label
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "8px 10px",
-                borderRadius: 10,
-                border: subtleBorder,
-                background: chipBg,
-                fontSize: 12,
-              }}
-            >
-              评论总结按钮
-              <input
-                type="checkbox"
-                checked={siteSettings.commentAnalysisEnabled}
-                onChange={(e) =>
-                  onSiteToggleChange("commentAnalysisEnabled", e.target.checked)
-                }
-              />
-            </label>
-          </div>
-
-          <div
-            style={{
-              border: subtleBorder,
-              borderRadius: 12,
-              background: cardBg,
-              padding: 10,
-              marginBottom: 12,
-              boxShadow: `0 0 14px ${colorWithAlpha(themeState.primary, 0.16)}`,
-            }}
-          >
-            <div
-              style={{
-                fontSize: 12,
-                color: themeState.textSecondary,
-                marginBottom: 6,
-              }}
-            >
-              知乎分析模式
-            </div>
-            <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-              {analysisModes.map((mode) => {
-                const active = siteSettings.analysisMode === mode;
-                const label =
-                  mode === "fast"
-                    ? "极速"
-                    : mode === "balanced"
-                      ? "平衡"
-                      : "深度";
-                return (
-                  <button
-                    key={mode}
-                    onClick={() => onAnalysisModeChange(mode)}
-                    style={{
-                      flex: 1,
-                      height: 32,
-                      borderRadius: 8,
-                      border: active
-                        ? `1px solid ${themeState.primary}`
-                        : subtleBorder,
-                      background: active ? `${themeState.primary}22` : inputBg,
-                      color: active ? themeState.primary : themeState.text,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                    }}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div
-              style={{
-                fontSize: 12,
-                color: themeState.textSecondary,
-                marginBottom: 6,
-              }}
-            >
-              抓取条数：{siteSettings.analyzeLimit}
-            </div>
-            <input
-              type="range"
-              min={5}
-              max={50}
-              step={5}
-              value={siteSettings.analyzeLimit}
-              onChange={(e) =>
-                onAnalyzeLimitChange(parseInt(e.target.value, 10))
-              }
-              style={{ width: "100%", accentColor: themeState.primary }}
-            />
-          </div>
-
-          <div
-            style={{
-              border: subtleBorder,
-              borderRadius: 12,
-              background: cardBg,
-              padding: 10,
-              marginBottom: 12,
-              boxShadow: `0 0 14px ${colorWithAlpha(themeState.primary, 0.16)}`,
-            }}
-          >
-            <div
-              style={{
-                fontSize: 12,
-                color: themeState.textSecondary,
-                marginBottom: 6,
-              }}
-            >
-              AI 回复设置
-            </div>
-            <div
-              style={{
-                fontSize: 12,
-                color: themeState.textSecondary,
-                marginBottom: 6,
-              }}
-            >
-              回复口气
-            </div>
-            <select
-              className="dp-select-focus"
-              value={settings.tone}
-              onChange={(e) => onToneChange(e.target.value)}
-              style={{
-                width: "100%",
-                height: 40,
-                border: subtleBorder,
-                borderRadius: 8,
-                marginBottom: 16,
-                color: themeState.text,
-                background: inputBg,
-                padding: "0 12px",
-                fontSize: 14,
-                transition: "all 0.2s",
-              }}
-            >
-              {toneOptions.map((tone) => (
-                <option key={tone} value={tone}>
-                  {tone}
-                </option>
-              ))}
-            </select>
-
-            <div
-              style={{
-                fontSize: 12,
-                color: themeState.textSecondary,
-                marginBottom: 6,
-              }}
-            >
-              回复长度（简略/标准/详细）
-            </div>
-            <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-              {replyLengthOptions.map((item) => {
-                const active = settings.replyLength === item.value;
-                return (
-                  <button
-                    key={item.value}
-                    onClick={() => onReplyLengthChange(item.value)}
-                    style={{
-                      flex: 1,
-                      height: 30,
-                      borderRadius: 8,
-                      border: active
-                        ? `1px solid ${themeState.primary}`
-                        : subtleBorder,
-                      background: active ? `${themeState.primary}22` : inputBg,
-                      color: active ? themeState.primary : themeState.text,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                    }}
-                  >
-                    {item.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            <label
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                fontSize: 12,
-                color: themeState.text,
-                marginBottom: 10,
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={settings.autoFill}
-                onChange={(e) => onAutoFillChange(e.target.checked)}
-              />
-              生成后自动填入当前输入框
-            </label>
-          </div>
-
-          {error && (
-            <div
-              style={{
-                marginTop: 8,
-                fontSize: 12,
-                color: themeState.error,
-                background: `${themeState.error}22`,
-                border: `1px solid ${themeState.error}66`,
-                borderRadius: 8,
-                padding: "7px 8px",
-              }}
-            >
-              {error}
-            </div>
-          )}
-
-          {reply && (
+        <SettingsPanel
+          panelPos={{ left: panelLeft, top: panelTop }}
+          panelWidth={panelWidth}
+          themeState={themeState}
+          logoSrc={logoSrc || logoCandidates[0]}
+          siteSettings={siteSettings}
+          settings={settings}
+          reply={reply}
+          error={error}
+          loading={loading}
+          canApply={!!canApply}
+          onSiteToggleChange={onSiteToggleChange as any}
+          onAnalysisModeChange={onAnalysisModeChange}
+          onAnalyzeLimitChange={onAnalyzeLimitChange}
+          onToneChange={onToneChange}
+          onReplyLengthChange={onReplyLengthChange}
+          onAutoFillChange={onAutoFillChange}
+          onCopy={onCopy}
+          onApply={onApply}
+          platformSettingsControls={
             <>
-              <textarea
-                readOnly
-                value={reply}
+              <label
                 style={{
-                  width: "100%",
-                  minHeight: 90,
-                  marginTop: 8,
-                  padding: 8,
-                  border: subtleBorder,
-                  borderRadius: 8,
-                  resize: "vertical",
-                  color: themeState.text,
-                  background: inputBg,
-                }}
-              />
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: 8,
-                  marginTop: 8,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "8px 10px",
+                  borderRadius: 10,
+                  border: `1px solid ${themeState.border}`,
+                  background: themeState.isDark
+                    ? "rgba(10,24,42,0.9)"
+                    : "#f8fbff",
+                  fontSize: 12,
                 }}
               >
-                <button
-                  onClick={onCopy}
-                  style={{
-                    height: 32,
-                    borderRadius: 8,
-                    border: subtleBorder,
-                    background: chipBg,
-                    color: themeState.text,
-                    cursor: "pointer",
-                  }}
-                >
-                  复制
-                </button>
-                <button
-                  onClick={onApply}
-                  disabled={!canApply}
-                  style={{
-                    height: 32,
-                    borderRadius: 8,
-                    border: "none",
-                    background: canApply ? themeState.primary : "#94a3b8",
-                    color: themeState.primaryText,
-                    cursor: canApply ? "pointer" : "not-allowed",
-                  }}
-                >
-                  填入输入框
-                </button>
-              </div>
+                平台启用
+                <input
+                  type="checkbox"
+                  checked={siteSettings.platformEnabled}
+                  onChange={(e) =>
+                    onSiteToggleChange("platformEnabled", e.target.checked)
+                  }
+                />
+              </label>
+
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "8px 10px",
+                  borderRadius: 10,
+                  border: `1px solid ${themeState.border}`,
+                  background: themeState.isDark
+                    ? "rgba(10,24,42,0.9)"
+                    : "#f8fbff",
+                  fontSize: 12,
+                }}
+              >
+                回复助手开关
+                <input
+                  type="checkbox"
+                  checked={siteSettings.replyAssistantEnabled}
+                  onChange={(e) =>
+                    onSiteToggleChange(
+                      "replyAssistantEnabled",
+                      e.target.checked,
+                    )
+                  }
+                />
+              </label>
+
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "8px 10px",
+                  borderRadius: 10,
+                  border: `1px solid ${themeState.border}`,
+                  background: themeState.isDark
+                    ? "rgba(10,24,42,0.9)"
+                    : "#f8fbff",
+                  fontSize: 12,
+                }}
+              >
+                用户分析按钮
+                <input
+                  type="checkbox"
+                  checked={siteSettings.analysisButtonEnabled}
+                  onChange={(e) =>
+                    onSiteToggleChange(
+                      "analysisButtonEnabled",
+                      e.target.checked,
+                    )
+                  }
+                />
+              </label>
+
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "8px 10px",
+                  borderRadius: 10,
+                  border: `1px solid ${themeState.border}`,
+                  background: themeState.isDark
+                    ? "rgba(10,24,42,0.9)"
+                    : "#f8fbff",
+                  fontSize: 12,
+                }}
+              >
+                评论总结按钮
+                <input
+                  type="checkbox"
+                  checked={siteSettings.commentAnalysisEnabled}
+                  onChange={(e) =>
+                    onSiteToggleChange(
+                      "commentAnalysisEnabled",
+                      e.target.checked,
+                    )
+                  }
+                />
+              </label>
             </>
-          )}
-        </div>
+          }
+        />
       )}
     </>
   );

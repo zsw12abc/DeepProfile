@@ -128,6 +128,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       request.tone,
       request.context,
       request.replyLength || "medium",
+      request.preferredLanguage,
+      request.preferredLanguageName,
+      request.languageDetectionSource,
     )
       .then((reply) => {
         TelemetryService.recordPerformance("reply_generation_completed", {

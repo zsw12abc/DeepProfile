@@ -486,7 +486,7 @@ export const REDDIT_BLACK_THEME: ThemeConfig = {
   },
 };
 
-export const CONFIG_VERSION = 6;
+export const CONFIG_VERSION = 7;
 
 export const DEFAULT_CONFIG: ExtendedAppConfig = {
   configVersion: CONFIG_VERSION,
@@ -546,18 +546,45 @@ export const DEFAULT_CONFIG: ExtendedAppConfig = {
       baseUrl: "https://www.reddit.com",
       apiEndpoint: "https://oauth.reddit.com",
       analysisButtonEnabled: true,
+      commentAnalysisEnabled: true,
+      replyAssistantEnabled: true,
+      settings: {
+        replyAssistant: {
+          tone: "客观",
+          autoFill: false,
+          replyLength: "medium",
+        } as ReplyAssistantSettings,
+      },
     },
     twitter: {
       enabled: false,
       baseUrl: "https://twitter.com",
       apiEndpoint: "https://api.twitter.com",
       analysisButtonEnabled: true,
+      commentAnalysisEnabled: true,
+      replyAssistantEnabled: true,
+      settings: {
+        replyAssistant: {
+          tone: "客观",
+          autoFill: false,
+          replyLength: "medium",
+        } as ReplyAssistantSettings,
+      },
     },
     quora: {
       enabled: false,
       baseUrl: "https://www.quora.com",
       apiEndpoint: "https://www.quora.com/api",
       analysisButtonEnabled: true,
+      commentAnalysisEnabled: true,
+      replyAssistantEnabled: true,
+      settings: {
+        replyAssistant: {
+          tone: "客观",
+          autoFill: false,
+          replyLength: "medium",
+        } as ReplyAssistantSettings,
+      },
     },
     weibo: {
       enabled: false,
