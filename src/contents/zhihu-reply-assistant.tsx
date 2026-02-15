@@ -29,11 +29,17 @@ type ReplyContext = {
 };
 
 const toneOptions = ["客观", "讽刺", "学术", "友好", "犀利", "简洁"];
+const replyLengthOptions = [
+  { value: "short", label: "简略" },
+  { value: "medium", label: "标准" },
+  { value: "long", label: "详细" },
+] as const;
 const analysisModes: AnalysisMode[] = ["fast", "balanced", "deep"];
 
 const REPLY_HINT_KEYS = ["回复", "reply", "评论", "comment"];
 const INLINE_REPLY_BTN_CLASS = "deep-profile-inline-reply-btn";
 const INLINE_TONE_CLASS = "deep-profile-inline-tone-select";
+const INLINE_LENGTH_CLASS = "deep-profile-inline-length-select";
 const INLINE_CONTAINER_CLASS = "deep-profile-inline-controls";
 const EDITOR_ROOT_SELECTORS = [
   ".CommentEditorV2",
@@ -163,8 +169,10 @@ const isDeepProfileInlineControl = (el: Element): boolean => {
   return (
     el.classList.contains(INLINE_REPLY_BTN_CLASS) ||
     el.classList.contains(INLINE_TONE_CLASS) ||
+    el.classList.contains(INLINE_LENGTH_CLASS) ||
     !!el.closest(`.${INLINE_REPLY_BTN_CLASS}`) ||
     !!el.closest(`.${INLINE_TONE_CLASS}`) ||
+    !!el.closest(`.${INLINE_LENGTH_CLASS}`) ||
     !!el.closest("#deep-profile-reply-assistant-root")
   );
 };
@@ -360,6 +368,7 @@ const FloatingReplyAssistant = () => {
   const [settings, setSettings] = useState<ReplyAssistantSettings>({
     tone: "客观",
     autoFill: false,
+    replyLength: "medium",
   });
   const [siteSettings, setSiteSettings] = useState({
     platformEnabled: true,
@@ -415,11 +424,13 @@ const FloatingReplyAssistant = () => {
         DEFAULT_CONFIG.platformConfigs.zhihu.settings?.replyAssistant || {
           tone: "客观",
           autoFill: false,
+          replyLength: "medium",
         };
 
       setSettings({
         tone: assistantSettings.tone || "客观",
         autoFill: !!assistantSettings.autoFill,
+        replyLength: assistantSettings.replyLength || "medium",
       });
 
       setSiteSettings({
@@ -525,6 +536,7 @@ const FloatingReplyAssistant = () => {
         type: "GENERATE_REPLY",
         platform: "zhihu",
         tone: settings.tone,
+        replyLength: settings.replyLength,
         context: {
           targetUser: context.targetUser,
           pageTitle: context.pageTitle,
@@ -550,10 +562,6 @@ const FloatingReplyAssistant = () => {
     }
   };
 
-  const generateReplyForActiveTarget = async () => {
-    await generateReplyForTarget(activeTargetRef.current);
-  };
-
   const onCopy = async () => {
     if (!reply) return;
     await navigator.clipboard.writeText(reply);
@@ -573,6 +581,14 @@ const FloatingReplyAssistant = () => {
 
   const onAutoFillChange = async (checked: boolean) => {
     const next = { ...settings, autoFill: checked };
+    setSettings(next);
+    await saveSettings(next);
+  };
+
+  const onReplyLengthChange = async (
+    replyLength: ReplyAssistantSettings["replyLength"],
+  ) => {
+    const next = { ...settings, replyLength };
     setSettings(next);
     await saveSettings(next);
   };
@@ -738,6 +754,9 @@ const FloatingReplyAssistant = () => {
     let toneSelect = container.querySelector(
       `.${INLINE_TONE_CLASS}`,
     ) as HTMLSelectElement | null;
+    let lengthSelect = container.querySelector(
+      `.${INLINE_LENGTH_CLASS}`,
+    ) as HTMLSelectElement | null;
     let inlineBtn = container.querySelector(
       `.${INLINE_REPLY_BTN_CLASS}`,
     ) as HTMLButtonElement | null;
@@ -752,6 +771,18 @@ const FloatingReplyAssistant = () => {
         toneSelect!.appendChild(option);
       });
       container.appendChild(toneSelect);
+    }
+
+    if (!lengthSelect) {
+      lengthSelect = document.createElement("select");
+      lengthSelect.className = INLINE_LENGTH_CLASS;
+      replyLengthOptions.forEach((item) => {
+        const option = document.createElement("option");
+        option.value = item.value;
+        option.textContent = item.label;
+        lengthSelect!.appendChild(option);
+      });
+      container.appendChild(lengthSelect);
     }
 
     if (!inlineBtn) {
@@ -773,6 +804,19 @@ const FloatingReplyAssistant = () => {
     toneSelect.style.color = "#34495e";
     toneSelect.style.fontSize = "14px";
     toneSelect.style.fontWeight = "600";
+
+    lengthSelect.disabled = loading;
+    lengthSelect.value = settings.replyLength;
+    lengthSelect.style.height = "36px";
+    lengthSelect.style.minWidth = "84px";
+    lengthSelect.style.marginRight = "8px";
+    lengthSelect.style.padding = "0 8px";
+    lengthSelect.style.borderRadius = "8px";
+    lengthSelect.style.border = "1px solid #d0d7e2";
+    lengthSelect.style.background = "#f5f7fa";
+    lengthSelect.style.color = "#34495e";
+    lengthSelect.style.fontSize = "13px";
+    lengthSelect.style.fontWeight = "600";
 
     inlineBtn.textContent = loading ? "生成中..." : "AI回复";
     inlineBtn.disabled = loading;
@@ -796,6 +840,16 @@ const FloatingReplyAssistant = () => {
       activeTargetRef.current = target;
     };
 
+    lengthSelect.onmousedown = (event) => event.stopPropagation();
+    lengthSelect.onclick = (event) => event.stopPropagation();
+    lengthSelect.onchange = async (event) => {
+      event.stopPropagation();
+      const value = (event.target as HTMLSelectElement)
+        .value as ReplyAssistantSettings["replyLength"];
+      await onReplyLengthChange(value);
+      activeTargetRef.current = target;
+    };
+
     inlineBtn.onclick = async (event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -803,6 +857,11 @@ const FloatingReplyAssistant = () => {
       activeTargetRef.current = latestTarget;
       if (toneSelect && toneSelect.value !== settings.tone) {
         await onToneChange(toneSelect.value);
+      }
+      if (lengthSelect && lengthSelect.value !== settings.replyLength) {
+        await onReplyLengthChange(
+          lengthSelect.value as ReplyAssistantSettings["replyLength"],
+        );
       }
       await generateReplyForTarget(latestTarget);
     };
@@ -851,12 +910,31 @@ const FloatingReplyAssistant = () => {
         window.cancelAnimationFrame(rafId);
       }
     };
-  }, [enabled, loading, settings.tone]);
+  }, [enabled, loading, settings.tone, settings.replyLength]);
 
   if (!enabled) return null;
 
   return (
     <>
+      <style>{`
+        .dp-pixel-eye {
+          width: 6px;
+          height: 6px;
+          border-radius: 1px;
+          background: #eaf4ff;
+          box-shadow: 0 0 0 1px rgba(10, 102, 217, 0.22);
+          animation: dp-eye-blink 5.6s infinite;
+          transform-origin: center;
+        }
+
+        @keyframes dp-eye-blink {
+          0%, 88%, 100% { transform: scaleY(1); }
+          92% { transform: scaleY(0.18); }
+          94% { transform: scaleY(0.1); }
+          96% { transform: scaleY(1); }
+        }
+      `}</style>
+
       <button
         onPointerDown={onBallPointerDown}
         title="DeepProfile 回复设置（可拖动）"
@@ -865,53 +943,72 @@ const FloatingReplyAssistant = () => {
           left: ballPos.left,
           top: ballPos.top,
           zIndex: 2147483646,
-          width: 56,
-          height: 56,
-          borderRadius: "50%",
-          border: "1px solid rgba(0, 132, 255, 0.35)",
+          width: 44,
+          height: 44,
+          borderRadius: 12,
+          border: "1px solid rgba(0, 132, 255, 0.45)",
           background:
-            "radial-gradient(circle at 30% 30%, #36b0ff, #0084ff 58%, #0a66d9)",
-          color: "#ffffff",
-          fontSize: 15,
-          fontWeight: 800,
-          letterSpacing: "0.03em",
-          boxShadow: "0 16px 34px rgba(0, 132, 255, 0.36)",
+            "linear-gradient(160deg, #3eb4ff 0%, #1d84ff 62%, #0b61cf 100%)",
+          boxShadow: "0 12px 24px rgba(14, 92, 198, 0.32)",
           cursor: "grab",
           userSelect: "none",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
-        AI
+        <div
+          style={{
+            width: 24,
+            height: 16,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <span className="dp-pixel-eye" />
+          <span className="dp-pixel-eye" />
+        </div>
       </button>
 
       {open && (
         <div
           style={{
             position: "fixed",
-            left: Math.max(10, ballPos.left - 420),
+            left: Math.max(10, ballPos.left - 398),
             top: Math.max(10, ballPos.top - 12),
-            width: 392,
+            width: 368,
             maxHeight: "78vh",
             overflowY: "auto",
             zIndex: 2147483646,
-            padding: 16,
-            borderRadius: 16,
-            border: "1px solid rgba(0, 132, 255, 0.25)",
+            padding: 14,
+            borderRadius: 14,
+            border: "2px solid rgba(54, 132, 231, 0.44)",
+            backgroundColor: "rgba(244, 250, 255, 0.985)",
             background:
-              "linear-gradient(180deg, rgba(255,255,255,0.97), rgba(241,248,255,0.97))",
-            boxShadow: "0 28px 58px rgba(15, 23, 42, 0.24)",
-            color: "#0f172a",
-            backdropFilter: "blur(10px)",
+              "linear-gradient(180deg, rgba(247,252,255,0.985), rgba(238,247,255,0.975))",
+            backgroundImage:
+              "linear-gradient(0deg, rgba(93,165,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(93,165,255,0.04) 1px, transparent 1px)",
+            backgroundSize: "10px 10px",
+            boxShadow: "0 24px 52px rgba(15, 23, 42, 0.26)",
+            color: "#1e2a3a",
+            backdropFilter: "blur(24px) saturate(140%) brightness(1.02)",
+            WebkitBackdropFilter: "blur(24px) saturate(140%) brightness(1.02)",
           }}
         >
           <div
             style={{
-              fontSize: 16,
+              fontSize: 15,
               fontWeight: 800,
-              color: "#0b5ec8",
-              marginBottom: 12,
+              color: "#0f63c7",
+              marginBottom: 10,
+              padding: "8px 10px",
+              borderRadius: 10,
+              border: "1px solid rgba(69, 139, 235, 0.3)",
+              background: "rgba(255,255,255,0.9)",
             }}
           >
-            知乎站点设置 · AI 回复助手
+            复眼助手 · 知乎设置
           </div>
 
           <div
@@ -1015,7 +1112,7 @@ const FloatingReplyAssistant = () => {
             style={{
               border: "1px solid #dbeafe",
               borderRadius: 12,
-              background: "#ffffff",
+              background: "rgba(255,255,255,0.96)",
               padding: 10,
               marginBottom: 12,
             }}
@@ -1075,7 +1172,7 @@ const FloatingReplyAssistant = () => {
             style={{
               border: "1px solid #dbeafe",
               borderRadius: 12,
-              background: "#ffffff",
+              background: "rgba(255,255,255,0.96)",
               padding: 10,
               marginBottom: 12,
             }}
@@ -1106,6 +1203,35 @@ const FloatingReplyAssistant = () => {
               ))}
             </select>
 
+            <div style={{ fontSize: 12, color: "#475569", marginBottom: 6 }}>
+              回复长度（简略/标准/详细）
+            </div>
+            <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+              {replyLengthOptions.map((item) => {
+                const active = settings.replyLength === item.value;
+                return (
+                  <button
+                    key={item.value}
+                    onClick={() => onReplyLengthChange(item.value)}
+                    style={{
+                      flex: 1,
+                      height: 30,
+                      borderRadius: 8,
+                      border: active
+                        ? "1px solid #0f7cf2"
+                        : "1px solid #cbd5e1",
+                      background: active ? "#e9f3ff" : "#ffffff",
+                      color: active ? "#0f5ec8" : "#334155",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                    }}
+                  >
+                    {item.label}
+                  </button>
+                );
+              })}
+            </div>
+
             <label
               style={{
                 display: "flex",
@@ -1123,41 +1249,6 @@ const FloatingReplyAssistant = () => {
               />
               生成后自动填入当前输入框
             </label>
-
-            <button
-              onClick={generateReplyForActiveTarget}
-              disabled={loading}
-              style={{
-                width: "100%",
-                height: 34,
-                border: "none",
-                borderRadius: 9,
-                color: "#ffffff",
-                fontWeight: 700,
-                background: loading ? "#94a3b8" : "#0f7cf2",
-                cursor: loading ? "not-allowed" : "pointer",
-              }}
-            >
-              {loading ? "生成中..." : "针对当前输入框生成"}
-            </button>
-          </div>
-
-          <div style={{ fontSize: 12, color: "#475569", marginBottom: 6 }}>
-            当前输入框
-          </div>
-          <div
-            style={{
-              border: "1px dashed #bfdbfe",
-              borderRadius: 10,
-              background: "#f8fbff",
-              color: activeTargetRef.current ? "#0f172a" : "#64748b",
-              fontSize: 12,
-              padding: "8px 10px",
-            }}
-          >
-            {activeTargetRef.current
-              ? "已捕获当前回复输入框，可直接点击 AI回复 按钮生成。"
-              : "未捕获输入框，请先点一下评论输入框。"}
           </div>
 
           {error && (

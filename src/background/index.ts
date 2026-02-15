@@ -121,9 +121,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     TelemetryService.recordEvent("reply_generation_requested", {
       platform: request.platform || "zhihu",
       tone: request.tone,
+      replyLength: request.replyLength || "medium",
     });
 
-    ReplyAssistantService.generateReply(request.tone, request.context)
+    ReplyAssistantService.generateReply(
+      request.tone,
+      request.context,
+      request.replyLength || "medium",
+    )
       .then((reply) => {
         TelemetryService.recordPerformance("reply_generation_completed", {
           platform: request.platform || "zhihu",
