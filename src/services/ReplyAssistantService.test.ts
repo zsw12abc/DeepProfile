@@ -49,4 +49,30 @@ describe("ReplyAssistantService", () => {
 
     expect(reply).toBe("ok reply");
   });
+
+  it("rewrites output when generated language mismatches preferred language", async () => {
+    const generateRawTextMock = vi
+      .spyOn(LLMService, "generateRawText")
+      .mockResolvedValueOnce("This is english output")
+      .mockResolvedValueOnce("这是中文输出");
+
+    const reply = await ReplyAssistantService.generateReply(
+      "Friendly",
+      {
+        targetUser: "Alice",
+        pageTitle: "话题",
+        answerContent: "内容",
+        conversation: [{ author: "Alice", content: "你好", isTarget: true }],
+      },
+      "medium",
+      "zh",
+      "Chinese",
+      "你好",
+    );
+
+    expect(reply).toBe("这是中文输出");
+    expect(generateRawTextMock).toHaveBeenCalledTimes(2);
+    const secondPrompt = generateRawTextMock.mock.calls[1][0];
+    expect(secondPrompt).toContain("Rewrite the following reply in Chinese only");
+  });
 });
