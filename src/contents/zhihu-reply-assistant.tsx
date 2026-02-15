@@ -7,6 +7,11 @@ import {
   type AnalysisMode,
   type ReplyAssistantSettings,
 } from "~types";
+import {
+  clampFloatingBallPos,
+  computeFloatingPanelPosition,
+  isDarkThemeId,
+} from "./zhihu-reply-assistant-utils";
 
 export const config: PlasmoCSConfig = {
   matches: ["https://www.zhihu.com/*"],
@@ -34,6 +39,27 @@ const replyLengthOptions = [
   { value: "medium", label: "标准" },
   { value: "long", label: "详细" },
 ] as const;
+
+const FLOATING_BALL_SIZE = 38;
+const FLOATING_BALL_MARGIN = 8;
+const BALL_POSITION_STORAGE_KEY = "deep_profile_zhihu_ball_pos";
+
+const colorWithAlpha = (color: string, alpha: number): string => {
+  const hex = color.trim().replace("#", "");
+  if (/^[0-9a-fA-F]{6}$/.test(hex)) {
+    const r = parseInt(hex.slice(0, 2), 16);
+    const g = parseInt(hex.slice(2, 4), 16);
+    const b = parseInt(hex.slice(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+  if (/^[0-9a-fA-F]{3}$/.test(hex)) {
+    const r = parseInt(hex[0] + hex[0], 16);
+    const g = parseInt(hex[1] + hex[1], 16);
+    const b = parseInt(hex[2] + hex[2], 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+  return color;
+};
 const analysisModes: AnalysisMode[] = ["fast", "balanced", "deep"];
 
 const REPLY_HINT_KEYS = ["回复", "reply", "评论", "comment"];
@@ -378,9 +404,32 @@ const FloatingReplyAssistant = () => {
     analysisMode: "balanced" as AnalysisMode,
     analyzeLimit: 15,
   });
+  const [themeState, setThemeState] = useState(() => {
+    const defaultTheme = DEFAULT_CONFIG.themes[DEFAULT_CONFIG.themeId];
+    return {
+      isDark: isDarkThemeId(DEFAULT_CONFIG.themeId),
+      primary: defaultTheme?.colors.primary || "#0f7cf2",
+      secondary: defaultTheme?.colors.secondary || "#22c55e",
+      text: defaultTheme?.colors.text || "#1e2a3a",
+      textSecondary: defaultTheme?.colors.textSecondary || "#475569",
+      border: defaultTheme?.colors.border || "rgba(54, 132, 231, 0.44)",
+      surface: defaultTheme?.colors.surface || "rgba(247,252,255,0.95)",
+      background: defaultTheme?.colors.background || "#e7f6ff",
+      accent: defaultTheme?.colors.accent || "#38bdf8",
+      primaryText: defaultTheme?.colors.primaryText || "#ffffff",
+      success: defaultTheme?.colors.success || "#16a34a",
+      error: defaultTheme?.colors.error || "#ef4444",
+      fontFamily:
+        defaultTheme?.typography.fontFamily ||
+        "'Sora', 'Space Grotesk', 'Segoe UI', sans-serif",
+      shadow:
+        defaultTheme?.shadows.large || "0 24px 52px rgba(15, 23, 42, 0.26)",
+    };
+  });
+  const [logoSrc, setLogoSrc] = useState("");
   const [ballPos, setBallPos] = useState(() => ({
-    left: Math.max(window.innerWidth - 84, 16),
-    top: Math.max(window.innerHeight - 180, 16),
+    left: Math.max(window.innerWidth - FLOATING_BALL_SIZE - 24, 16),
+    top: Math.max(window.innerHeight - 160, 16),
   }));
 
   const activeTargetRef = useRef<EditableTarget | null>(null);
@@ -391,6 +440,15 @@ const FloatingReplyAssistant = () => {
     startLeft: number;
     startTop: number;
   } | null>(null);
+
+  const clampBallPos = (pos: { left: number; top: number }) => ({
+    ...clampFloatingBallPos(
+      pos,
+      { width: window.innerWidth, height: window.innerHeight },
+      FLOATING_BALL_SIZE,
+      FLOATING_BALL_MARGIN,
+    ),
+  });
 
   const saveSettings = async (next: ReplyAssistantSettings) => {
     const config = await ConfigService.getConfig();
@@ -463,6 +521,30 @@ const FloatingReplyAssistant = () => {
             DEFAULT_CONFIG.platformConfigs.zhihu.replyAssistantEnabled ??
             true),
       );
+
+      const activeTheme =
+        config.themes?.[config.themeId] ||
+        DEFAULT_CONFIG.themes[config.themeId] ||
+        DEFAULT_CONFIG.themes[DEFAULT_CONFIG.themeId];
+      setThemeState({
+        isDark: isDarkThemeId(config.themeId),
+        primary: activeTheme?.colors.primary || "#0f7cf2",
+        secondary: activeTheme?.colors.secondary || "#22c55e",
+        text: activeTheme?.colors.text || "#1e2a3a",
+        textSecondary: activeTheme?.colors.textSecondary || "#475569",
+        border: activeTheme?.colors.border || "rgba(54, 132, 231, 0.44)",
+        surface: activeTheme?.colors.surface || "rgba(247,252,255,0.95)",
+        background: activeTheme?.colors.background || "#e7f6ff",
+        accent: activeTheme?.colors.accent || "#38bdf8",
+        primaryText: activeTheme?.colors.primaryText || "#ffffff",
+        success: activeTheme?.colors.success || "#16a34a",
+        error: activeTheme?.colors.error || "#ef4444",
+        fontFamily:
+          activeTheme?.typography.fontFamily ||
+          "'Sora', 'Space Grotesk', 'Segoe UI', sans-serif",
+        shadow:
+          activeTheme?.shadows.large || "0 24px 52px rgba(15, 23, 42, 0.26)",
+      });
     };
 
     loadSettings();
@@ -515,6 +597,39 @@ const FloatingReplyAssistant = () => {
     return () => {
       document.removeEventListener("focusin", handleFocusIn);
       document.removeEventListener("pointerdown", handlePointerDown, true);
+    };
+  }, []);
+
+  useEffect(() => {
+    const loadBallPos = async () => {
+      try {
+        const result = await chrome.storage.local.get(
+          BALL_POSITION_STORAGE_KEY,
+        );
+        const stored = result?.[BALL_POSITION_STORAGE_KEY] as
+          | { left?: number; top?: number }
+          | undefined;
+        if (
+          stored &&
+          typeof stored.left === "number" &&
+          typeof stored.top === "number"
+        ) {
+          setBallPos(clampBallPos({ left: stored.left, top: stored.top }));
+        }
+      } catch {
+        // Ignore storage read errors.
+      }
+    };
+
+    loadBallPos();
+
+    const onResize = () => {
+      setBallPos((prev) => clampBallPos(prev));
+    };
+    window.addEventListener("resize", onResize);
+
+    return () => {
+      window.removeEventListener("resize", onResize);
     };
   }, []);
 
@@ -669,6 +784,18 @@ const FloatingReplyAssistant = () => {
   };
 
   const canApply = useMemo(() => !!reply && !!activeTargetRef.current, [reply]);
+  const logoCandidates = useMemo(
+    () => [
+      new URL("../../assets/icon.png", import.meta.url).toString(),
+      chrome.runtime.getURL("icon.png"),
+      chrome.runtime.getURL("assets/icon.png"),
+    ],
+    [],
+  );
+
+  useEffect(() => {
+    setLogoSrc(logoCandidates[0]);
+  }, [logoCandidates]);
 
   const onBallPointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
     dragStateRef.current = {
@@ -689,22 +816,37 @@ const FloatingReplyAssistant = () => {
       }
 
       const left = Math.min(
-        Math.max(8, state.startLeft + dx),
-        window.innerWidth - 64,
+        Math.max(FLOATING_BALL_MARGIN, state.startLeft + dx),
+        window.innerWidth - FLOATING_BALL_SIZE - FLOATING_BALL_MARGIN,
       );
       const top = Math.min(
-        Math.max(8, state.startTop + dy),
-        window.innerHeight - 64,
+        Math.max(FLOATING_BALL_MARGIN, state.startTop + dy),
+        window.innerHeight - FLOATING_BALL_SIZE - FLOATING_BALL_MARGIN,
       );
       setBallPos({ left, top });
     };
 
-    const handleUp = () => {
+    const handleUp = async (upEvent: PointerEvent) => {
       const state = dragStateRef.current;
       const shouldToggle = state && !state.dragging;
       dragStateRef.current = null;
       window.removeEventListener("pointermove", handleMove);
       window.removeEventListener("pointerup", handleUp);
+
+      if (state?.dragging) {
+        const finalPos = clampBallPos({
+          left: state.startLeft + (upEvent.clientX - state.startX),
+          top: state.startTop + (upEvent.clientY - state.startY),
+        });
+        setBallPos(finalPos);
+        try {
+          await chrome.storage.local.set({
+            [BALL_POSITION_STORAGE_KEY]: finalPos,
+          });
+        } catch {
+          // Ignore storage write errors.
+        }
+      }
 
       if (shouldToggle) {
         setOpen((v) => !v);
@@ -912,29 +1054,50 @@ const FloatingReplyAssistant = () => {
     };
   }, [enabled, loading, settings.tone, settings.replyLength]);
 
+  const panelWidth = 368;
+  const panelGap = 10;
+  const panelMaxHeight = Math.floor(window.innerHeight * 0.78);
+  const panelPos = computeFloatingPanelPosition(
+    ballPos,
+    { width: window.innerWidth, height: window.innerHeight },
+    { width: panelWidth, height: Math.min(620, panelMaxHeight) },
+    FLOATING_BALL_SIZE,
+    panelGap,
+    10,
+  );
+  const panelLeft = panelPos.left;
+  const panelTop = panelPos.top;
+  const primaryGlow = colorWithAlpha(themeState.primary, 0.34);
+  const borderGlow = colorWithAlpha(themeState.accent, 0.24);
+  const cardBg = themeState.isDark
+    ? colorWithAlpha(themeState.surface, 0.95)
+    : "rgba(255,255,255,0.96)";
+  const chipBg = themeState.isDark ? "rgba(10,24,42,0.9)" : "#f8fbff";
+  const inputBg = themeState.isDark ? "rgba(8,18,30,0.94)" : "#ffffff";
+  const subtleBorder = `1px solid ${themeState.border}`;
+
+  // 从 options.tsx 复刻的背景光晕样式
+  const backgroundGlows =
+    "radial-gradient(circle at top left, rgba(37, 99, 235, 0.12), transparent 45%), radial-gradient(circle at 20% 20%, rgba(34, 211, 238, 0.15), transparent 40%), radial-gradient(circle at 85% 10%, rgba(56, 189, 248, 0.12), transparent 30%)";
+
   if (!enabled) return null;
 
   return (
     <>
       <style>{`
-        .dp-pixel-eye {
-          width: 6px;
-          height: 6px;
-          border-radius: 1px;
-          background: #eaf4ff;
-          box-shadow: 0 0 0 1px rgba(10, 102, 217, 0.22);
-          animation: dp-eye-blink 5.6s infinite;
-          transform-origin: center;
+        .dp-select-focus:focus {
+          border-color: ${themeState.primary} !important;
+          box-shadow: 0 0 0 3px ${colorWithAlpha(themeState.primary, 0.2)} !important;
+          outline: none;
         }
-
-        @keyframes dp-eye-blink {
-          0%, 88%, 100% { transform: scaleY(1); }
-          92% { transform: scaleY(0.18); }
-          94% { transform: scaleY(0.1); }
-          96% { transform: scaleY(1); }
+        .dp-btn-primary:hover {
+          filter: brightness(1.1);
+          transform: translateY(-1px);
+        }
+        .dp-btn-primary:active {
+          transform: translateY(0);
         }
       `}</style>
-
       <button
         onPointerDown={onBallPointerDown}
         title="DeepProfile 回复设置（可拖动）"
@@ -943,55 +1106,69 @@ const FloatingReplyAssistant = () => {
           left: ballPos.left,
           top: ballPos.top,
           zIndex: 2147483646,
-          width: 44,
-          height: 44,
+          width: FLOATING_BALL_SIZE,
+          height: FLOATING_BALL_SIZE,
           borderRadius: 12,
-          border: "1px solid rgba(0, 132, 255, 0.45)",
-          background:
-            "linear-gradient(160deg, #3eb4ff 0%, #1d84ff 62%, #0b61cf 100%)",
-          boxShadow: "0 12px 24px rgba(14, 92, 198, 0.32)",
+          border: "none",
+          background: `linear-gradient(135deg, ${themeState.primary}, ${themeState.secondary})`,
+          boxShadow: `0 8px 20px ${colorWithAlpha(themeState.primary, 0.4)}`,
           cursor: "grab",
           userSelect: "none",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          padding: 0,
+          overflow: "hidden",
+          transition: "transform 0.2s, box-shadow 0.2s",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "scale(1.05)";
+          e.currentTarget.style.boxShadow = `0 12px 24px ${colorWithAlpha(themeState.primary, 0.5)}`;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "scale(1)";
+          e.currentTarget.style.boxShadow = `0 8px 20px ${colorWithAlpha(themeState.primary, 0.4)}`;
         }}
       >
-        <div
-          style={{
-            width: 24,
-            height: 16,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
+        <img
+          src={logoSrc || logoCandidates[0]}
+          alt="DeepProfile"
+          onError={() => {
+            const current = logoSrc || logoCandidates[0];
+            const index = logoCandidates.indexOf(current);
+            const next = logoCandidates[index + 1];
+            if (next) {
+              setLogoSrc(next);
+            }
           }}
-        >
-          <span className="dp-pixel-eye" />
-          <span className="dp-pixel-eye" />
-        </div>
+          style={{
+            width: 26,
+            height: 26,
+            objectFit: "contain",
+            pointerEvents: "none",
+          }}
+        />
       </button>
 
       {open && (
         <div
           style={{
             position: "fixed",
-            left: Math.max(10, ballPos.left - 398),
-            top: Math.max(10, ballPos.top - 12),
-            width: 368,
+            left: panelLeft,
+            top: panelTop,
+            width: panelWidth,
             maxHeight: "78vh",
             overflowY: "auto",
             zIndex: 2147483646,
             padding: 14,
-            borderRadius: 14,
-            border: "2px solid rgba(54, 132, 231, 0.44)",
-            backgroundColor: "rgba(244, 250, 255, 0.985)",
-            background:
-              "linear-gradient(180deg, rgba(247,252,255,0.985), rgba(238,247,255,0.975))",
-            backgroundImage:
-              "linear-gradient(0deg, rgba(93,165,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(93,165,255,0.04) 1px, transparent 1px)",
-            backgroundSize: "10px 10px",
-            boxShadow: "0 24px 52px rgba(15, 23, 42, 0.26)",
-            color: "#1e2a3a",
+            borderRadius: 16,
+            border: `1px solid ${themeState.border}`,
+            backgroundColor: themeState.background,
+            backgroundImage: backgroundGlows,
+            backgroundSize: "100% 100%",
+            boxShadow: `0 0 0 1px ${themeState.border}, 0 20px 50px ${colorWithAlpha(themeState.primary, 0.2)}, ${themeState.shadow}`,
+            color: themeState.text,
+            fontFamily: themeState.fontFamily,
             backdropFilter: "blur(24px) saturate(140%) brightness(1.02)",
             WebkitBackdropFilter: "blur(24px) saturate(140%) brightness(1.02)",
           }}
@@ -1000,14 +1177,22 @@ const FloatingReplyAssistant = () => {
             style={{
               fontSize: 15,
               fontWeight: 800,
-              color: "#0f63c7",
+              color: themeState.text,
               marginBottom: 10,
-              padding: "8px 10px",
-              borderRadius: 10,
-              border: "1px solid rgba(69, 139, 235, 0.3)",
-              background: "rgba(255,255,255,0.9)",
+              padding: "10px 12px",
+              borderRadius: 12,
+              background: `linear-gradient(135deg, ${colorWithAlpha(themeState.primary, 0.2)}, ${colorWithAlpha(themeState.secondary, 0.16)})`,
+              boxShadow: `0 4px 12px ${colorWithAlpha(themeState.primary, 0.15)}`,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
             }}
           >
+            <img
+              src={logoSrc || logoCandidates[0]}
+              alt=""
+              style={{ width: 24, height: 24 }}
+            />
             复眼助手 · 知乎设置
           </div>
 
@@ -1017,6 +1202,9 @@ const FloatingReplyAssistant = () => {
               gridTemplateColumns: "1fr 1fr",
               gap: 10,
               marginBottom: 12,
+              padding: 2,
+              borderRadius: 12,
+              boxShadow: `inset 0 0 0 1px ${themeState.border}`,
             }}
           >
             <label
@@ -1026,8 +1214,8 @@ const FloatingReplyAssistant = () => {
                 justifyContent: "space-between",
                 padding: "8px 10px",
                 borderRadius: 10,
-                border: "1px solid #dbeafe",
-                background: "#f8fbff",
+                border: subtleBorder,
+                background: chipBg,
                 fontSize: 12,
               }}
             >
@@ -1048,8 +1236,8 @@ const FloatingReplyAssistant = () => {
                 justifyContent: "space-between",
                 padding: "8px 10px",
                 borderRadius: 10,
-                border: "1px solid #dbeafe",
-                background: "#f8fbff",
+                border: subtleBorder,
+                background: chipBg,
                 fontSize: 12,
               }}
             >
@@ -1070,8 +1258,8 @@ const FloatingReplyAssistant = () => {
                 justifyContent: "space-between",
                 padding: "8px 10px",
                 borderRadius: 10,
-                border: "1px solid #dbeafe",
-                background: "#f8fbff",
+                border: subtleBorder,
+                background: chipBg,
                 fontSize: 12,
               }}
             >
@@ -1092,8 +1280,8 @@ const FloatingReplyAssistant = () => {
                 justifyContent: "space-between",
                 padding: "8px 10px",
                 borderRadius: 10,
-                border: "1px solid #dbeafe",
-                background: "#f8fbff",
+                border: subtleBorder,
+                background: chipBg,
                 fontSize: 12,
               }}
             >
@@ -1110,14 +1298,21 @@ const FloatingReplyAssistant = () => {
 
           <div
             style={{
-              border: "1px solid #dbeafe",
+              border: subtleBorder,
               borderRadius: 12,
-              background: "rgba(255,255,255,0.96)",
+              background: cardBg,
               padding: 10,
               marginBottom: 12,
+              boxShadow: `0 0 14px ${colorWithAlpha(themeState.primary, 0.16)}`,
             }}
           >
-            <div style={{ fontSize: 12, color: "#475569", marginBottom: 6 }}>
+            <div
+              style={{
+                fontSize: 12,
+                color: themeState.textSecondary,
+                marginBottom: 6,
+              }}
+            >
               知乎分析模式
             </div>
             <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
@@ -1138,10 +1333,10 @@ const FloatingReplyAssistant = () => {
                       height: 32,
                       borderRadius: 8,
                       border: active
-                        ? "1px solid #0f7cf2"
-                        : "1px solid #cbd5e1",
-                      background: active ? "#e8f3ff" : "#ffffff",
-                      color: active ? "#0f5ec8" : "#334155",
+                        ? `1px solid ${themeState.primary}`
+                        : subtleBorder,
+                      background: active ? `${themeState.primary}22` : inputBg,
+                      color: active ? themeState.primary : themeState.text,
                       fontWeight: 700,
                       cursor: "pointer",
                     }}
@@ -1152,7 +1347,13 @@ const FloatingReplyAssistant = () => {
               })}
             </div>
 
-            <div style={{ fontSize: 12, color: "#475569", marginBottom: 6 }}>
+            <div
+              style={{
+                fontSize: 12,
+                color: themeState.textSecondary,
+                marginBottom: 6,
+              }}
+            >
               抓取条数：{siteSettings.analyzeLimit}
             </div>
             <input
@@ -1164,36 +1365,53 @@ const FloatingReplyAssistant = () => {
               onChange={(e) =>
                 onAnalyzeLimitChange(parseInt(e.target.value, 10))
               }
-              style={{ width: "100%", accentColor: "#0f7cf2" }}
+              style={{ width: "100%", accentColor: themeState.primary }}
             />
           </div>
 
           <div
             style={{
-              border: "1px solid #dbeafe",
+              border: subtleBorder,
               borderRadius: 12,
-              background: "rgba(255,255,255,0.96)",
+              background: cardBg,
               padding: 10,
               marginBottom: 12,
+              boxShadow: `0 0 14px ${colorWithAlpha(themeState.primary, 0.16)}`,
             }}
           >
-            <div style={{ fontSize: 12, color: "#475569", marginBottom: 6 }}>
+            <div
+              style={{
+                fontSize: 12,
+                color: themeState.textSecondary,
+                marginBottom: 6,
+              }}
+            >
               AI 回复设置
             </div>
-            <div style={{ fontSize: 12, color: "#475569", marginBottom: 6 }}>
+            <div
+              style={{
+                fontSize: 12,
+                color: themeState.textSecondary,
+                marginBottom: 6,
+              }}
+            >
               回复口气
             </div>
             <select
+              className="dp-select-focus"
               value={settings.tone}
               onChange={(e) => onToneChange(e.target.value)}
               style={{
                 width: "100%",
-                height: 34,
-                border: "1px solid #cbd5e1",
+                height: 40,
+                border: subtleBorder,
                 borderRadius: 8,
-                marginBottom: 10,
-                color: "#0f172a",
-                background: "#ffffff",
+                marginBottom: 16,
+                color: themeState.text,
+                background: inputBg,
+                padding: "0 12px",
+                fontSize: 14,
+                transition: "all 0.2s",
               }}
             >
               {toneOptions.map((tone) => (
@@ -1203,7 +1421,13 @@ const FloatingReplyAssistant = () => {
               ))}
             </select>
 
-            <div style={{ fontSize: 12, color: "#475569", marginBottom: 6 }}>
+            <div
+              style={{
+                fontSize: 12,
+                color: themeState.textSecondary,
+                marginBottom: 6,
+              }}
+            >
               回复长度（简略/标准/详细）
             </div>
             <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
@@ -1218,10 +1442,10 @@ const FloatingReplyAssistant = () => {
                       height: 30,
                       borderRadius: 8,
                       border: active
-                        ? "1px solid #0f7cf2"
-                        : "1px solid #cbd5e1",
-                      background: active ? "#e9f3ff" : "#ffffff",
-                      color: active ? "#0f5ec8" : "#334155",
+                        ? `1px solid ${themeState.primary}`
+                        : subtleBorder,
+                      background: active ? `${themeState.primary}22` : inputBg,
+                      color: active ? themeState.primary : themeState.text,
                       fontWeight: 700,
                       cursor: "pointer",
                     }}
@@ -1238,7 +1462,7 @@ const FloatingReplyAssistant = () => {
                 alignItems: "center",
                 gap: 8,
                 fontSize: 12,
-                color: "#334155",
+                color: themeState.text,
                 marginBottom: 10,
               }}
             >
@@ -1256,9 +1480,9 @@ const FloatingReplyAssistant = () => {
               style={{
                 marginTop: 8,
                 fontSize: 12,
-                color: "#b91c1c",
-                background: "rgba(239,68,68,0.08)",
-                border: "1px solid rgba(239,68,68,0.28)",
+                color: themeState.error,
+                background: `${themeState.error}22`,
+                border: `1px solid ${themeState.error}66`,
                 borderRadius: 8,
                 padding: "7px 8px",
               }}
@@ -1277,11 +1501,11 @@ const FloatingReplyAssistant = () => {
                   minHeight: 90,
                   marginTop: 8,
                   padding: 8,
-                  border: "1px solid #cbd5e1",
+                  border: subtleBorder,
                   borderRadius: 8,
                   resize: "vertical",
-                  color: "#0f172a",
-                  background: "#ffffff",
+                  color: themeState.text,
+                  background: inputBg,
                 }}
               />
               <div
@@ -1297,9 +1521,9 @@ const FloatingReplyAssistant = () => {
                   style={{
                     height: 32,
                     borderRadius: 8,
-                    border: "1px solid #cbd5e1",
-                    background: "#f8fafc",
-                    color: "#0f172a",
+                    border: subtleBorder,
+                    background: chipBg,
+                    color: themeState.text,
                     cursor: "pointer",
                   }}
                 >
@@ -1312,8 +1536,8 @@ const FloatingReplyAssistant = () => {
                     height: 32,
                     borderRadius: 8,
                     border: "none",
-                    background: canApply ? "#0ea5e9" : "#94a3b8",
-                    color: "#ffffff",
+                    background: canApply ? themeState.primary : "#94a3b8",
+                    color: themeState.primaryText,
                     cursor: canApply ? "pointer" : "not-allowed",
                   }}
                 >
