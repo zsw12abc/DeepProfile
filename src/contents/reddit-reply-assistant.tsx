@@ -753,7 +753,14 @@ const FloatingReplyAssistant = () => {
         onPointerDown={onBallPointerDown}
         onMouseEnter={() => {}}
         onMouseLeave={() => {}}
-        onError={() => {}}
+        onError={() => {
+          const current = logoSrc || logoCandidates[0];
+          const index = logoCandidates.indexOf(current);
+          const next = logoCandidates[index + 1];
+          if (next) {
+            setLogoSrc(next);
+          }
+        }}
       />
       {open && (
         <SettingsPanel

@@ -55,6 +55,8 @@ export const FloatingBall: React.FC<FloatingBallProps> = ({
           width: 26,
           height: 26,
           objectFit: "contain",
+          display: "block",
+          transform: "translateY(2px)",
           pointerEvents: "none",
         }}
       />
