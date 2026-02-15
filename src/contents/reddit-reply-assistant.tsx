@@ -212,15 +212,36 @@ const extractReplyContext = (targetInput: EditableTarget): ReplyContext => {
 };
 
 const setEditableText = (target: EditableTarget, value: string) => {
-  target.focus();
   if (target instanceof HTMLTextAreaElement) {
-    target.value = value;
+    const nativeSetter = Object.getOwnPropertyDescriptor(
+      HTMLTextAreaElement.prototype,
+      "value",
+    )?.set;
+    nativeSetter?.call(target, value);
     target.dispatchEvent(new Event("input", { bubbles: true }));
     target.dispatchEvent(new Event("change", { bubbles: true }));
-  } else {
-    document.execCommand("insertText", false, value);
-    target.dispatchEvent(new Event("input", { bubbles: true }));
+    target.focus();
+    return;
   }
+
+  target.focus();
+  try {
+    const selection = window.getSelection();
+    if (selection) {
+      const range = document.createRange();
+      range.selectNodeContents(target);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+    const inserted = document.execCommand("insertText", false, value);
+    if (!inserted) {
+      target.textContent = value;
+    }
+  } catch {
+    target.textContent = value;
+  }
+  target.dispatchEvent(new Event("input", { bubbles: true }));
+  target.dispatchEvent(new Event("change", { bubbles: true }));
 };
 
 const FloatingReplyAssistant = () => {
@@ -442,9 +463,7 @@ const FloatingReplyAssistant = () => {
       });
 
       setReply(generated);
-      if (settings.autoFill) {
-        setEditableText(target, generated);
-      }
+      setEditableText(target, generated);
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -558,29 +577,6 @@ const FloatingReplyAssistant = () => {
       await onToneChange((e.target as HTMLSelectElement).value);
     };
 
-    const lengthSelect = document.createElement("select");
-    lengthSelect.className = INLINE_LENGTH_CLASS;
-    lengthSelect.style.cssText = `
-      height: 32px;
-      padding: 0 8px;
-      border-radius: 8px;
-      border: 1px solid ${themeState.isDark ? "#474a4e" : "#ccc"};
-      background: ${themeState.isDark ? "#272729" : "#ffffff"};
-      color: ${themeState.text};
-      font-size: 12px;
-      outline: none;
-    `;
-    replyLengthOptions.forEach((item) => {
-      const option = document.createElement("option");
-      option.value = item.value;
-      option.textContent = item.label;
-      lengthSelect.appendChild(option);
-    });
-    lengthSelect.value = settings.replyLength;
-    lengthSelect.onchange = async (e) => {
-      await onReplyLengthChange((e.target as HTMLSelectElement).value);
-    };
-
     const aiBtn = document.createElement("button");
     aiBtn.textContent = "AI Reply";
     aiBtn.className = INLINE_REPLY_BTN_CLASS;
@@ -603,7 +599,6 @@ const FloatingReplyAssistant = () => {
     };
 
     container.appendChild(toneSelect);
-    container.appendChild(lengthSelect);
     container.appendChild(aiBtn);
     document.body.appendChild(container);
     floatingInlineBarRef.current = container;
@@ -649,10 +644,21 @@ const FloatingReplyAssistant = () => {
       const bar = ensureFloatingInlineBar();
       const rect = target.getBoundingClientRect();
       const left = Math.max(8, Math.min(rect.left, window.innerWidth - 360));
-      const top = Math.max(8, Math.min(rect.bottom + 6, window.innerHeight - 60));
+      const top = Math.max(8, Math.min(rect.bottom + 8, window.innerHeight - 60));
       bar.style.left = `${left}px`;
       bar.style.top = `${top}px`;
       bar.style.display = "inline-flex";
+    };
+
+    const updateBarPosition = () => {
+      const target = activeTargetRef.current;
+      const bar = floatingInlineBarRef.current;
+      if (!target || !bar || bar.style.display === "none") return;
+      const rect = target.getBoundingClientRect();
+      const left = Math.max(8, Math.min(rect.left, window.innerWidth - 360));
+      const top = Math.max(8, Math.min(rect.bottom + 8, window.innerHeight - 60));
+      bar.style.left = `${left}px`;
+      bar.style.top = `${top}px`;
     };
 
     const findEditableFromNode = (node: Element): EditableTarget | null => {
@@ -682,6 +688,9 @@ const FloatingReplyAssistant = () => {
     const onPointerDown = (event: PointerEvent) => {
       const target = event.target as Element | null;
       if (!target) return;
+      if (target instanceof HTMLOptionElement || target instanceof HTMLSelectElement) {
+        return;
+      }
       const bar = floatingInlineBarRef.current;
       if (bar?.contains(target)) return;
       const editable = findEditableFromNode(target);
@@ -694,15 +703,32 @@ const FloatingReplyAssistant = () => {
 
     document.addEventListener("focusin", onFocusIn, true);
     document.addEventListener("pointerdown", onPointerDown, true);
+    window.addEventListener("scroll", updateBarPosition, true);
+    window.addEventListener("resize", updateBarPosition);
     return () => {
       document.removeEventListener("focusin", onFocusIn, true);
       document.removeEventListener("pointerdown", onPointerDown, true);
+      window.removeEventListener("scroll", updateBarPosition, true);
+      window.removeEventListener("resize", updateBarPosition);
       if (floatingInlineBarRef.current) {
         floatingInlineBarRef.current.remove();
         floatingInlineBarRef.current = null;
       }
     };
   }, [enabled, themeState]);
+
+  useEffect(() => {
+    const bar = floatingInlineBarRef.current;
+    if (!bar) return;
+    const button = bar.querySelector(
+      `.${INLINE_REPLY_BTN_CLASS}`,
+    ) as HTMLButtonElement | null;
+    if (!button) return;
+    button.disabled = loading;
+    button.textContent = loading ? "Generating..." : "AI Reply";
+    button.style.opacity = loading ? "0.75" : "1";
+    button.style.cursor = loading ? "not-allowed" : "pointer";
+  }, [loading]);
 
   const panelWidth = 368;
   const panelGap = 10;

@@ -31,7 +31,19 @@ export class ReplyAssistantService {
       languageDetectionSource,
     );
     const raw = await LLMService.generateRawText(prompt);
-    return this.normalizeReply(raw);
+    const normalized = this.normalizeReply(raw);
+
+    if (
+      preferredLanguageCode &&
+      normalized &&
+      !this.isLikelyLanguage(normalized, preferredLanguageCode)
+    ) {
+      const rewritePrompt = `Rewrite the following reply in ${preferredLanguageName || preferredLanguageCode} only. Keep the original meaning and tone. Output only the rewritten reply.\n\nReply:\n${normalized}`;
+      const rewritten = await LLMService.generateRawText(rewritePrompt);
+      return this.normalizeReply(rewritten);
+    }
+
+    return normalized;
   }
 
   private static buildPrompt(
@@ -58,7 +70,7 @@ export class ReplyAssistantService {
 
     const languageLine =
       preferredLanguageCode && preferredLanguageName
-        ? `1. 语言要求：用户输入语言检测结果是 ${preferredLanguageName}（${preferredLanguageCode}），你必须只用该语言回复。`
+        ? `1. 语言要求（强制）：用户输入语言检测结果是 ${preferredLanguageName}（${preferredLanguageCode}）。你的整段回复必须100%使用该语言，不得夹杂其他语言（专有名词除外）。`
         : "1. 语言要求：请自动检测[对话上下文]或[答主原文]使用的语言，并使用相同语言回复。如果不确定，优先使用英文。";
 
     const languageDetectionSourceBlock = languageDetectionSource
@@ -89,7 +101,8 @@ ${languageLine}
 3. 回复对象是「${context.targetUser}」，要贴合其上一条观点。
 4. 基于给定对话，不要虚构事实，不要引用未提供的信息。
 5. 长度要求：${lengthInstruction}
-6. 只输出回复正文，不要解释，不要加引号，不要 Markdown，不要前缀。`;
+6. 输出前自检语言：如果不是目标语言，请重写。
+7. 只输出回复正文，不要解释，不要加引号，不要 Markdown，不要前缀。`;
   }
 
   private static normalizeReply(raw: string): string {
@@ -108,5 +121,23 @@ ${languageLine}
     }
 
     return text;
+  }
+
+  private static isLikelyLanguage(text: string, code: string): boolean {
+    const sample = text.trim();
+    if (!sample) return true;
+
+    if (code === "zh") return /[\u4E00-\u9FFF]/.test(sample);
+    if (code === "ja") return /[\u3040-\u30FF]/.test(sample);
+    if (code === "ko") return /[\uAC00-\uD7AF]/.test(sample);
+    if (code === "ru") return /[\u0400-\u04FF]/.test(sample);
+    if (code === "ar") return /[\u0600-\u06FF]/.test(sample);
+
+    if (code === "en") {
+      const latinWords = (sample.match(/[a-zA-Z]+/g) || []).length;
+      return latinWords >= 3;
+    }
+
+    return true;
   }
 }

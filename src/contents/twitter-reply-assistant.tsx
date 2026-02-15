@@ -124,9 +124,34 @@ const extractReplyContext = (targetInput: EditableTarget): ReplyContext => {
 };
 
 const setEditableText = (target: EditableTarget, value: string) => {
+  if (target instanceof HTMLTextAreaElement) {
+    const nativeSetter = Object.getOwnPropertyDescriptor(
+      HTMLTextAreaElement.prototype,
+      "value",
+    )?.set;
+    nativeSetter?.call(target, value);
+    target.dispatchEvent(new Event("input", { bubbles: true }));
+    target.dispatchEvent(new Event("change", { bubbles: true }));
+    target.focus();
+    return;
+  }
+
   target.focus();
-  // Standard execCommand works for Twitter's Draft.js editor
-  document.execCommand("insertText", false, value);
+  try {
+    const selection = window.getSelection();
+    if (selection) {
+      const range = document.createRange();
+      range.selectNodeContents(target);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+    const inserted = document.execCommand("insertText", false, value);
+    if (!inserted) {
+      target.textContent = value;
+    }
+  } catch {
+    target.textContent = value;
+  }
   target.dispatchEvent(new Event("input", { bubbles: true }));
   target.dispatchEvent(new Event("change", { bubbles: true }));
 };
@@ -345,9 +370,7 @@ const FloatingReplyAssistant = () => {
       });
 
       setReply(generated);
-      if (settings.autoFill) {
-        setEditableText(target, generated);
-      }
+      setEditableText(target, generated);
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -483,32 +506,6 @@ const FloatingReplyAssistant = () => {
       await onToneChange((e.target as HTMLSelectElement).value);
     };
 
-    // Length Select
-    const lengthSelect = document.createElement("select");
-    lengthSelect.className = INLINE_LENGTH_CLASS;
-    lengthSelect.style.cssText = `
-        height: 24px;
-        padding: 0 4px;
-        border-radius: 8px;
-        border: 1px solid ${themeState.isDark ? "#474a4e" : "#ccc"};
-        background: ${themeState.isDark ? "#272729" : "#ffffff"};
-        color: ${themeState.text};
-        font-size: 11px;
-        outline: none;
-    `;
-    replyLengthOptions.forEach((item) => {
-      const option = document.createElement("option");
-      option.value = item.value;
-      option.textContent = item.label;
-      lengthSelect.appendChild(option);
-    });
-    lengthSelect.value = settings.replyLength;
-    lengthSelect.onclick = (e) => e.stopPropagation();
-    lengthSelect.onchange = async (e) => {
-      e.stopPropagation();
-      await onReplyLengthChange((e.target as HTMLSelectElement).value);
-    };
-
     const aiBtn = document.createElement("button");
     aiBtn.textContent = "AI";
     aiBtn.className = INLINE_REPLY_BTN_CLASS;
@@ -524,15 +521,22 @@ const FloatingReplyAssistant = () => {
         cursor: pointer;
       `;
 
-    aiBtn.onclick = (e) => {
+    aiBtn.onclick = async (e) => {
       e.preventDefault();
       e.stopPropagation();
+      aiBtn.disabled = true;
+      const originalText = aiBtn.textContent;
+      aiBtn.textContent = "Generating...";
       activeTargetRef.current = targetInput;
-      generateReply(targetInput);
+      try {
+        await generateReply(targetInput);
+      } finally {
+        aiBtn.disabled = false;
+        aiBtn.textContent = originalText || "AI";
+      }
     };
 
     controlContainer.appendChild(toneSelect);
-    controlContainer.appendChild(lengthSelect);
     controlContainer.appendChild(aiBtn);
     const replyActionGroup = toolbar.querySelector("[data-testid='tweetButton']");
     if (replyActionGroup?.parentElement) {
