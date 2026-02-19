@@ -1,5 +1,10 @@
 import { ConfigService } from "./ConfigService";
-import type { AIProvider, AnalysisMode, MacroCategory } from "~types";
+import type {
+  AIProvider,
+  AnalysisMode,
+  MacroCategory,
+  SupportedPlatform,
+} from "~types";
 import { ChatOpenAI } from "@langchain/openai";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
@@ -119,7 +124,7 @@ export class LLMService {
   static async generateProfileForPlatform(
     text: string,
     category: MacroCategory,
-    platform: string,
+    platform: SupportedPlatform,
   ): Promise<LLMResponse> {
     const config = await ConfigService.getConfig();
     this.ensureProviderConfigured(config.selectedProvider, config);
@@ -150,7 +155,7 @@ export class LLMService {
     let sanitized = text;
 
     // Define a dictionary of sensitive words and their replacements
-    const sensitiveWords = {
+    const sensitiveWords: Record<string, string> = {
       // Geopolitical
       台湾: "TW",
       香港: "HK",

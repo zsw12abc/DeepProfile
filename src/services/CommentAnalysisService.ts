@@ -1,5 +1,10 @@
 import { LLMService } from "./LLMService";
-import type { CommentItem, CommentAnalysisResult, AnalysisMode } from "~types";
+import type {
+  CommentItem,
+  CommentAnalysisResult,
+  AnalysisMode,
+  SupportedPlatform,
+} from "~types";
 import { ConfigService } from "./ConfigService";
 import { I18nService } from "./I18nService";
 
@@ -8,7 +13,7 @@ export class CommentAnalysisService {
     comments: CommentItem[],
     contextTitle: string,
     contextContent?: string,
-    platform?: string,
+    platform?: SupportedPlatform,
   ): Promise<CommentAnalysisResult> {
     if (!comments || comments.length === 0) {
       throw new Error("没有找到可分析的评论");

@@ -10,6 +10,7 @@
     "build": "plasmo build",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
+    "typecheck:core": "tsc --noEmit -p tsconfig.typecheck-core.json",
     "test:ui": "vitest --ui",
     "test:unit": "vitest run --exclude '**/LLMService.test.{ts,tsx}'",
     "test:coverage": "vitest run --coverage",

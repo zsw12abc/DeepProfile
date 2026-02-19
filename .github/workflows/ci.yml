@@ -38,6 +38,9 @@ jobs:
         continue-on-error: true
         run: npm run typecheck
 
+      - name: Typecheck Core (enforced)
+        run: npm run typecheck:core
+
       - name: Format check
         run: npm run format:check
 
