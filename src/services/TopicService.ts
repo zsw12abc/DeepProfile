@@ -2,6 +2,8 @@ import { LLMService } from "./LLMService";
 import type { MacroCategory } from "~types";
 import { I18nService } from "./I18nService";
 
+export type { MacroCategory } from "~types";
+
 const CATEGORIES: MacroCategory[] = [
   "politics",
   "economy",

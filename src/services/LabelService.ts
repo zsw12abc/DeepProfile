@@ -1,11 +1,19 @@
-import {
-  LabelDefinition,
-  LabelGroup,
-  AnalysisMode,
-  MacroCategory,
-} from "~types";
+import { AnalysisMode, MacroCategory } from "~types";
 import { I18nService } from "./I18nService";
 import { calculateFinalLabel } from "./LabelUtils";
+
+interface LabelDefinition {
+  id: string;
+  name: string;
+  description: string;
+  weight: number;
+}
+
+interface LabelGroup {
+  id: string;
+  name: string;
+  labels: LabelDefinition[];
+}
 
 // 定义标签组 - Aligned with LabelDefinitions.ts
 const LABEL_GROUPS: LabelGroup[] = [

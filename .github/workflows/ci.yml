@@ -34,6 +34,12 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Typecheck (full, enforced)
+        run: npm run typecheck
+
+      - name: Typecheck Core (enforced)
+        run: npm run typecheck:core
+
       - name: Format check
         run: npm run format:check
 

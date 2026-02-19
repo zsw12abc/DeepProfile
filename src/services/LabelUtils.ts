@@ -195,8 +195,6 @@ export function calculateFinalLabel(
   };
 }
 
-import { createLabelCategories } from "./LabelDefinitions";
-
 // 获取标签的详细信息
 export function getLabelInfo(labelId: string) {
   // 使用createLabelCategories函数确保获取最新语言的标签
@@ -392,12 +390,10 @@ export function getMostRelevantLabelsByTopic(topic: string): string[] {
     for (const label of category.labels) {
       // 检查标签ID是否与话题相关
       if (
-        topicLower.includes(
-          label.id
-            .replace(/-/g, " ")
-            .split(" ")
-            .some((word) => topicLower.includes(word)),
-        )
+        label.id
+          .replace(/-/g, " ")
+          .split(" ")
+          .some((word) => topicLower.includes(word))
       ) {
         categoryScore++;
       }

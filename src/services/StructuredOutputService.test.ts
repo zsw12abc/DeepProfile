@@ -52,14 +52,15 @@ describe("StructuredOutputService", () => {
         validFastOutput,
         "fast",
       );
+      const fastResult = result as any;
       expect(result.nickname).toBe("Test User");
       expect(result.topic_classification).toBe("Politics");
       expect(result.value_orientation).toHaveLength(1);
       expect(result.value_orientation[0].label).toBe("ideology");
       expect(result.value_orientation[0].score).toBe(0.5);
       expect(result.summary).toBe("Test summary");
-      expect(result.reasoning).toBeUndefined();
-      expect(result.evidence).toBeUndefined();
+      expect(fastResult.reasoning).toBeUndefined();
+      expect(fastResult.evidence).toBeUndefined();
     });
 
     it("should parse balanced mode output correctly", async () => {
@@ -84,15 +85,16 @@ describe("StructuredOutputService", () => {
         validBalancedOutput,
         "balanced",
       );
+      const balancedResult = result as any;
       expect(result.nickname).toBe("Test User");
       expect(result.topic_classification).toBe("Politics");
-      expect(result.reasoning).toBe("Step-by-step analysis");
+      expect(balancedResult.reasoning).toBe("Step-by-step analysis");
       expect(result.value_orientation).toHaveLength(1);
       expect(result.value_orientation[0].label).toBe("ideology");
       expect(result.value_orientation[0].score).toBe(0.5);
       expect(result.summary).toBe("Test summary");
-      expect(result.evidence).toHaveLength(1);
-      expect(result.evidence[0].quote).toBe("Sample quote");
+      expect(balancedResult.evidence).toHaveLength(1);
+      expect(balancedResult.evidence[0].quote).toBe("Sample quote");
     });
 
     it("should throw error for invalid output", async () => {

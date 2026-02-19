@@ -1,6 +1,6 @@
 # DeepProfile 隐私政策
 
-**生效日期：2024年1月10日**
+**生效日期：2026年2月19日**
 
 ## 概述
 
@@ -16,8 +16,12 @@ DeepProfile 是一款 Chrome 浏览器扩展，旨在帮助用户分析社交媒
 - 我们**不收集**任何个人身份信息
 - 我们**不跟踪**您的浏览活动
 - 我们**不分享**任何数据给第三方
-- 我们**不使用**分析工具（如 Google Analytics）
 - 我们**不存储**您的社交媒体数据在我们的服务器上
+
+### 可选可观测性（默认关闭）
+- 扩展提供可选的可观测性设置（异常、行为、性能、合规），默认关闭。
+- 若您手动开启并配置遥测上报地址，扩展会将对应事件数据发送到您配置的 endpoint。
+- 我们不提供默认遥测接收服务器；未配置 endpoint 时不会上报到远端。
 
 ## 数据处理
 
@@ -35,10 +39,12 @@ DeepProfile 是一款 Chrome 浏览器扩展，旨在帮助用户分析社交媒
 
 我们的扩展需要以下权限：
 - `storage`：用于本地存储您的配置和历史记录
-- `cookies`：用于访问您登录的社交媒体网站（仅在必要时）
 - `https://www.zhihu.com/*`：访问知乎网站以提供分析功能
 - `https://*.zhimg.com/*`：加载知乎相关资源
 - `https://www.reddit.com/*`, `https://old.reddit.com/*`, `https://reddit.com/*`：访问 Reddit 网站以提供分析功能
+- `https://oauth.reddit.com/*`, `https://api.reddit.com/*`：访问 Reddit API 相关资源
+- `https://twitter.com/*`, `https://*.twitter.com/*`, `https://x.com/*`, `https://*.x.com/*`：访问 X/Twitter 站点以提供分析功能
+- `https://www.quora.com/*`：访问 Quora 站点以提供分析功能
 
 ## 数据安全
 
@@ -61,7 +67,7 @@ DeepProfile 是一款 Chrome 浏览器扩展，旨在帮助用户分析社交媒
 ## 联系我们
 
 如果您对本隐私政策有任何疑问，请通过以下方式联系我们：
-- 项目地址：https://github.com/your-repo/DeepProfile
+- 项目地址：https://github.com/zsw12abc/DeepProfile
 - 提交 Issue 或 Pull Request
 
 ---

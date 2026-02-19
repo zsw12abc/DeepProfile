@@ -6,7 +6,7 @@ export const normalizeAndFixResponse = (response: string): string => {
   try {
     let cleanedResponse = response.trim();
 
-    let config;
+    let config: ReturnType<typeof ConfigService.getConfigSync> | null = null;
     try {
       config = ConfigService.getConfigSync();
     } catch (e) {

@@ -66,7 +66,7 @@ vi.mock("html2canvas", () => {
   });
 
   // Add the mock property to the mock function
-  mockHtml2Canvas.Canvas = class {
+  (mockHtml2Canvas as any).Canvas = class {
     constructor() {}
     toDataURL() {
       return "data:image/png;base64,fakeimage";

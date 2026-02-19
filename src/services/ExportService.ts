@@ -1,6 +1,6 @@
-import { TopicService, type MacroCategory } from "./TopicService";
+import { TopicService } from "./TopicService";
 import { calculateFinalLabel, parseLabelName } from "./LabelUtils";
-import type { ProfileData } from "~types";
+import type { MacroCategory, ProfileData } from "~types";
 import { I18nService } from "./I18nService";
 
 export class ExportService {

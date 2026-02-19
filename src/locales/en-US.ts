@@ -245,23 +245,26 @@ export const enUS: LocaleDict = {
 // DeepProfile Current Version Changelog
 export const enUSChangelog = `# DeepProfile Current Version Changelog
 
-## Current Version: v0.9.0 (Beta) - Memory Optimization & Leak Fixes
+## Current Version: v1.0.0 (Stable) - Official Release
 
-### 🚀 Memory Optimization (v0.9.0)
-- **Memory Leak Fixes**: Fixed memory leaks caused by timers not being properly cleared in the background service
-- **Event Listener Management**: Improved registration and deregistration mechanisms for event listeners in content scripts to prevent duplicate bindings
-- **Cache Strategy Optimization**: Optimized cache cleanup mechanisms for history records, regularly cleaning up expired data
-- **Component Unmount Optimization**: Improved unmount logic for React components to ensure DOM nodes and event handlers are properly cleaned up
-- **Resource Management**: Added tracking for active timers to prevent timer accumulation
-- **Observability (Dev-only)**: Added error/behavior/performance/compliance telemetry with optional endpoint; production requires explicit consent
-- **Per-site Controls**: Added per-platform analysis button switches and Zhihu comment analysis toggle
-- **CI Quality Gates**: Added CI tests, coverage thresholds, lint/format checks, and build artifact packaging
-- **Theme Updates**: Added Future Daylight/Night themes and removed Neo Tech
+### 🎉 Official Release (v1.0.0)
+- **Release Milestone**: Moved from Beta to Stable with the 1.0.0 release
+- **Full Typecheck Stabilization**: Cleared full TypeScript errors and made \`typecheck\` pass end-to-end
+- **CI Gate Upgrade**: Upgraded CI from informational checks to enforced full typecheck
+- **Stability Improvements**: Preserved and reinforced memory, listener cleanup, and cache lifecycle reliability
+- **Multi-platform Readiness**: Zhihu / Reddit / Twitter(X) / Quora flows remain available and regression-verified
 
 `;
 
 // DeepProfile Version History
 export const enUSVersionHistory = `# DeepProfile Version History
+
+### Official Release (v1.0.0) - Quality Convergence & Stability Enhancements
+- ✅ **Release Milestone**: Moved from Beta to Stable with the 1.0.0 release
+- ✅ **Full Typecheck Stabilization**: Cleared full TypeScript errors and made \`typecheck\` pass end-to-end
+- ✅ **CI Gate Upgrade**: Upgraded CI from informational checks to enforced full typecheck
+- ✅ **Stability Improvements**: Preserved and reinforced memory, listener cleanup, and cache lifecycle reliability
+- ✅ **Multi-platform Readiness**: Zhihu / Reddit / Twitter(X) / Quora flows remain available and regression-verified
 
 ### Memory Optimization (v0.9.0) - Memory Management & Leak Fixes
 - ✅ **Memory Leak Fixes**: Fixed memory leaks caused by timers not being properly cleared in the background service

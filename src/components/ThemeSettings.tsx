@@ -614,7 +614,7 @@ const ThemeSettings: React.FC<ThemeSettingsProps> = ({ config, setConfig }) => {
                 color: editingTheme.colors.text,
               }}
             >
-              {I18nService.t("edit_theme")} - {editingTheme.name}
+              {I18nService.t("edit_theme" as any)} - {editingTheme.name}
             </h3>
 
             <div style={{ marginBottom: "16px" }}>
@@ -732,7 +732,7 @@ const ThemeSettings: React.FC<ThemeSettingsProps> = ({ config, setConfig }) => {
                         color: editingTheme.colors.textSecondary,
                       }}
                     >
-                      {I18nService.t(`color_${colorName}`) ||
+                      {I18nService.t(`color_${colorName}` as any) ||
                         colorName.charAt(0).toUpperCase() + colorName.slice(1)}
                     </label>
                     <div

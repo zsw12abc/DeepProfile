@@ -1,7 +1,7 @@
 {
   "name": "deep-profile",
   "displayName": "DeepProfile",
-  "version": "0.9.0",
+  "version": "1.0.0",
   "description": "A Chrome extension to analyze social media user profiles using AI.",
   "author": "DeepProfile Team",
   "license": "SEE LICENSE IN LICENSE",
@@ -9,6 +9,8 @@
     "dev": "plasmo dev",
     "build": "plasmo build",
     "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "typecheck:core": "tsc --noEmit -p tsconfig.typecheck-core.json",
     "test:ui": "vitest --ui",
     "test:unit": "vitest run --exclude '**/LLMService.test.{ts,tsx}'",
     "test:coverage": "vitest run --coverage",
@@ -61,8 +63,7 @@
       "https://www.quora.com/*"
     ],
     "permissions": [
-      "storage",
-      "cookies"
+      "storage"
     ]
   }
 }

@@ -17,7 +17,7 @@ vi.mock("~services/TopicService", () => ({
 
 // Mock LabelUtils
 vi.mock("~services/LabelUtils", async (importOriginal) => {
-  const actual = await importOriginal();
+  const actual = await importOriginal<typeof import("~services/LabelUtils")>();
   return {
     ...actual,
     calculateFinalLabel: (label: string, score: number) => ({
@@ -61,6 +61,8 @@ const mockHistoryRecords: UserHistoryRecord[] = [
           ],
         },
         timestamp: Date.now(),
+        model: "gpt-4",
+        context: "test context",
       },
     },
     userInfo: {

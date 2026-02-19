@@ -7,7 +7,7 @@ import { ExportService } from "./services/ExportService";
 import {
   DEFAULT_CONFIG,
   type AIProvider,
-  type AppConfig,
+  type ExtendedAppConfig,
   type AnalysisMode,
   type SupportedPlatform,
   type UserHistoryRecord,
@@ -75,10 +75,10 @@ const getVersion = (): string => {
       const manifest = chrome.runtime.getManifest();
       return manifest.version;
     } catch (e) {
-      return "0.6.3"; // Fallback
+      return "1.0.0"; // Fallback
     }
   } else {
-    return "0.6.3"; // Fallback
+    return "1.0.0"; // Fallback
   }
 };
 
@@ -97,12 +97,14 @@ type PlatformId =
   | "general"
   | "zhihu"
   | "reddit"
+  | "twitter"
+  | "quora"
   | "debug"
   | "history"
   | "version";
 
 export default function Options() {
-  const [config, setConfig] = useState<AppConfig | null>(null);
+  const [config, setConfig] = useState<ExtendedAppConfig | null>(null);
   const [status, setStatus] = useState("");
   const [models, setModels] = useState<string[]>([]);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
@@ -596,7 +598,11 @@ export default function Options() {
 
   const showBaseUrlInput = shouldShowBaseUrlInput(config.selectedProvider);
 
-  const PLATFORMS = [
+  const PLATFORMS: Array<{
+    id: PlatformId;
+    name: string;
+    icon: React.ReactNode;
+  }> = [
     {
       id: "general",
       name: I18nService.t("settings_general"),
@@ -627,7 +633,7 @@ export default function Options() {
     },
   ];
 
-  const renderPlatformSettings = (platform: string) => {
+  const renderPlatformSettings = (platform: PlatformId) => {
     switch (platform) {
       case "general":
         return (
@@ -814,9 +820,7 @@ export default function Options() {
                 {PLATFORMS.map((platform) => (
                   <li key={platform.id} style={{ margin: "0 0 8px 0" }}>
                     <button
-                      onClick={() =>
-                        setActivePlatform(platform.id as PlatformId)
-                      }
+                      onClick={() => setActivePlatform(platform.id)}
                       style={{
                         display: "flex",
                         alignItems: "center",

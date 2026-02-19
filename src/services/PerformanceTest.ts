@@ -48,7 +48,8 @@ export class PerformanceTest {
         );
       }
     } catch (error) {
-      console.error(`    ${mode} 模式测试失败:`, error.message);
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`    ${mode} 模式测试失败:`, message);
     }
   }
 
@@ -97,7 +98,8 @@ export class PerformanceTest {
       const result = await LLMService.generateProfile(content, category);
       return result.durationMs || Date.now() - startTime;
     } catch (error) {
-      console.error(`${mode} 模式测试失败:`, error.message);
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`${mode} 模式测试失败:`, message);
       return -1; // 表示失败
     }
   }
