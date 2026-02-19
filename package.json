@@ -9,6 +9,7 @@
     "dev": "plasmo dev",
     "build": "plasmo build",
     "test": "vitest run",
+    "typecheck": "tsc --noEmit",
     "test:ui": "vitest --ui",
     "test:unit": "vitest run --exclude '**/LLMService.test.{ts,tsx}'",
     "test:coverage": "vitest run --coverage",

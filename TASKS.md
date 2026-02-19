@@ -41,6 +41,14 @@ Improve reliability, consistency, and maintainability with incremental, verifiab
 - Deliverable:
   - Add a short proposal in this file for future `typecheck` integration and phased TS debt cleanup.
 
+7. [x] P1 - Implement CI hardening Phase A (informational typecheck)
+- Files:
+  - `package.json`
+  - `.github/workflows/ci.yml`
+- Acceptance:
+  - `npm run typecheck` script exists.
+  - CI runs typecheck with `continue-on-error: true` (non-blocking).
+
 ## Execution Order
 - Start with #2, #3, #4, then #5.
 - Keep #6 as a proposal-only item in this pass.
@@ -56,3 +64,7 @@ Improve reliability, consistency, and maintainability with incremental, verifiab
 - 2026-02-19: Completed tasks #2, #3, #4 with code changes.
 - 2026-02-19: Completed validation (#5): `npm test` passed, `npm run build` passed.
 - 2026-02-19: Added phased CI hardening proposal (#6).
+- 2026-02-19: Implemented Phase A (#7): added `typecheck` script and non-blocking CI step.
+- 2026-02-19: Local validation for #7:
+  - `npm run typecheck` reports existing TS debt (expected in informational phase).
+  - `npm run build` passed.
