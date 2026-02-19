@@ -7,7 +7,7 @@ import { ExportService } from "./services/ExportService";
 import {
   DEFAULT_CONFIG,
   type AIProvider,
-  type AppConfig,
+  type ExtendedAppConfig,
   type AnalysisMode,
   type SupportedPlatform,
   type UserHistoryRecord,
@@ -104,7 +104,7 @@ type PlatformId =
   | "version";
 
 export default function Options() {
-  const [config, setConfig] = useState<AppConfig | null>(null);
+  const [config, setConfig] = useState<ExtendedAppConfig | null>(null);
   const [status, setStatus] = useState("");
   const [models, setModels] = useState<string[]>([]);
   const [isLoadingModels, setIsLoadingModels] = useState(false);

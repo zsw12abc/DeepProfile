@@ -11,7 +11,6 @@ import {
   type ProfileData,
   type SupportedPlatform,
 } from "~types";
-import icon from "data-base64:../assets/icon.png";
 import html2canvas from "html2canvas";
 import MarkdownRenderer from "~components/MarkdownRenderer";
 
@@ -181,7 +180,7 @@ export const HistorySection: React.FC<HistorySectionProps> = ({
                     }}
                   >
                     {userRecord.userInfo?.name ||
-                      Object.values(userRecord.profiles)[0]?.profileData
+                      Object.values(userRecord.profiles || {})[0]?.profileData
                         .nickname ||
                       userRecord.userId}
                   </span>
@@ -231,7 +230,7 @@ export const HistorySection: React.FC<HistorySectionProps> = ({
                   gap: "8px",
                 }}
               >
-                {Object.values(userRecord.profiles).map((profile) => {
+                {Object.values(userRecord.profiles || {}).map((profile) => {
                   const date = new Date(profile.timestamp);
                   const timeStr = date.toLocaleString("zh-CN", {
                     month: "numeric",

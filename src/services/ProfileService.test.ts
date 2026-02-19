@@ -170,9 +170,7 @@ describe("ProfileService", () => {
         totalRelevant: 0,
         platform: "zhihu" as SupportedPlatform,
       };
-      (
-        ZhihuClient.fetchUserContent as vi.MockedFunction<any>
-      ).mockResolvedValue(mockContent);
+      (ZhihuClient.fetchUserContent as any).mockResolvedValue(mockContent);
 
       const result = await ProfileService.fetchUserContent(
         "zhihu",
@@ -195,9 +193,7 @@ describe("ProfileService", () => {
         totalRelevant: 0,
         platform: "reddit" as SupportedPlatform,
       };
-      (
-        RedditClient.fetchUserContent as vi.MockedFunction<any>
-      ).mockResolvedValue(mockContent);
+      (RedditClient.fetchUserContent as any).mockResolvedValue(mockContent);
 
       const result = await ProfileService.fetchUserContent(
         "reddit",
@@ -220,9 +216,7 @@ describe("ProfileService", () => {
         totalRelevant: 0,
         platform: "twitter" as SupportedPlatform,
       };
-      (
-        TwitterClient.fetchUserContent as vi.MockedFunction<any>
-      ).mockResolvedValue(mockContent);
+      (TwitterClient.fetchUserContent as any).mockResolvedValue(mockContent);
 
       const result = await ProfileService.fetchUserContent(
         "twitter",
@@ -245,9 +239,7 @@ describe("ProfileService", () => {
         totalRelevant: 0,
         platform: "quora" as SupportedPlatform,
       };
-      (
-        QuoraClient.fetchUserContent as vi.MockedFunction<any>
-      ).mockResolvedValue(mockContent);
+      (QuoraClient.fetchUserContent as any).mockResolvedValue(mockContent);
 
       const result = await ProfileService.fetchUserContent(
         "quora",
@@ -282,9 +274,7 @@ describe("ProfileService", () => {
         avatar_url: "",
         url_token: "test-user",
       };
-      (
-        ZhihuClient.fetchUserProfile as vi.MockedFunction<any>
-      ).mockResolvedValue(mockProfile);
+      (ZhihuClient.fetchUserProfile as any).mockResolvedValue(mockProfile);
 
       const result = await ProfileService.fetchUserProfile(
         "zhihu",
@@ -302,9 +292,7 @@ describe("ProfileService", () => {
         avatar_url: "",
         url_token: "test-user",
       };
-      (
-        RedditClient.fetchUserProfile as vi.MockedFunction<any>
-      ).mockResolvedValue(mockProfile);
+      (RedditClient.fetchUserProfile as any).mockResolvedValue(mockProfile);
 
       const result = await ProfileService.fetchUserProfile(
         "reddit",
@@ -322,9 +310,7 @@ describe("ProfileService", () => {
         avatar_url: "",
         url_token: "test-user",
       };
-      (
-        TwitterClient.fetchUserProfile as vi.MockedFunction<any>
-      ).mockResolvedValue(mockProfile);
+      (TwitterClient.fetchUserProfile as any).mockResolvedValue(mockProfile);
 
       const result = await ProfileService.fetchUserProfile(
         "twitter",
@@ -342,9 +328,7 @@ describe("ProfileService", () => {
         avatar_url: "",
         url_token: "test-user",
       };
-      (
-        QuoraClient.fetchUserProfile as vi.MockedFunction<any>
-      ).mockResolvedValue(mockProfile);
+      (QuoraClient.fetchUserProfile as any).mockResolvedValue(mockProfile);
 
       const result = await ProfileService.fetchUserProfile(
         "quora",
@@ -396,7 +380,7 @@ describe("ProfileService", () => {
 
       const result = ProfileService.cleanContentData(
         "zhihu",
-        mockItems,
+        mockItems as any,
         mockProfile,
       );
 
@@ -441,7 +425,7 @@ describe("ProfileService", () => {
 
       const result = ProfileService.cleanContentData(
         "reddit",
-        mockItems,
+        mockItems as any,
         mockProfile,
       );
 
@@ -486,7 +470,7 @@ describe("ProfileService", () => {
 
       const result = ProfileService.cleanContentData(
         "twitter",
-        mockItems,
+        mockItems as any,
         mockProfile,
       );
 
@@ -527,7 +511,7 @@ describe("ProfileService", () => {
 
       const result = ProfileService.cleanContentData(
         "quora",
-        mockItems,
+        mockItems as any,
         mockProfile,
       );
 

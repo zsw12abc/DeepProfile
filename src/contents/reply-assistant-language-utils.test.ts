@@ -62,7 +62,7 @@ describe("reply-assistant-language-utils", () => {
 
     expect(reply).toBe("respuesta");
     expect(sendMessageMock).toHaveBeenCalledTimes(1);
-    const payload = sendMessageMock.mock.calls[0][0];
+    const payload = sendMessageMock.mock.calls[0][0] as any;
     expect(payload.type).toBe("GENERATE_REPLY");
     expect(payload.preferredLanguage).toBe("es");
     expect(payload.preferredLanguageName).toBe("Spanish");

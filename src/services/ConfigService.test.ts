@@ -18,8 +18,16 @@ global.chrome = {
   },
 } as any;
 
+type DeepPartial<T> = {
+  [K in keyof T]?: T[K] extends Array<infer U>
+    ? Array<DeepPartial<U>>
+    : T[K] extends object
+      ? DeepPartial<T[K]>
+      : T[K];
+};
+
 const buildConfig = (
-  overrides: Partial<ExtendedAppConfig>,
+  overrides: DeepPartial<ExtendedAppConfig>,
 ): ExtendedAppConfig => {
   const mergedPlatformConfigs: ExtendedAppConfig["platformConfigs"] = {
     ...DEFAULT_CONFIG.platformConfigs,
@@ -39,15 +47,18 @@ const buildConfig = (
   return {
     ...DEFAULT_CONFIG,
     ...overrides,
-    apiKeys: { ...DEFAULT_CONFIG.apiKeys, ...(overrides.apiKeys || {}) },
+    apiKeys: {
+      ...DEFAULT_CONFIG.apiKeys,
+      ...(overrides.apiKeys || {}),
+    } as Record<string, string>,
     customBaseUrls: {
       ...DEFAULT_CONFIG.customBaseUrls,
       ...(overrides.customBaseUrls || {}),
-    },
+    } as Record<string, string>,
     customModelNames: {
       ...DEFAULT_CONFIG.customModelNames,
       ...(overrides.customModelNames || {}),
-    },
+    } as Record<string, string>,
     observability: {
       ...DEFAULT_CONFIG.observability,
       ...(overrides.observability || {}),
@@ -61,7 +72,10 @@ const buildConfig = (
       ...(overrides.platformAnalysisModes || {}),
     },
     platformConfigs: mergedPlatformConfigs,
-    themes: { ...DEFAULT_CONFIG.themes, ...(overrides.themes || {}) },
+    themes: {
+      ...DEFAULT_CONFIG.themes,
+      ...(overrides.themes || {}),
+    } as ExtendedAppConfig["themes"],
   };
 };
 

@@ -34,8 +34,7 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Typecheck (informational)
-        continue-on-error: true
+      - name: Typecheck (full, enforced)
         run: npm run typecheck
 
       - name: Typecheck Core (enforced)

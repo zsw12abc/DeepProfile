@@ -59,6 +59,14 @@ Improve reliability, consistency, and maintainability with incremental, verifiab
   - `npm run typecheck:core` passes locally.
   - CI enforces `typecheck:core` for `src/services/**` + `src/background/**`.
 
+9. [x] P1 - Implement CI hardening Phase C (full enforced typecheck)
+- Files:
+  - `.github/workflows/ci.yml`
+  - `src/**/*` (type debt cleanup)
+- Acceptance:
+  - `npm run typecheck` passes locally.
+  - CI enforces full `npm run typecheck` (no `continue-on-error`).
+
 ## Execution Order
 - Start with #2, #3, #4, then #5.
 - Keep #6 as a proposal-only item in this pass.
@@ -84,5 +92,12 @@ Improve reliability, consistency, and maintainability with incremental, verifiab
   - Added enforced CI step `npm run typecheck:core`.
 - 2026-02-19: Local validation for #8:
   - `npm run typecheck:core` passed.
+  - `npm test` passed.
+  - `npm run build` passed.
+- 2026-02-19: Implemented Phase C (#9):
+  - Cleared remaining full typecheck errors across source and tests.
+  - Switched CI full typecheck to enforced mode.
+- 2026-02-19: Local validation for #9:
+  - `npm run typecheck` passed.
   - `npm test` passed.
   - `npm run build` passed.

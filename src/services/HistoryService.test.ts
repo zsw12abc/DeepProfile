@@ -158,7 +158,7 @@ describe("HistoryService", () => {
         "tech",
       );
 
-      expect(result).toEqual(record.profiles.tech);
+      expect(result).toEqual(record.profiles?.tech);
     });
 
     it("should return null for non-existent user", async () => {

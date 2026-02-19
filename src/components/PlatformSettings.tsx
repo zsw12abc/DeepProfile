@@ -27,7 +27,7 @@ interface GeneralSettingsProps {
   testResult: { success: boolean; message: string } | null;
   handleTestConnection: () => void;
   renderModelSelector: () => React.ReactNode;
-  handleSave: () => void;
+  handleSave?: () => void;
 }
 
 export const GeneralSettings: React.FC<GeneralSettingsProps> = ({
@@ -37,7 +37,7 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({
   testResult,
   handleTestConnection,
   renderModelSelector,
-  handleSave,
+  handleSave = () => {},
 }) => {
   const showBaseUrlInput =
     config.selectedProvider === "ollama" ||

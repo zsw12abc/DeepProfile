@@ -4,13 +4,12 @@ import { createRoot, type Root } from "react-dom/client";
 import { ProfileCard } from "../components/ProfileCard";
 import { ConfigService } from "../services/ConfigService";
 import { I18nService } from "../services/I18nService";
+import type { ZhihuContent, UserProfile } from "../services/ZhihuClient";
 import type {
-  ZhihuContent,
-  UserProfile,
-  UserHistoryRecord,
+  AnalysisProgress,
+  ProfileData,
   SupportedPlatform,
-} from "../services/ZhihuClient";
-import type { AnalysisProgress, ProfileData } from "../types";
+} from "../types";
 import { DEFAULT_CONFIG } from "../types";
 import { createInjectionScheduler } from "./injection-utils";
 
@@ -450,11 +449,10 @@ const TwitterOverlay = () => {
         )
           return;
 
+        const avatarImg = link.querySelector("img");
         if (
-          link.querySelector("img") &&
-          link
-            .querySelector("img")
-            .closest('img[alt*="avatar"], img[alt*="photo"]')
+          avatarImg &&
+          avatarImg.closest('img[alt*="avatar"], img[alt*="photo"]')
         )
           return;
         if (!link.textContent?.trim()) return;

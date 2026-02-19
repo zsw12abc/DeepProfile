@@ -100,10 +100,11 @@ describe("LLMService Integration", () => {
         validBalancedOutput,
         "balanced",
       );
+      const typedResult = result as any;
       expect(result.nickname).toBe("Test User");
-      expect(result.reasoning).toBe("Step-by-step analysis");
-      expect(result.evidence).toHaveLength(1);
-      expect(result.evidence[0].quote).toBe("Sample quote");
+      expect(typedResult.reasoning).toBe("Step-by-step analysis");
+      expect(typedResult.evidence).toHaveLength(1);
+      expect(typedResult.evidence[0].quote).toBe("Sample quote");
     });
 
     it("should reject invalid score values", async () => {
