@@ -279,9 +279,7 @@ describe("ConsistencyService", () => {
 
       const result = ConsistencyService.resolveSummaryConflicts(profile);
       expect(result.summary).toContain("Summary alignment notice");
-      expect((result.summary || "").toLowerCase()).not.toContain(
-        "libertarian",
-      );
+      expect((result.summary || "").toLowerCase()).not.toContain("libertarian");
     });
   });
 });

@@ -820,9 +820,7 @@ export default function Options() {
                 {PLATFORMS.map((platform) => (
                   <li key={platform.id} style={{ margin: "0 0 8px 0" }}>
                     <button
-                      onClick={() =>
-                        setActivePlatform(platform.id)
-                      }
+                      onClick={() => setActivePlatform(platform.id)}
                       style={{
                         display: "flex",
                         alignItems: "center",
