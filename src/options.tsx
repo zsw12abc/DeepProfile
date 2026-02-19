@@ -75,10 +75,10 @@ const getVersion = (): string => {
       const manifest = chrome.runtime.getManifest();
       return manifest.version;
     } catch (e) {
-      return "0.6.3"; // Fallback
+      return "1.0.0"; // Fallback
     }
   } else {
-    return "0.6.3"; // Fallback
+    return "1.0.0"; // Fallback
   }
 };
 
