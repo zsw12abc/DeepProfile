@@ -63,8 +63,7 @@
       "https://www.quora.com/*"
     ],
     "permissions": [
-      "storage",
-      "cookies"
+      "storage"
     ]
   }
 }

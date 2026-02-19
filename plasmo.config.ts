@@ -18,9 +18,6 @@ export default defineConfig({
       "https://oauth.reddit.com/*",
       "https://api.reddit.com/*"
     ],
-    permissions: [
-      "storage",
-      "cookies"
-    ]
+    permissions: ["storage"]
   }
 })

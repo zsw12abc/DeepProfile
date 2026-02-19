@@ -67,6 +67,41 @@ Improve reliability, consistency, and maintainability with incremental, verifiab
   - `npm run typecheck` passes locally.
   - CI enforces full `npm run typecheck` (no `continue-on-error`).
 
+10. [x] P0 - Chrome Web Store readiness checklist and execution
+- Files:
+  - `TASKS.md`
+- Acceptance:
+  - Add a focused, verifiable release checklist for CWS submission.
+  - Track completion status item-by-item in this file.
+
+11. [x] P0 - Minimize permissions for CWS review
+- Files:
+  - `plasmo.config.ts`
+  - `package.json`
+- Acceptance:
+  - Remove `cookies` permission if not used by runtime code.
+  - Build output permissions include only necessary entries.
+
+12. [x] P0 - Align privacy policy with implemented behavior
+- Files:
+  - `PRIVACY_POLICY.md`
+- Acceptance:
+  - Policy reflects current supported platforms and optional telemetry behavior.
+  - Replace placeholder repository contact link with real project URL.
+
+13. [x] P0 - Align store description with actual product scope
+- Files:
+  - `STORE_DESCRIPTION.md`
+- Acceptance:
+  - Platform support list matches manifest/runtime behavior.
+  - Privacy wording does not conflict with optional observability settings.
+
+14. [x] P0 - Rebuild and verify release artifact consistency
+- Acceptance:
+  - `npm run build` passes.
+  - `build/chrome-mv3-prod/manifest.json` version equals `1.0.0`.
+  - Build manifest permissions match source configuration.
+
 ## Execution Order
 - Start with #2, #3, #4, then #5.
 - Keep #6 as a proposal-only item in this pass.
@@ -101,3 +136,12 @@ Improve reliability, consistency, and maintainability with incremental, verifiab
   - `npm run typecheck` passed.
   - `npm test` passed.
   - `npm run build` passed.
+- 2026-02-19: Started CWS release-readiness pass (#10-#14), including policy/doc/manifest consistency checks.
+- 2026-02-19: Completed #10 by adding explicit CWS release checklist and acceptance criteria.
+- 2026-02-19: Completed #11 by removing unused `cookies` permission from `plasmo.config.ts` and `package.json`.
+- 2026-02-19: Completed #12 by updating privacy policy effective date, supported platforms, optional telemetry disclosure, and repository contact URL.
+- 2026-02-19: Completed #13 by aligning store description platform list and privacy wording with current implementation.
+- 2026-02-19: Completed #14 validation:
+  - `npm run build` passed.
+  - `build/chrome-mv3-prod/manifest.json` now reports `version: 1.0.0`.
+  - build permissions now include only `storage`.
