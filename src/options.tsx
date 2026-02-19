@@ -97,6 +97,8 @@ type PlatformId =
   | "general"
   | "zhihu"
   | "reddit"
+  | "twitter"
+  | "quora"
   | "debug"
   | "history"
   | "version";
@@ -596,7 +598,11 @@ export default function Options() {
 
   const showBaseUrlInput = shouldShowBaseUrlInput(config.selectedProvider);
 
-  const PLATFORMS = [
+  const PLATFORMS: Array<{
+    id: PlatformId;
+    name: string;
+    icon: React.ReactNode;
+  }> = [
     {
       id: "general",
       name: I18nService.t("settings_general"),
@@ -627,7 +633,7 @@ export default function Options() {
     },
   ];
 
-  const renderPlatformSettings = (platform: string) => {
+  const renderPlatformSettings = (platform: PlatformId) => {
     switch (platform) {
       case "general":
         return (
@@ -815,7 +821,7 @@ export default function Options() {
                   <li key={platform.id} style={{ margin: "0 0 8px 0" }}>
                     <button
                       onClick={() =>
-                        setActivePlatform(platform.id as PlatformId)
+                        setActivePlatform(platform.id)
                       }
                       style={{
                         display: "flex",

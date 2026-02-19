@@ -121,6 +121,7 @@ export class HistoryService {
   static async getAllUserRecords(): Promise<UserHistoryRecord[]> {
     const result = await chrome.storage.local.get(STORAGE_KEY);
     const history = (result[STORAGE_KEY] as UserHistoryRecord[]) || [];
+    let profilesPruned = false;
 
     // Clean up expired records to optimize memory usage
     const cleanedHistory = history.filter((userRecord) => {
@@ -131,6 +132,7 @@ export class HistoryService {
       for (const category in userRecord.profiles) {
         if (now - userRecord.profiles[category].timestamp > CACHE_DURATION) {
           delete userRecord.profiles[category];
+          profilesPruned = true;
         }
       }
 
@@ -139,7 +141,7 @@ export class HistoryService {
     });
 
     // Only update storage if we cleaned up any records
-    if (cleanedHistory.length < history.length) {
+    if (cleanedHistory.length < history.length || profilesPruned) {
       await chrome.storage.local.set({ [STORAGE_KEY]: cleanedHistory });
     }
 
