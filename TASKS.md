@@ -102,6 +102,18 @@ Improve reliability, consistency, and maintainability with incremental, verifiab
   - `build/chrome-mv3-prod/manifest.json` version equals `1.0.0`.
   - Build manifest permissions match source configuration.
 
+15. [x] P0 - Prepare Chrome Web Store console submission checklist
+- Files:
+  - `docs/CWS_SUBMISSION_CHECKLIST.md`
+- Acceptance:
+  - Include step-by-step console actions and required fields.
+  - Include privacy disclosure guidance aligned with current code behavior.
+
+16. [x] P0 - Generate packaged upload artifact
+- Acceptance:
+  - Produce a zip package via Plasmo packaging command.
+  - Confirm output artifact path for direct CWS upload.
+
 ## Execution Order
 - Start with #2, #3, #4, then #5.
 - Keep #6 as a proposal-only item in this pass.
@@ -145,3 +157,6 @@ Improve reliability, consistency, and maintainability with incremental, verifiab
   - `npm run build` passed.
   - `build/chrome-mv3-prod/manifest.json` now reports `version: 1.0.0`.
   - build permissions now include only `storage`.
+- 2026-02-19: Started submission handoff tasks (#15-#16) for CWS console operations and upload artifact generation.
+- 2026-02-19: Completed #15 by adding `docs/CWS_SUBMISSION_CHECKLIST.md` with console field guidance and privacy disclosure checklist.
+- 2026-02-19: Completed #16 by running `npx plasmo package`; upload artifact generated at `build/chrome-mv3-prod.zip`.
