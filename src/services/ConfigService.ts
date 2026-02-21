@@ -74,7 +74,9 @@ export class ConfigService {
       const write = async () => {
         const normalizedConfig =
           this.sanitizeLegacyReplyAssistantSettings(config);
-        await chrome.storage.local.set({ [this.STORAGE_KEY]: normalizedConfig });
+        await chrome.storage.local.set({
+          [this.STORAGE_KEY]: normalizedConfig,
+        });
         this.cachedConfig = normalizedConfig;
       };
 
@@ -365,8 +367,7 @@ export class ConfigService {
     }
 
     if (currentVersion < 8) {
-      migrated =
-        this.sanitizeLegacyReplyAssistantSettings(migrated);
+      migrated = this.sanitizeLegacyReplyAssistantSettings(migrated);
     }
 
     return {
@@ -375,9 +376,9 @@ export class ConfigService {
     };
   }
 
-  private static sanitizeLegacyReplyAssistantSettings<T extends Record<string, any>>(
-    config: T,
-  ): T {
+  private static sanitizeLegacyReplyAssistantSettings<
+    T extends Record<string, any>,
+  >(config: T): T {
     const cloned = {
       ...config,
       platformConfigs: {

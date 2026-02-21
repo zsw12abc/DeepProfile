@@ -17,17 +17,11 @@ export class ReplyAssistantService {
   private static getToneGuidance(tone: string): string {
     const normalized = (tone || "").trim().toLowerCase();
 
-    if (
-      normalized === "巨魔风格 (troll)" ||
-      normalized === "troll"
-    ) {
+    if (normalized === "巨魔风格 (troll)" || normalized === "troll") {
       return "风格细则：使用强烈反讽和拆台语气制造冲突感，但禁止辱骂、歧视、威胁和人身攻击；只可反驳观点，不可攻击身份。";
     }
 
-    if (
-      normalized === "贴吧大神风格" ||
-      normalized === "forum meme lord"
-    ) {
+    if (normalized === "贴吧大神风格" || normalized === "forum meme lord") {
       return "风格细则：使用夸张比喻、黑话梗和自嘲式幽默，强调“会心一笑”；保持讨论相关性，不做恶意引战。";
     }
 
@@ -114,9 +108,7 @@ ${languageDetectionSource}
 `
       : "";
     const toneGuidance = this.getToneGuidance(tone);
-    const toneGuidanceBlock = toneGuidance
-      ? `\n8. ${toneGuidance}`
-      : "";
+    const toneGuidanceBlock = toneGuidance ? `\n8. ${toneGuidance}` : "";
 
     return `你是一个社交平台回复助手。请根据给定上下文，生成一段可以直接发布的回复文本。
 

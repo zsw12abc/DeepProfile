@@ -297,7 +297,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
             );
           })}
         </div>
-
       </div>
 
       {error && (
