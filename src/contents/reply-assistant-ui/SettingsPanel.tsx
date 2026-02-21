@@ -45,7 +45,6 @@ interface SettingsPanelProps {
   onAnalyzeLimitChange: (limit: number) => void;
   onToneChange: (tone: string) => void;
   onReplyLengthChange: (length: any) => void;
-  onAutoFillChange: (checked: boolean) => void;
   onCopy: () => void;
   onApply: () => void;
   platformSettingsControls?: React.ReactNode;
@@ -67,7 +66,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   onAnalyzeLimitChange,
   onToneChange,
   onReplyLengthChange,
-  onAutoFillChange,
   onCopy,
   onApply,
   platformSettingsControls,
@@ -300,23 +298,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
           })}
         </div>
 
-        <label
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            fontSize: 12,
-            color: themeState.text,
-            marginBottom: 10,
-          }}
-        >
-          <input
-            type="checkbox"
-            checked={settings.autoFill}
-            onChange={(e) => onAutoFillChange(e.target.checked)}
-          />
-          Auto-fill input
-        </label>
       </div>
 
       {error && (

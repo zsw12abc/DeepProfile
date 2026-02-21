@@ -391,7 +391,6 @@ const FloatingReplyAssistant = () => {
   const [enabled, setEnabled] = useState(true);
   const [settings, setSettings] = useState<ReplyAssistantSettings>({
     tone: "客观",
-    autoFill: false,
     replyLength: "medium",
   });
   const [siteSettings, setSiteSettings] = useState({
@@ -479,13 +478,11 @@ const FloatingReplyAssistant = () => {
       const assistantSettings = zhihuConfig.settings?.replyAssistant ||
         DEFAULT_CONFIG.platformConfigs.zhihu.settings?.replyAssistant || {
           tone: "客观",
-          autoFill: false,
           replyLength: "medium",
         };
 
       setSettings({
         tone: assistantSettings.tone || "客观",
-        autoFill: !!assistantSettings.autoFill,
         replyLength: assistantSettings.replyLength || "medium",
       });
 
@@ -664,10 +661,7 @@ const FloatingReplyAssistant = () => {
 
       const generated = response.data.reply.trim();
       setReply(generated);
-
-      if (settings.autoFill) {
-        setEditableText(context.targetInput, generated);
-      }
+      setEditableText(context.targetInput, generated);
     } catch (e: any) {
       setError(e?.message || "生成失败，请稍后重试。");
     } finally {
@@ -688,12 +682,6 @@ const FloatingReplyAssistant = () => {
 
   const onToneChange = async (tone: string) => {
     const next = { ...settings, tone };
-    setSettings(next);
-    await saveSettings(next);
-  };
-
-  const onAutoFillChange = async (checked: boolean) => {
-    const next = { ...settings, autoFill: checked };
     setSettings(next);
     await saveSettings(next);
   };
@@ -1121,7 +1109,6 @@ const FloatingReplyAssistant = () => {
           onAnalyzeLimitChange={onAnalyzeLimitChange}
           onToneChange={onToneChange}
           onReplyLengthChange={onReplyLengthChange}
-          onAutoFillChange={onAutoFillChange}
           onCopy={onCopy}
           onApply={onApply}
           platformSettingsControls={

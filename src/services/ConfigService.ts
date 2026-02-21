@@ -40,8 +40,17 @@ export class ConfigService {
           const storedConfig =
             (result[this.STORAGE_KEY] as Partial<ExtendedAppConfig>) || {};
           const mergedConfig = this.mergeConfig(storedConfig);
-          this.cachedConfig = mergedConfig;
-          return mergedConfig;
+          const normalizedConfig =
+            this.sanitizeLegacyReplyAssistantSettings(mergedConfig);
+          if (
+            JSON.stringify(normalizedConfig) !== JSON.stringify(mergedConfig)
+          ) {
+            await chrome.storage.local.set({
+              [this.STORAGE_KEY]: normalizedConfig,
+            });
+          }
+          this.cachedConfig = normalizedConfig;
+          return normalizedConfig;
         } finally {
           this.configPromise = null;
         }
@@ -63,8 +72,10 @@ export class ConfigService {
       }
 
       const write = async () => {
-        await chrome.storage.local.set({ [this.STORAGE_KEY]: config });
-        this.cachedConfig = config;
+        const normalizedConfig =
+          this.sanitizeLegacyReplyAssistantSettings(config);
+        await chrome.storage.local.set({ [this.STORAGE_KEY]: normalizedConfig });
+        this.cachedConfig = normalizedConfig;
       };
 
       currentWrite = this.pendingWrite
@@ -307,7 +318,6 @@ export class ConfigService {
     if (currentVersion < 7) {
       const defaultReplySettings = {
         tone: "客观",
-        autoFill: false,
         replyLength: "medium",
       };
 
@@ -354,9 +364,47 @@ export class ConfigService {
       };
     }
 
+    if (currentVersion < 8) {
+      migrated =
+        this.sanitizeLegacyReplyAssistantSettings(migrated);
+    }
+
     return {
       ...migrated,
       configVersion: CONFIG_VERSION,
     };
+  }
+
+  private static sanitizeLegacyReplyAssistantSettings<T extends Record<string, any>>(
+    config: T,
+  ): T {
+    const cloned = {
+      ...config,
+      platformConfigs: {
+        ...(config.platformConfigs || {}),
+      },
+    } as T;
+
+    for (const platform of ["zhihu", "reddit", "twitter", "quora"]) {
+      const pConfig = (cloned.platformConfigs as Record<string, any>)[platform];
+      if (!pConfig || typeof pConfig !== "object") continue;
+      const settings = pConfig.settings;
+      if (!settings || typeof settings !== "object") continue;
+      const replyAssistant = settings.replyAssistant;
+      if (!replyAssistant || typeof replyAssistant !== "object") continue;
+
+      if ("autoFill" in replyAssistant) {
+        const { autoFill: _removed, ...rest } = replyAssistant;
+        (cloned.platformConfigs as Record<string, any>)[platform] = {
+          ...pConfig,
+          settings: {
+            ...settings,
+            replyAssistant: rest,
+          },
+        };
+      }
+    }
+
+    return cloned;
   }
 }
