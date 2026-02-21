@@ -57,6 +57,10 @@ const toneOptions = [
   "Friendly",
   "Witty",
   "Concise",
+  "Troll",
+  "Forum Meme Lord",
+  "Classic Public Intellectual",
+  "Deconstructive Parody",
 ];
 const replyLengthOptions = [
   { value: "short", label: "Short" },

@@ -2,7 +2,18 @@ import React from "react";
 import { AnalysisMode, ReplyAssistantSettings } from "~types";
 import { colorWithAlpha } from "./utils";
 
-const toneOptions = ["客观", "讽刺", "学术", "友好", "犀利", "简洁"];
+const toneOptions = [
+  "客观",
+  "讽刺",
+  "学术",
+  "友好",
+  "犀利",
+  "简洁",
+  "巨魔风格 (Troll)",
+  "贴吧大神风格",
+  "古早公知风格",
+  "当代衍生变体",
+];
 const replyLengthOptions = [
   { value: "short", label: "简略" },
   { value: "medium", label: "标准" },
