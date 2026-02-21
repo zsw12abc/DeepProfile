@@ -2,7 +2,18 @@ import React from "react";
 import { AnalysisMode, ReplyAssistantSettings } from "~types";
 import { colorWithAlpha } from "./utils";
 
-const toneOptions = ["客观", "讽刺", "学术", "友好", "犀利", "简洁"];
+const toneOptions = [
+  "客观",
+  "讽刺",
+  "学术",
+  "友好",
+  "犀利",
+  "简洁",
+  "巨魔风格 (Troll)",
+  "贴吧大神风格",
+  "古早公知风格",
+  "当代衍生变体",
+];
 const replyLengthOptions = [
   { value: "short", label: "简略" },
   { value: "medium", label: "标准" },
@@ -34,7 +45,6 @@ interface SettingsPanelProps {
   onAnalyzeLimitChange: (limit: number) => void;
   onToneChange: (tone: string) => void;
   onReplyLengthChange: (length: any) => void;
-  onAutoFillChange: (checked: boolean) => void;
   onCopy: () => void;
   onApply: () => void;
   platformSettingsControls?: React.ReactNode;
@@ -56,7 +66,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   onAnalyzeLimitChange,
   onToneChange,
   onReplyLengthChange,
-  onAutoFillChange,
   onCopy,
   onApply,
   platformSettingsControls,
@@ -288,24 +297,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
             );
           })}
         </div>
-
-        <label
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            fontSize: 12,
-            color: themeState.text,
-            marginBottom: 10,
-          }}
-        >
-          <input
-            type="checkbox"
-            checked={settings.autoFill}
-            onChange={(e) => onAutoFillChange(e.target.checked)}
-          />
-          Auto-fill input
-        </label>
       </div>
 
       {error && (

@@ -99,7 +99,7 @@ describe("VersionInfo", () => {
       } as any;
 
       const version = getVersion();
-      expect(version).toBe("0.6.2"); // This should be the fallback
+      expect(version).toBe("1.0.1"); // This should be the fallback
 
       // Restore original runtime
       global.chrome.runtime = originalRuntime;

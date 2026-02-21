@@ -245,7 +245,14 @@ export const enUS: LocaleDict = {
 // DeepProfile Current Version Changelog
 export const enUSChangelog = `# DeepProfile Current Version Changelog
 
-## Current Version: v1.0.0 (Stable) - Official Release
+## Current Version: v1.0.1 (Stable) - Patch Update
+
+### 🚀 Patch Update (v1.0.1)
+- **New AI Reply Styles**: Added 4 new style options: \`Troll\`, \`Forum Meme Lord\`, \`Classic Public Intellectual\`, \`Deconstructive Parody\`
+- **Multilingual Style Mapping**: New styles support both Chinese and English style-name mapping (for example, \`巨魔风格 (Troll)\` / \`Troll\`)
+- **Language Behavior Preserved**: Style changes do not override language policy; replies still follow context detection/preferred language
+- **Safety Guardrails Strengthened**: Added constraints for high-conflict styles to block harassment, slurs, threats, and personal attacks
+- **Test Coverage Added**: Added tests to verify style-guidance injection and safety constraints
 
 ### 🎉 Official Release (v1.0.0)
 - **Release Milestone**: Moved from Beta to Stable with the 1.0.0 release
@@ -258,6 +265,13 @@ export const enUSChangelog = `# DeepProfile Current Version Changelog
 
 // DeepProfile Version History
 export const enUSVersionHistory = `# DeepProfile Version History
+
+### Patch Update (v1.0.1) - AI Reply Style Expansion & Multilingual Mapping
+- ✅ **Added 4 Reply Styles**: \`Troll\`, \`Forum Meme Lord\`, \`Classic Public Intellectual\`, \`Deconstructive Parody\`
+- ✅ **Chinese/English Style Compatibility**: Added bilingual style-name mapping for cross-platform recognition
+- ✅ **Language Policy Stability**: Output language still follows context detection and preferred language settings
+- ✅ **High-risk Style Constraints**: Added explicit anti-harassment / anti-personal-attack restrictions
+- ✅ **Automation Coverage**: Added tests for style-specific prompt guidance and constraint injection
 
 ### Official Release (v1.0.0) - Quality Convergence & Stability Enhancements
 - ✅ **Release Milestone**: Moved from Beta to Stable with the 1.0.0 release

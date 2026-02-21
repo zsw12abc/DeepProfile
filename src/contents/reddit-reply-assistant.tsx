@@ -50,6 +50,10 @@ const toneOptions = [
   "Friendly",
   "Witty",
   "Concise",
+  "Troll",
+  "Forum Meme Lord",
+  "Classic Public Intellectual",
+  "Deconstructive Parody",
 ];
 const replyLengthOptions = [
   { value: "short", label: "Short" },
@@ -252,7 +256,6 @@ const FloatingReplyAssistant = () => {
   const [enabled, setEnabled] = useState(true);
   const [settings, setSettings] = useState<ReplyAssistantSettings>({
     tone: "Objective",
-    autoFill: false,
     replyLength: "medium",
   });
   const [siteSettings, setSiteSettings] = useState({
@@ -331,13 +334,11 @@ const FloatingReplyAssistant = () => {
       const redditConfig = config.platformConfigs.reddit;
       const assistantSettings = redditConfig.settings?.replyAssistant || {
         tone: "Objective",
-        autoFill: false,
         replyLength: "medium",
       };
 
       setSettings({
         tone: assistantSettings.tone || "Objective",
-        autoFill: !!assistantSettings.autoFill,
         replyLength: assistantSettings.replyLength || "medium",
       });
 
@@ -410,12 +411,6 @@ const FloatingReplyAssistant = () => {
 
   const onReplyLengthChange = async (length: any) => {
     const next = { ...settings, replyLength: length };
-    setSettings(next);
-    await saveSettings(next);
-  };
-
-  const onAutoFillChange = async (checked: boolean) => {
-    const next = { ...settings, autoFill: checked };
     setSettings(next);
     await saveSettings(next);
   };
@@ -790,7 +785,6 @@ const FloatingReplyAssistant = () => {
           onAnalyzeLimitChange={() => {}}
           onToneChange={onToneChange}
           onReplyLengthChange={onReplyLengthChange}
-          onAutoFillChange={onAutoFillChange}
           onCopy={onCopy}
           onApply={onApply}
           platformSettingsControls={

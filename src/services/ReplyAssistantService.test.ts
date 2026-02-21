@@ -77,4 +77,26 @@ describe("ReplyAssistantService", () => {
       "Rewrite the following reply in Chinese only",
     );
   });
+
+  it("adds constrained guidance for troll style", async () => {
+    const generateRawTextMock = vi
+      .spyOn(LLMService, "generateRawText")
+      .mockResolvedValue("mock reply");
+
+    await ReplyAssistantService.generateReply(
+      "巨魔风格 (Troll)",
+      {
+        targetUser: "Eve",
+        pageTitle: "Debate",
+        answerContent: "观点文本",
+        conversation: [{ author: "Eve", content: "A", isTarget: true }],
+      },
+      "medium",
+    );
+
+    const [prompt] = generateRawTextMock.mock.calls[0];
+    expect(prompt).toContain("风格细则");
+    expect(prompt).toContain("禁止辱骂");
+    expect(prompt).toContain("不可攻击身份");
+  });
 });

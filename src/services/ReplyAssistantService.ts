@@ -14,6 +14,34 @@ export interface ReplyGenerationContext {
 }
 
 export class ReplyAssistantService {
+  private static getToneGuidance(tone: string): string {
+    const normalized = (tone || "").trim().toLowerCase();
+
+    if (normalized === "巨魔风格 (troll)" || normalized === "troll") {
+      return "风格细则：使用强烈反讽和拆台语气制造冲突感，但禁止辱骂、歧视、威胁和人身攻击；只可反驳观点，不可攻击身份。";
+    }
+
+    if (normalized === "贴吧大神风格" || normalized === "forum meme lord") {
+      return "风格细则：使用夸张比喻、黑话梗和自嘲式幽默，强调“会心一笑”；保持讨论相关性，不做恶意引战。";
+    }
+
+    if (
+      normalized === "古早公知风格" ||
+      normalized === "classic public intellectual"
+    ) {
+      return "风格细则：采用批判反思和宏观论述语气，可进行制度与公共议题讨论；避免绝对化断言，给出可核验的推理链。";
+    }
+
+    if (
+      normalized === "当代衍生变体" ||
+      normalized === "deconstructive parody"
+    ) {
+      return "风格细则：以反串、模仿、解构方式表达观点，允许戏仿但不得捏造事实；避免指向具体个人的羞辱性表达。";
+    }
+
+    return "";
+  }
+
   static async generateReply(
     tone: string,
     context: ReplyGenerationContext,
@@ -79,6 +107,8 @@ export class ReplyAssistantService {
 ${languageDetectionSource}
 `
       : "";
+    const toneGuidance = this.getToneGuidance(tone);
+    const toneGuidanceBlock = toneGuidance ? `\n8. ${toneGuidance}` : "";
 
     return `你是一个社交平台回复助手。请根据给定上下文，生成一段可以直接发布的回复文本。
 
@@ -102,7 +132,7 @@ ${languageLine}
 4. 基于给定对话，不要虚构事实，不要引用未提供的信息。
 5. 长度要求：${lengthInstruction}
 6. 输出前自检语言：如果不是目标语言，请重写。
-7. 只输出回复正文，不要解释，不要加引号，不要 Markdown，不要前缀。`;
+7. 只输出回复正文，不要解释，不要加引号，不要 Markdown，不要前缀。${toneGuidanceBlock}`;
   }
 
   private static normalizeReply(raw: string): string {

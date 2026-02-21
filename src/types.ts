@@ -55,7 +55,6 @@ export interface PlatformConfig {
 
 export interface ReplyAssistantSettings {
   tone: string;
-  autoFill: boolean;
   replyLength: "short" | "medium" | "long";
 }
 
@@ -486,7 +485,7 @@ export const REDDIT_BLACK_THEME: ThemeConfig = {
   },
 };
 
-export const CONFIG_VERSION = 7;
+export const CONFIG_VERSION = 8;
 
 export const DEFAULT_CONFIG: ExtendedAppConfig = {
   configVersion: CONFIG_VERSION,
@@ -536,7 +535,6 @@ export const DEFAULT_CONFIG: ExtendedAppConfig = {
       settings: {
         replyAssistant: {
           tone: "客观",
-          autoFill: false,
           replyLength: "medium",
         } as ReplyAssistantSettings,
       },
@@ -551,7 +549,6 @@ export const DEFAULT_CONFIG: ExtendedAppConfig = {
       settings: {
         replyAssistant: {
           tone: "客观",
-          autoFill: false,
           replyLength: "medium",
         } as ReplyAssistantSettings,
       },
@@ -566,7 +563,6 @@ export const DEFAULT_CONFIG: ExtendedAppConfig = {
       settings: {
         replyAssistant: {
           tone: "客观",
-          autoFill: false,
           replyLength: "medium",
         } as ReplyAssistantSettings,
       },
@@ -581,7 +577,6 @@ export const DEFAULT_CONFIG: ExtendedAppConfig = {
       settings: {
         replyAssistant: {
           tone: "客观",
-          autoFill: false,
           replyLength: "medium",
         } as ReplyAssistantSettings,
       },
