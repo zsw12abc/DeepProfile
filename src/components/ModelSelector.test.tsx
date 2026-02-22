@@ -1,10 +1,8 @@
-﻿import React from "react";
+import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { ModelSelector } from "./ModelSelector";
-import { I18nService } from "../services/I18nService";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 
-// Mock I18nService
 vi.mock("../services/I18nService", () => ({
   I18nService: {
     t: (key: string) => {
@@ -42,6 +40,10 @@ describe("ModelSelector", () => {
     );
 
     expect(screen.getByText(/Loading.../)).toBeInTheDocument();
+    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+    expect(
+      screen.queryByPlaceholderText("手动输入模型名称 (如 gpt-4o)"),
+    ).not.toBeInTheDocument();
   });
 
   it("renders dropdown when models are available", () => {
@@ -60,7 +62,6 @@ describe("ModelSelector", () => {
     expect(select).toBeInTheDocument();
     expect(select).toHaveValue("gpt-4");
 
-    // Check options
     expect(screen.getByText("-- Select Model --")).toBeInTheDocument();
     expect(screen.getByText("gpt-3.5-turbo")).toBeInTheDocument();
     expect(screen.getByText("gpt-4")).toBeInTheDocument();
@@ -125,6 +126,53 @@ describe("ModelSelector", () => {
       customModelNames: {
         ...mockConfig.customModelNames,
         openai: "gpt-5",
+      },
+    });
+  });
+
+  it("falls back to empty value when provider has no saved model", () => {
+    const configWithoutProviderModel = {
+      selectedProvider: "gemini",
+      customModelNames: {
+        openai: "gpt-4",
+      },
+    };
+
+    render(
+      <ModelSelector
+        isLoadingModels={false}
+        models={["gemini-1.5-pro"]}
+        modelError={null}
+        config={configWithoutProviderModel}
+        setConfig={mockSetConfig}
+      />,
+    );
+
+    expect(screen.getByRole("combobox")).toHaveValue("");
+  });
+
+  it("handles missing customModelNames in config", () => {
+    const configWithoutCustomNames = {
+      selectedProvider: "openai",
+    };
+
+    render(
+      <ModelSelector
+        isLoadingModels={false}
+        models={[]}
+        modelError={null}
+        config={configWithoutCustomNames as any}
+        setConfig={mockSetConfig}
+      />,
+    );
+
+    const input = screen.getByPlaceholderText("手动输入模型名称 (如 gpt-4o)");
+    fireEvent.change(input, { target: { value: "gpt-4o-mini" } });
+
+    expect(mockSetConfig).toHaveBeenCalledWith({
+      ...configWithoutCustomNames,
+      customModelNames: {
+        openai: "gpt-4o-mini",
       },
     });
   });
