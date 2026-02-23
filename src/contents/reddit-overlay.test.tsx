@@ -1,9 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, waitFor } from "@testing-library/react";
 import { ConfigService } from "../services/ConfigService";
 
-// Mock I18nService
+const {
+  mockGetConfig,
+  mockSendMessage,
+  mockRuntimeAddListener,
+  mockRuntimeRemoveListener,
+  mockStorageAddListener,
+  mockStorageRemoveListener,
+} = vi.hoisted(() => ({
+  mockGetConfig: vi.fn(),
+  mockSendMessage: vi.fn(),
+  mockRuntimeAddListener: vi.fn(),
+  mockRuntimeRemoveListener: vi.fn(),
+  mockStorageAddListener: vi.fn(),
+  mockStorageRemoveListener: vi.fn(),
+}));
+
 vi.mock("../services/I18nService", () => ({
   I18nService: {
     t: (key: string) => key,
@@ -12,84 +27,111 @@ vi.mock("../services/I18nService", () => ({
   },
 }));
 
-// Mock ConfigService
 vi.mock("../services/ConfigService", () => ({
   ConfigService: {
-    getConfig: vi.fn().mockResolvedValue({ globalEnabled: true }),
+    getConfig: mockGetConfig,
   },
 }));
 
-// Mock ProfileCard component
 vi.mock("../components/ProfileCard", () => ({
   ProfileCard: () => <div data-testid="profile-card">Profile Card</div>,
 }));
 
-// Mock chrome runtime
-const mockSendMessage = vi.fn();
-const mockAddListener = vi.fn();
-const mockRemoveListener = vi.fn();
+vi.mock("./injection-utils", () => ({
+  createInjectionScheduler: ({ injectButtons }: { injectButtons: (root?: ParentNode) => void }) => ({
+    start: (root: ParentNode) => injectButtons(root),
+    stop: vi.fn(),
+    schedule: vi.fn(),
+  }),
+}));
 
 global.chrome = {
   runtime: {
     sendMessage: mockSendMessage,
     onMessage: {
-      addListener: mockAddListener,
-      removeListener: mockRemoveListener,
+      addListener: mockRuntimeAddListener,
+      removeListener: mockRuntimeRemoveListener,
     },
   },
   storage: {
     onChanged: {
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
+      addListener: mockStorageAddListener,
+      removeListener: mockStorageRemoveListener,
     },
   },
 } as any;
 
-// Import the component directly instead of dynamically
 import RedditOverlay from "./reddit-overlay";
 
 describe("RedditOverlay", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    document.body.innerHTML = "";
 
-    // Mock MutationObserver
-    global.MutationObserver = class {
-      constructor(callback: any) {
-        this.callback = callback;
-      }
-      callback: any;
-      observe() {}
-      disconnect() {}
-      takeRecords() {
-        return [];
-      }
-    } as any;
+    mockGetConfig.mockResolvedValue({
+      globalEnabled: true,
+      platformConfigs: {
+        reddit: {
+          analysisButtonEnabled: true,
+        },
+      },
+    });
+
+    document.body.innerHTML = `
+      <div>
+        <a href="https://www.reddit.com/user/testuser">testuser</a>
+      </div>
+    `;
   });
 
   it("should be defined", () => {
     expect(RedditOverlay).toBeDefined();
   });
 
-  it("should render without crashing", () => {
-    render(<RedditOverlay />);
+  it("should read config and register listeners", async () => {
+    const { unmount } = render(<RedditOverlay />);
+
+    await waitFor(() => {
+      expect(ConfigService.getConfig).toHaveBeenCalled();
+      expect(mockRuntimeAddListener).toHaveBeenCalled();
+      expect(mockStorageAddListener).toHaveBeenCalled();
+    });
+
+    unmount();
+
+    expect(mockRuntimeRemoveListener).toHaveBeenCalled();
+    expect(mockStorageRemoveListener).toHaveBeenCalled();
   });
 
-  it("should inject buttons when enabled", async () => {
-    // Setup DOM with a Reddit user link
-    document.body.innerHTML = `
-      <div>
-        <a href="https://www.reddit.com/user/testuser">Test User</a>
-      </div>
-    `;
+  it("re-checks config when storage deep_profile_config changes", async () => {
+    render(<RedditOverlay />);
+
+    await waitFor(() => {
+      expect(ConfigService.getConfig).toHaveBeenCalledTimes(1);
+      expect(mockStorageAddListener).toHaveBeenCalledTimes(1);
+    });
+
+    const storageListener = mockStorageAddListener.mock.calls[0][0];
+    storageListener({ deep_profile_config: { newValue: {} } }, "local");
+
+    await waitFor(() => {
+      expect(ConfigService.getConfig).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it("does not inject button when feature is disabled", async () => {
+    mockGetConfig.mockResolvedValueOnce({
+      globalEnabled: false,
+      platformConfigs: {
+        reddit: {
+          analysisButtonEnabled: true,
+        },
+      },
+    });
 
     render(<RedditOverlay />);
 
-    // Wait for async effects
     await waitFor(() => {
-      // Check if button injection logic ran (this is tricky in JSDOM as MutationObserver behavior is mocked)
-      // But we can check if ConfigService was called
-      expect(ConfigService.getConfig).toHaveBeenCalled();
+      expect(document.querySelector(".deep-profile-btn")).toBeNull();
     });
   });
 });
