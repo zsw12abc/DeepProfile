@@ -1,4 +1,4 @@
-import { parseTweet } from "twitter-text";
+import twitterText from "twitter-text";
 import type { SupportedPlatform } from "~types";
 
 export type ReplyLengthCountMethod = "x_weighted" | "plain";
@@ -13,6 +13,14 @@ export interface ReplyLengthPolicyResult {
 }
 
 export class ReplyLengthPolicyService {
+  private static getParseTweet():
+    | ((text: string) => { weightedLength: number })
+    | null {
+    const candidate =
+      (twitterText as any)?.parseTweet || (twitterText as any)?.default?.parseTweet;
+    return typeof candidate === "function" ? candidate : null;
+  }
+
   static getPlatformLimit(
     platform: SupportedPlatform,
     _surface: "reply" | "post" | "quote" = "reply",
@@ -23,11 +31,15 @@ export class ReplyLengthPolicyService {
 
   static countForPlatform(
     text: string,
-  platform: SupportedPlatform,
+    platform: SupportedPlatform,
   ): { count: number; method: ReplyLengthCountMethod } {
     if (platform === "twitter") {
       try {
-        const parsed = parseTweet(text || "");
+        const parseTweetFn = this.getParseTweet();
+        if (!parseTweetFn) {
+          return { count: Array.from(text || "").length, method: "plain" };
+        }
+        const parsed = parseTweetFn(text || "");
         return { count: parsed.weightedLength, method: "x_weighted" };
       } catch {
         // Fallback to plain length if parser interop fails in specific runtimes.
