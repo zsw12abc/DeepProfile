@@ -128,7 +128,7 @@ export const enUS: LocaleDict = {
   error_extension_context:
     "Extension context invalidated. Please refresh the page to retry.",
   error_content_filter:
-    "Content Safety Review Failed: The input content was flagged by the AI provider as potentially inappropriate. Please try switching to a different model like DeepSeek or OpenAI.",
+    "Content Safety Review Failed: The system automatically retried with safety handling but the request is still blocked. Please try switching to DeepSeek/OpenAI, shortening context, or rewriting sensitive passages before retrying.",
   error_missing_api_key:
     "API Key is missing 🔑: Please set your API Key for the selected provider.",
 

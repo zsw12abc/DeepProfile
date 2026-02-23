@@ -20,6 +20,45 @@ import { LabelService } from "./LabelService";
 import { withRetry, withTimeout } from "./LLMRetry";
 import { Logger } from "./Logger";
 
+const CONTENT_SAFETY_ERROR_PATTERNS = [
+  "input data may contain inappropriate content",
+  "inappropriate content",
+  "data_inspection_failed",
+  "content policy",
+  "content moderation",
+  "safety filter",
+  "unsafe content",
+  "blocked by policy",
+  "policy violation",
+];
+const CONTENT_SAFETY_MAX_ATTEMPTS = 2;
+
+const getErrorText = (error: unknown): string => {
+  if (!error) return "";
+  if (typeof error === "string") return error;
+  if (error instanceof Error) return error.message || "";
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return String(error);
+  }
+};
+
+const isContentSafetyErrorLike = (error: unknown): boolean => {
+  const message = getErrorText(error).toLowerCase();
+  return CONTENT_SAFETY_ERROR_PATTERNS.some((pattern) =>
+    message.includes(pattern),
+  );
+};
+
+const createContentFilterError = (attempts: number): Error => {
+  const error = new Error(
+    `${I18nService.t("error_content_filter")} (auto-handled attempts: ${attempts})`,
+  );
+  (error as any).isContentFilter = true;
+  return error;
+};
+
 const isLocalBaseUrl = (baseUrl?: string): boolean => {
   if (!baseUrl) return false;
   try {
@@ -69,6 +108,9 @@ export interface LLMProvider {
 }
 
 export class LLMService {
+  private static readonly CONTENT_SAFETY_MAX_ATTEMPTS =
+    CONTENT_SAFETY_MAX_ATTEMPTS;
+
   // Public this method to get parser instructions
   public static getParserInstructions(mode: AnalysisMode): string {
     return getParserInstructions(mode);
@@ -106,10 +148,15 @@ export class LLMService {
     }
 
     const provider = this.getProviderInstance(config.selectedProvider, config);
-    return provider.generateProfile(
+    return this.executeWithSafetyFallback(
+      (inputText) =>
+        provider.generateProfile(
+          inputText,
+          config.analysisMode || "balanced",
+          category,
+        ),
       sanitizedText,
-      config.analysisMode || "balanced",
-      category,
+      "generateProfile",
     );
   }
 
@@ -134,20 +181,95 @@ export class LLMService {
       config.platformAnalysisModes?.[platform] ||
       config.analysisMode ||
       "balanced";
+    const sanitizedText = this.sanitizeInputText(text);
 
     if (config.enableDebug) {
       console.log(`【LANGCHAIN REQUEST】Platform: ${platform}, Mode: ${mode}`);
     }
 
     const provider = this.getProviderInstance(config.selectedProvider, config);
-    return provider.generateProfile(text, mode, category);
+    return this.executeWithSafetyFallback(
+      (inputText) => provider.generateProfile(inputText, mode, category),
+      sanitizedText,
+      "generateProfileForPlatform",
+    );
   }
 
   static async generateRawText(prompt: string): Promise<string> {
     const config = await ConfigService.getConfig();
     this.ensureProviderConfigured(config.selectedProvider, config);
     const provider = this.getProviderInstance(config.selectedProvider, config);
-    return provider.generateRawText(prompt);
+    return this.executeWithSafetyFallback(
+      (inputText) => provider.generateRawText(inputText),
+      prompt,
+      "generateRawText",
+    );
+  }
+
+  private static isContentSafetyError(error: unknown): boolean {
+    return isContentSafetyErrorLike(error);
+  }
+
+  private static buildContentFilterError(attempts: number): Error {
+    return createContentFilterError(attempts);
+  }
+
+  private static sanitizeForSafety(
+    text: string,
+    level: "light" | "strict",
+  ): string {
+    let sanitized = this.sanitizeInputText(text);
+
+    if (level === "strict") {
+      sanitized = sanitized
+        .replace(/\b(kill|murder|bomb|terror|rape|suicide)\b/gi, "[REDACTED]")
+        .replace(/(暴力|谋杀|炸弹|恐怖|强奸|自杀|屠杀)/g, "[REDACTED]")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      if (sanitized.length > 20000) {
+        sanitized = sanitized.substring(0, 20000);
+      }
+    }
+
+    return sanitized;
+  }
+
+  private static async executeWithSafetyFallback<T>(
+    operation: (inputText: string) => Promise<T>,
+    inputText: string,
+    operationName: string,
+    maxAttempts: number = LLMService.CONTENT_SAFETY_MAX_ATTEMPTS,
+  ): Promise<T> {
+    const attemptLimit = Math.max(
+      1,
+      Math.min(maxAttempts, LLMService.CONTENT_SAFETY_MAX_ATTEMPTS),
+    );
+    const inputs: string[] = [inputText];
+    if (attemptLimit >= 2) {
+      inputs.push(this.sanitizeForSafety(inputText, "light"));
+    }
+
+    let lastError: unknown;
+    for (let i = 0; i < inputs.length; i++) {
+      try {
+        return await operation(inputs[i]);
+      } catch (error) {
+        if (!this.isContentSafetyError(error)) {
+          throw error;
+        }
+        lastError = error;
+        Logger.warn(
+          `[ContentSafety] ${operationName} blocked by provider (attempt ${i + 1}/${inputs.length}).`,
+        );
+      }
+    }
+
+    Logger.error(
+      `[ContentSafety] ${operationName} failed after ${inputs.length} attempts.`,
+      lastError,
+    );
+    throw this.buildContentFilterError(inputs.length);
   }
 
   // Sanitize text to remove potentially problematic content
@@ -517,18 +639,8 @@ class LangChainProvider implements LLMProvider {
               error,
             );
 
-            if (
-              error.message &&
-              error.message.includes("400") &&
-              error.message.includes(
-                "Input data may contain inappropriate content",
-              )
-            ) {
-              const userFriendlyError = new Error(
-                I18nService.t("error_content_filter"),
-              );
-              (userFriendlyError as any).isContentFilter = true;
-              throw userFriendlyError;
+            if (isContentSafetyErrorLike(error)) {
+              throw createContentFilterError(CONTENT_SAFETY_MAX_ATTEMPTS);
             }
 
             if (attempt === 0 && this.shouldRetryOnError(error)) {
@@ -652,17 +764,12 @@ class LangChainProvider implements LLMProvider {
 
       Logger.error("LangChain API Error:", error);
       // 其他错误保持原有逻辑
-      if (
-        error.message &&
-        (error.message.includes("inappropriate content") ||
-          error.message.includes("data_inspection_failed"))
-      ) {
+      if (isContentSafetyErrorLike(error)) {
         const defaultResponse = {
           nickname: "",
           topic_classification: "Content Analysis",
           value_orientation: [],
-          summary:
-            "Content Safety Review Failed: The content may involve sensitive topics and was blocked by the AI provider. Please try switching to DeepSeek or OpenAI models.",
+          summary: I18nService.t("error_content_filter"),
           evidence: [],
         };
 
