@@ -10,6 +10,7 @@ export default defineConfig({
       "src/contents/zhihu-comments.test.tsx",
       "src/contents/zhihu-overlay.test.tsx",
       "src/contents/reddit-overlay.test.tsx",
+      "src/contents/test_reddit_overlay_context.test.tsx",
       "src/contents/twitter-overlay.test.tsx",
     ],
     alias: [
