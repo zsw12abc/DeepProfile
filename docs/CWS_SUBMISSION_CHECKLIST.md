@@ -51,11 +51,13 @@
 - [ ] 修复后提高 `version`（patch）并重新打包提交
 
 ## 9. 自动化发布（GitHub Actions）
+- [x] 已提供发布工作流：`.github/workflows/release.yml`
+- [x] 已提供自动化配置文档：`docs/CWS_AUTOMATION_SETUP.md`
 - [ ] 在仓库 Secrets 中配置以下变量：
   - [ ] `CWS_EXTENSION_ID`
   - [ ] `CWS_CLIENT_ID`
   - [ ] `CWS_CLIENT_SECRET`
   - [ ] `CWS_REFRESH_TOKEN`
-- [ ] 使用 `.github/workflows/release.yml` 自动发布：
+- [ ] 验证自动发布：
   - [ ] 创建并发布 GitHub Release（会自动构建、打包并发布到 CWS）
-  - [ ] 或手动触发 `Release Extension` workflow（可选择只上传不发布、或发布到 `trustedTesters`）
+  - [ ] 或手动触发 `Release Extension` workflow（可选择 `publish=false` 仅上传，或发布到 `trustedTesters`）

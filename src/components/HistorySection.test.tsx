@@ -1,10 +1,7 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { HistorySection } from "./HistorySection";
-import {
-  type UserHistoryRecord,
-  type SupportedPlatform,
-} from "~types";
+import { type UserHistoryRecord, type SupportedPlatform } from "~types";
 import { type MacroCategory } from "~services/TopicService";
 
 // Mock TopicService

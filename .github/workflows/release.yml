@@ -41,8 +41,6 @@ jobs:
 
       - name: Run release preflight checks
         run: npm run release:check
-        env:
-          NODE_ENV: production
 
       - name: Build Extension
         run: npm run build

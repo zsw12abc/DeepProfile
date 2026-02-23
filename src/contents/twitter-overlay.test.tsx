@@ -52,7 +52,11 @@ vi.mock("../components/ProfileCard", () => ({
 }));
 
 vi.mock("./injection-utils", () => ({
-  createInjectionScheduler: ({ injectButtons }: { injectButtons: (root?: ParentNode) => void }) => ({
+  createInjectionScheduler: ({
+    injectButtons,
+  }: {
+    injectButtons: (root?: ParentNode) => void;
+  }) => ({
     start: (root: ParentNode) => injectButtons(root),
     stop: vi.fn(),
     schedule: vi.fn(),
@@ -156,7 +160,11 @@ describe("TwitterOverlay", () => {
       if (message.type === "ANALYZE_PROFILE") {
         return {
           success: true,
-          data: { profile: { nickname: "testuser" }, items: [], userProfile: null },
+          data: {
+            profile: { nickname: "testuser" },
+            items: [],
+            userProfile: null,
+          },
         };
       }
       return { success: true };

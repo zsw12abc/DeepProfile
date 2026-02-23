@@ -1,7 +1,17 @@
 import React from "react";
-import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import ThemeSettings from "./ThemeSettings";
-import { ZHIHU_WHITE_THEME, type ExtendedAppConfig, type ThemeConfig } from "../types";
+import {
+  ZHIHU_WHITE_THEME,
+  type ExtendedAppConfig,
+  type ThemeConfig,
+} from "../types";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 
 const tMap: Record<string, string> = {
@@ -130,7 +140,10 @@ describe("ThemeSettings", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.stubGlobal("confirm", vi.fn(() => true));
+    vi.stubGlobal(
+      "confirm",
+      vi.fn(() => true),
+    );
 
     mockGetAllThemes.mockResolvedValue([ZHIHU_WHITE_THEME, customTheme]);
     mockGetCurrentTheme.mockReturnValue(ZHIHU_WHITE_THEME);
@@ -272,7 +285,10 @@ describe("ThemeSettings", () => {
   });
 
   it("does not delete custom theme when confirmation is canceled", async () => {
-    vi.stubGlobal("confirm", vi.fn(() => false));
+    vi.stubGlobal(
+      "confirm",
+      vi.fn(() => false),
+    );
     render(<ThemeSettings config={makeConfig()} setConfig={mockSetConfig} />);
 
     await screen.findByText("Ocean Blue");
@@ -286,7 +302,10 @@ describe("ThemeSettings", () => {
 
   it("falls back to default theme when deleting selected custom theme", async () => {
     render(
-      <ThemeSettings config={makeConfig("ocean-blue")} setConfig={mockSetConfig} />,
+      <ThemeSettings
+        config={makeConfig("ocean-blue")}
+        setConfig={mockSetConfig}
+      />,
     );
 
     await screen.findByText("Ocean Blue");
@@ -363,21 +382,31 @@ describe("ThemeSettings", () => {
 
   it("syncs selected theme indicator when config.themeId changes", async () => {
     const { rerender } = render(
-      <ThemeSettings config={makeConfig("zhihu-white")} setConfig={mockSetConfig} />,
+      <ThemeSettings
+        config={makeConfig("zhihu-white")}
+        setConfig={mockSetConfig}
+      />,
     );
 
     await screen.findByText("知乎浅色");
     const zhihuCard = screen.getByText("知乎浅色").closest("div");
     expect(zhihuCard).toBeTruthy();
-    expect(within(zhihuCard as HTMLElement).queryByText("✓")).toBeInTheDocument();
+    expect(
+      within(zhihuCard as HTMLElement).queryByText("✓"),
+    ).toBeInTheDocument();
 
     rerender(
-      <ThemeSettings config={makeConfig("ocean-blue")} setConfig={mockSetConfig} />,
+      <ThemeSettings
+        config={makeConfig("ocean-blue")}
+        setConfig={mockSetConfig}
+      />,
     );
 
     await screen.findByText("Ocean Blue");
     const oceanCard = screen.getByText("Ocean Blue").closest("div");
     expect(oceanCard).toBeTruthy();
-    expect(within(oceanCard as HTMLElement).queryByText("✓")).toBeInTheDocument();
+    expect(
+      within(oceanCard as HTMLElement).queryByText("✓"),
+    ).toBeInTheDocument();
   });
 });

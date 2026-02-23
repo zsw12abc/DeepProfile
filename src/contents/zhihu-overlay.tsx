@@ -5,10 +5,7 @@ import { ProfileCard } from "../components/ProfileCard";
 import { ConfigService } from "../services/ConfigService";
 import { I18nService } from "../services/I18nService";
 import type { ZhihuContent, UserProfile } from "../services/ZhihuClient";
-import type {
-  AnalysisProgress,
-  SupportedPlatform,
-} from "../types";
+import type { AnalysisProgress, SupportedPlatform } from "../types";
 import { DEFAULT_CONFIG } from "../types";
 import { createInjectionScheduler } from "./injection-utils";
 
