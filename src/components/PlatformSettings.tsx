@@ -2,6 +2,10 @@ import React from "react";
 import { Card, InputGroup } from "./UIComponents";
 import { DEFAULT_CONFIG, type AnalysisMode, type Language } from "~types";
 import { I18nService } from "~services/I18nService";
+import {
+  EN_TONE_OPTIONS,
+  ZH_TONE_OPTIONS,
+} from "../contents/reply-assistant-shared/tone-options";
 
 // 常量定义
 export const PROVIDERS: { value: any; label: string }[] = [
@@ -473,9 +477,37 @@ export const PlatformSpecificSettings: React.FC<
     );
 
   const platformConfig = config.platformConfigs?.[platform] || {};
+  const platformDefaults = DEFAULT_CONFIG.platformConfigs[platform];
+  const replyAssistantSettings = {
+    ...(platformDefaults.settings?.replyAssistant || {
+      tone: config.language === "zh-CN" ? "客观" : "Objective",
+      replyLength: "medium",
+    }),
+    ...(platformConfig.settings?.replyAssistant || {}),
+  };
+  const baseToneOptions: string[] =
+    config.language === "zh-CN"
+      ? [...ZH_TONE_OPTIONS]
+      : [...EN_TONE_OPTIONS];
+  const toneOptions = baseToneOptions.includes(replyAssistantSettings.tone)
+    ? baseToneOptions
+    : [replyAssistantSettings.tone, ...baseToneOptions];
+  const replyLengthOptions: Array<{
+    value: "short" | "medium" | "long";
+    label: string;
+  }> = [
+    { value: "short", label: I18nService.t("reply_length_short") },
+    { value: "medium", label: I18nService.t("reply_length_medium") },
+    { value: "long", label: I18nService.t("reply_length_long") },
+  ];
+
   const isPlatformButtonEnabled = platformConfig.analysisButtonEnabled ?? true;
   const zhihuConfig = config.platformConfigs?.zhihu || {};
   const isCommentAnalysisEnabled = zhihuConfig.commentAnalysisEnabled ?? true;
+  const isReplyAssistantEnabled =
+    platformConfig.replyAssistantEnabled ??
+    platformDefaults.replyAssistantEnabled ??
+    true;
 
   return (
     <Card title={platformName} icon={platformIcon}>
@@ -678,6 +710,199 @@ export const PlatformSpecificSettings: React.FC<
           </div>
         </div>
       )}
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          padding: "14px",
+          backgroundColor: isReplyAssistantEnabled
+            ? "var(--theme-success-bg, #f0fff4)"
+            : "var(--theme-error-bg, #fff5f5)",
+          borderRadius: "var(--theme-border-radius-medium, 10px)",
+          marginBottom: "20px",
+          border: `1px solid ${
+            isReplyAssistantEnabled
+              ? "var(--theme-success-border, #c6f6d5)"
+              : "var(--theme-error-border, #feb2b2)"
+          }`,
+        }}
+      >
+        <div style={{ flex: 1 }}>
+          <label
+            htmlFor={`reply-assistant-enabled-${platform}`}
+            style={{
+              fontWeight: "700",
+              cursor: "pointer",
+              fontSize: "15px",
+              color: isReplyAssistantEnabled
+                ? "var(--theme-success-text, #22543d)"
+                : "var(--theme-error-text, #742a2a)",
+              display: "block",
+            }}
+          >
+            {I18nService.t("reply_assistant_toggle")}
+          </label>
+          <div
+            style={{
+              fontSize: "12px",
+              color: isReplyAssistantEnabled
+                ? "var(--theme-success-text, #2f855a)"
+                : "var(--theme-error-text, #9b2c2c)",
+              marginTop: "4px",
+            }}
+          >
+            {I18nService.t("reply_assistant_toggle_desc")}
+          </div>
+        </div>
+        <div style={{ position: "relative", width: "46px", height: "28px" }}>
+          <input
+            type="checkbox"
+            id={`reply-assistant-enabled-${platform}`}
+            checked={isReplyAssistantEnabled}
+            onChange={(e) =>
+              setConfig({
+                ...config,
+                platformConfigs: {
+                  ...(config.platformConfigs || {}),
+                  [platform]: {
+                    ...platformConfig,
+                    replyAssistantEnabled: e.target.checked,
+                  },
+                },
+              })
+            }
+            style={{
+              opacity: 0,
+              width: 0,
+              height: 0,
+            }}
+          />
+          <label
+            htmlFor={`reply-assistant-enabled-${platform}`}
+            style={{
+              position: "absolute",
+              cursor: "pointer",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: isReplyAssistantEnabled
+                ? "var(--theme-success, #48bb78)"
+                : "var(--theme-border, #ccc)",
+              transition: ".4s",
+              borderRadius: "999px",
+            }}
+          >
+            <span
+              style={{
+                position: "absolute",
+                height: "20px",
+                width: "20px",
+                left: isReplyAssistantEnabled ? "22px" : "4px",
+                bottom: "4px",
+                backgroundColor: "var(--theme-surface, white)",
+                transition: ".4s",
+                borderRadius: "50%",
+              }}
+            ></span>
+          </label>
+        </div>
+      </div>
+
+      <InputGroup label={I18nService.t("reply_tone")}>
+        <div style={{ position: "relative" }}>
+          <select
+            value={replyAssistantSettings.tone}
+            onChange={(e) =>
+              setConfig({
+                ...config,
+                platformConfigs: {
+                  ...(config.platformConfigs || {}),
+                  [platform]: {
+                    ...platformConfig,
+                    settings: {
+                      ...(platformConfig.settings || {}),
+                      replyAssistant: {
+                        ...replyAssistantSettings,
+                        tone: e.target.value,
+                      },
+                    },
+                  },
+                },
+              })
+            }
+            style={{
+              padding: "12px",
+              width: "100%",
+              borderRadius: "var(--theme-border-radius-medium, 10px)",
+              border: "2px solid var(--theme-border, #e2e8f0)",
+              backgroundColor: "var(--theme-surface, #fff)",
+              color: "var(--theme-text, #4a5568)",
+              fontSize: "14px",
+              appearance: "none",
+            }}
+          >
+            {toneOptions.map((tone) => (
+              <option key={tone} value={tone}>
+                {tone}
+              </option>
+            ))}
+          </select>
+        </div>
+      </InputGroup>
+
+      <InputGroup label={I18nService.t("reply_length")}>
+        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+          {replyLengthOptions.map((item) => {
+            const active = replyAssistantSettings.replyLength === item.value;
+            return (
+              <button
+                key={item.value}
+                onClick={() =>
+                  setConfig({
+                    ...config,
+                    platformConfigs: {
+                      ...(config.platformConfigs || {}),
+                      [platform]: {
+                        ...platformConfig,
+                        settings: {
+                          ...(platformConfig.settings || {}),
+                          replyAssistant: {
+                            ...replyAssistantSettings,
+                            replyLength: item.value,
+                          },
+                        },
+                      },
+                    },
+                  })
+                }
+                style={{
+                  flex: "1",
+                  minWidth: "90px",
+                  padding: "10px",
+                  borderRadius: "var(--theme-border-radius-medium, 10px)",
+                  border: active
+                    ? "2px solid var(--theme-primary, #3498db)"
+                    : "2px solid var(--theme-border, #e2e8f0)",
+                  backgroundColor: active
+                    ? "var(--theme-primary, #e1f0fa)"
+                    : "var(--theme-surface, white)",
+                  color: active
+                    ? "var(--theme-primary-text, #ffffff)"
+                    : "var(--theme-text, #4a5568)",
+                  cursor: "pointer",
+                  fontWeight: active ? "700" : "600",
+                  fontSize: "14px",
+                  transition: "all 0.2s",
+                }}
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
+      </InputGroup>
 
       <InputGroup
         label={I18nService.t("analysis_mode")}
