@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import React from "react";
-import { render, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { ConfigService } from "../services/ConfigService";
 
 const {
@@ -21,7 +21,16 @@ const {
 
 vi.mock("../services/I18nService", () => ({
   I18nService: {
-    t: (key: string) => key,
+    t: (key: string) => {
+      const map: Record<string, string> = {
+        loading: "加载中",
+        analyzing: "分析中",
+        reanalyze: "重新分析",
+        error_network: "网络错误",
+        error_extension_context: "扩展上下文失效",
+      };
+      return map[key] || key;
+    },
     init: vi.fn(),
     getLanguage: () => "zh-CN",
   },
@@ -34,7 +43,12 @@ vi.mock("../services/ConfigService", () => ({
 }));
 
 vi.mock("../components/ProfileCard", () => ({
-  ProfileCard: () => <div data-testid="profile-card">Profile Card</div>,
+  ProfileCard: ({ isLoading, error }: any) => (
+    <div data-testid="profile-card">
+      <div>{isLoading ? "loading" : "idle"}</div>
+      {error ? <div>{error}</div> : null}
+    </div>
+  ),
 }));
 
 vi.mock("./injection-utils", () => ({
@@ -135,6 +149,78 @@ describe("TwitterOverlay", () => {
         }),
       );
     });
+  });
+
+  it("injects analysis button and sends analyze message on click", async () => {
+    mockSendMessage.mockImplementation(async (message: any) => {
+      if (message.type === "ANALYZE_PROFILE") {
+        return {
+          success: true,
+          data: { profile: { nickname: "testuser" }, items: [], userProfile: null },
+        };
+      }
+      return { success: true };
+    });
+
+    render(<TwitterOverlay />);
+
+    await waitFor(() => {
+      expect(document.querySelector(".deep-profile-btn")).toBeTruthy();
+    });
+
+    const btn = document.querySelector(".deep-profile-btn") as HTMLSpanElement;
+    fireEvent.click(btn);
+
+    await waitFor(() => {
+      expect(mockSendMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: "ANALYZE_PROFILE",
+          userId: "testuser",
+          platform: "twitter",
+          forceRefresh: false,
+        }),
+      );
+    });
+  });
+
+  it("shows network error when analyze request fails", async () => {
+    mockSendMessage.mockImplementation(async (message: any) => {
+      if (message.type === "ANALYZE_PROFILE") {
+        throw new Error("network down");
+      }
+      return { success: true };
+    });
+
+    render(<TwitterOverlay />);
+
+    await waitFor(() => {
+      expect(document.querySelector(".deep-profile-btn")).toBeTruthy();
+    });
+
+    const btn = document.querySelector(".deep-profile-btn") as HTMLSpanElement;
+    fireEvent.click(btn);
+
+    expect(await screen.findByText("网络错误")).toBeInTheDocument();
+  });
+
+  it("shows extension context error when context is invalidated", async () => {
+    mockSendMessage.mockImplementation(async (message: any) => {
+      if (message.type === "ANALYZE_PROFILE") {
+        throw new Error("Extension context invalidated");
+      }
+      return { success: true };
+    });
+
+    render(<TwitterOverlay />);
+
+    await waitFor(() => {
+      expect(document.querySelector(".deep-profile-btn")).toBeTruthy();
+    });
+
+    const btn = document.querySelector(".deep-profile-btn") as HTMLSpanElement;
+    fireEvent.click(btn);
+
+    expect(await screen.findByText("扩展上下文失效")).toBeInTheDocument();
   });
 
   it("does not inject button when feature is disabled", async () => {

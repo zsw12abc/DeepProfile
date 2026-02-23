@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import React from "react";
-import { render, waitFor } from "@testing-library/react";
+import { fireEvent, render, waitFor } from "@testing-library/react";
 import { ConfigService } from "../services/ConfigService";
 
 const {
@@ -76,7 +76,18 @@ describe("RedditOverlay", () => {
       },
     });
 
+    mockSendMessage.mockResolvedValue({
+      success: true,
+      data: {
+        profile: { nickname: "testuser", summary: "summary" },
+        items: [],
+        userProfile: null,
+      },
+    });
+
     document.body.innerHTML = `
+      <h1 data-test-id="post-title">Sample Post Title</h1>
+      <a data-click-id="subreddit" href="/r/test">r/test</a>
       <div>
         <a href="https://www.reddit.com/user/testuser">testuser</a>
       </div>
@@ -115,6 +126,28 @@ describe("RedditOverlay", () => {
 
     await waitFor(() => {
       expect(ConfigService.getConfig).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it("injects analysis button and sends analyze message on click", async () => {
+    render(<RedditOverlay />);
+
+    await waitFor(() => {
+      expect(document.querySelector(".deep-profile-btn")).toBeTruthy();
+    });
+
+    const btn = document.querySelector(".deep-profile-btn") as HTMLSpanElement;
+    fireEvent.click(btn);
+
+    await waitFor(() => {
+      expect(mockSendMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: "ANALYZE_PROFILE",
+          userId: "testuser",
+          platform: "reddit",
+          forceRefresh: false,
+        }),
+      );
     });
   });
 
