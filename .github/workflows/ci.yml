@@ -31,6 +31,9 @@ jobs:
       - name: Run coverage thresholds
         run: npm run test:coverage
 
+      - name: Run content-script coverage thresholds
+        run: npm run test:coverage:contents
+
       - name: Lint
         run: npm run lint
 
