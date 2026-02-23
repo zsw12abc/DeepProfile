@@ -177,6 +177,32 @@ describe("ModelSelector", () => {
     });
   });
 
+  it("handles missing customModelNames when dropdown mode is used", () => {
+    const configWithoutCustomNames = {
+      selectedProvider: "openai",
+    };
+
+    render(
+      <ModelSelector
+        isLoadingModels={false}
+        models={["gpt-4o-mini", "gpt-4o"]}
+        modelError={null}
+        config={configWithoutCustomNames as any}
+        setConfig={mockSetConfig}
+      />,
+    );
+
+    const select = screen.getByRole("combobox");
+    fireEvent.change(select, { target: { value: "gpt-4o-mini" } });
+
+    expect(mockSetConfig).toHaveBeenCalledWith({
+      ...configWithoutCustomNames,
+      customModelNames: {
+        openai: "gpt-4o-mini",
+      },
+    });
+  });
+
   it("displays error message when modelError is present", () => {
     const errorMessage = "Failed to fetch models";
     render(

@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "plasmo dev",
     "build": "plasmo build",
+    "release:check": "npm run lint && npm run typecheck && npm run typecheck:core && npm run test && npm run test:coverage:contents",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "typecheck:core": "tsc --noEmit -p tsconfig.typecheck-core.json",

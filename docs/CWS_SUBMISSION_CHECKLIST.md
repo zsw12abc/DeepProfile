@@ -32,6 +32,7 @@
 - [ ] 避免出现与主功能无关的营销或模糊功能描述
 
 ## 6. 发布前回归
+- [ ] 一键预检：执行 `npm run release:check`（包含 lint/typecheck/test/content coverage）
 - [ ] `npm test`
 - [ ] `npm run typecheck`
 - [ ] `npm run build`

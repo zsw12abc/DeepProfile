@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import ThemeSettings from "./ThemeSettings";
 import { ZHIHU_WHITE_THEME, type ExtendedAppConfig, type ThemeConfig } from "../types";
 import { vi, describe, it, expect, beforeEach } from "vitest";
@@ -219,6 +219,29 @@ describe("ThemeSettings", () => {
     expect(mockGetAllThemes).toHaveBeenCalledTimes(2);
   });
 
+  it("uses default description when creating custom theme without description", async () => {
+    render(<ThemeSettings config={makeConfig()} setConfig={mockSetConfig} />);
+
+    fireEvent.change(screen.getByPlaceholderText("唯一主题标识"), {
+      target: { value: "custom-no-desc" },
+    });
+    fireEvent.change(screen.getByPlaceholderText("主题显示名称"), {
+      target: { value: "No Desc Theme" },
+    });
+
+    fireEvent.click(screen.getByText("创建主题"));
+
+    await waitFor(() => {
+      expect(mockAddTheme).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: "custom-no-desc",
+          name: "No Desc Theme",
+          description: "Custom theme: No Desc Theme",
+        }),
+      );
+    });
+  });
+
   it("shows error when creating custom theme fails", async () => {
     mockAddTheme.mockRejectedValueOnce(new Error("create failed"));
     render(<ThemeSettings config={makeConfig()} setConfig={mockSetConfig} />);
@@ -246,6 +269,19 @@ describe("ThemeSettings", () => {
       expect(mockDeleteTheme).toHaveBeenCalledWith("ocean-blue");
       expect(screen.getByText("主题删除成功")).toBeInTheDocument();
     });
+  });
+
+  it("does not delete custom theme when confirmation is canceled", async () => {
+    vi.stubGlobal("confirm", vi.fn(() => false));
+    render(<ThemeSettings config={makeConfig()} setConfig={mockSetConfig} />);
+
+    await screen.findByText("Ocean Blue");
+    fireEvent.click(screen.getByText("删除"));
+
+    await waitFor(() => {
+      expect(window.confirm).toHaveBeenCalledWith("确认删除主题？");
+    });
+    expect(mockDeleteTheme).not.toHaveBeenCalled();
   });
 
   it("falls back to default theme when deleting selected custom theme", async () => {
@@ -323,5 +359,25 @@ describe("ThemeSettings", () => {
     await waitFor(() => {
       expect(screen.queryByText(/编辑主题/)).not.toBeInTheDocument();
     });
+  });
+
+  it("syncs selected theme indicator when config.themeId changes", async () => {
+    const { rerender } = render(
+      <ThemeSettings config={makeConfig("zhihu-white")} setConfig={mockSetConfig} />,
+    );
+
+    await screen.findByText("知乎浅色");
+    const zhihuCard = screen.getByText("知乎浅色").closest("div");
+    expect(zhihuCard).toBeTruthy();
+    expect(within(zhihuCard as HTMLElement).queryByText("✓")).toBeInTheDocument();
+
+    rerender(
+      <ThemeSettings config={makeConfig("ocean-blue")} setConfig={mockSetConfig} />,
+    );
+
+    await screen.findByText("Ocean Blue");
+    const oceanCard = screen.getByText("Ocean Blue").closest("div");
+    expect(oceanCard).toBeTruthy();
+    expect(within(oceanCard as HTMLElement).queryByText("✓")).toBeInTheDocument();
   });
 });
