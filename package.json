@@ -20,7 +20,7 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,md}\""
   },
   "dependencies": {
-    "@langchain/community": "^0.0.23",
+    "@langchain/community": "^1.1.17",
     "@langchain/core": "^0.1.63",
     "@langchain/google-genai": "^0.0.10",
     "@langchain/openai": "^0.0.14",
