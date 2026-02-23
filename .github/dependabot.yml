@@ -4,6 +4,13 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    ignore:
+      - dependency-name: "svelte"
+        # Plasmo currently pins Svelte 4.x transitively; Dependabot security update to 5.x is not resolvable.
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"
     open-pull-requests-limit: 10
     commit-message:
       prefix: "deps"
