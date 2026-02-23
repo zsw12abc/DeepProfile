@@ -125,6 +125,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     });
 
     ReplyAssistantService.generateReply(
+      request.platform || "zhihu",
       request.tone,
       request.context,
       request.replyLength || "medium",
@@ -132,13 +133,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       request.preferredLanguageName,
       request.languageDetectionSource,
     )
-      .then((reply) => {
+      .then((result) => {
         TelemetryService.recordPerformance("reply_generation_completed", {
           platform: request.platform || "zhihu",
           durationMs: Date.now() - startTime,
-          length: reply.length,
+          length: result.reply.length,
+          wasTrimmed: result.wasTrimmed,
+          limit: result.limit,
+          countMethod: result.countMethod,
+          originalCount: result.originalCount,
+          finalCount: result.finalCount,
         });
-        sendResponse({ success: true, data: { reply } });
+        sendResponse({ success: true, data: result });
       })
       .catch((error) => {
         TelemetryService.recordError("reply_generation_failed", {

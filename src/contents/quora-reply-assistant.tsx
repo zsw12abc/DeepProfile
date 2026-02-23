@@ -343,8 +343,8 @@ const FloatingReplyAssistant = () => {
         targetInput: target,
       });
 
-      setReply(generated);
-      setEditableText(target, generated);
+      setReply(generated.reply);
+      setEditableText(target, generated.reply);
     } catch (e: any) {
       setError(e.message);
     } finally {

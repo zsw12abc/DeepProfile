@@ -1,4 +1,6 @@
 import { LLMService } from "./LLMService";
+import { ReplyLengthPolicyService } from "./ReplyLengthPolicyService";
+import type { SupportedPlatform } from "~types";
 
 type ReplyLength = "short" | "medium" | "long";
 
@@ -11,6 +13,15 @@ export interface ReplyGenerationContext {
     content: string;
     isTarget?: boolean;
   }>;
+}
+
+export interface ReplyGenerationResult {
+  reply: string;
+  wasTrimmed: boolean;
+  limit: number | null;
+  countMethod: "x_weighted" | "plain";
+  originalCount: number;
+  finalCount: number;
 }
 
 export class ReplyAssistantService {
@@ -43,14 +54,16 @@ export class ReplyAssistantService {
   }
 
   static async generateReply(
+    platform: SupportedPlatform,
     tone: string,
     context: ReplyGenerationContext,
     replyLength: ReplyLength = "medium",
     preferredLanguageCode?: string,
     preferredLanguageName?: string,
     languageDetectionSource?: string,
-  ): Promise<string> {
+  ): Promise<ReplyGenerationResult> {
     const prompt = this.buildPrompt(
+      platform,
       tone,
       context,
       replyLength,
@@ -59,7 +72,7 @@ export class ReplyAssistantService {
       languageDetectionSource,
     );
     const raw = await LLMService.generateRawText(prompt);
-    const normalized = this.normalizeReply(raw);
+    let normalized = this.normalizeReply(raw);
 
     if (
       preferredLanguageCode &&
@@ -68,13 +81,22 @@ export class ReplyAssistantService {
     ) {
       const rewritePrompt = `Rewrite the following reply in ${preferredLanguageName || preferredLanguageCode} only. Keep the original meaning and tone. Output only the rewritten reply.\n\nReply:\n${normalized}`;
       const rewritten = await LLMService.generateRawText(rewritePrompt);
-      return this.normalizeReply(rewritten);
+      normalized = this.normalizeReply(rewritten);
     }
 
-    return normalized;
+    const policyResult = ReplyLengthPolicyService.applyLimit(normalized, platform);
+    return {
+      reply: policyResult.text,
+      wasTrimmed: policyResult.wasTrimmed,
+      limit: policyResult.limit,
+      countMethod: policyResult.countMethod,
+      originalCount: policyResult.originalCount,
+      finalCount: policyResult.finalCount,
+    };
   }
 
   private static buildPrompt(
+    platform: SupportedPlatform,
     tone: string,
     context: ReplyGenerationContext,
     replyLength: ReplyLength,
@@ -82,12 +104,19 @@ export class ReplyAssistantService {
     preferredLanguageName?: string,
     languageDetectionSource?: string,
   ): string {
+    const platformLimit = ReplyLengthPolicyService.getPlatformLimit(platform);
     const lengthInstruction =
-      replyLength === "short"
-        ? "输出简短回复，约 1-2 句（或至少 50 字）。"
-        : replyLength === "long"
-          ? "输出详细回复，约 6-10 句（或至少 300 字）。"
-          : "输出标准回复，约 3-5 句（或至少 150 字）。";
+      platform === "twitter" && platformLimit
+        ? replyLength === "short"
+          ? `输出简短回复，约 1-2 句，且总长度不超过 ${platformLimit} 字符（按 X 计数规则）。`
+          : replyLength === "long"
+            ? `输出尽量详细但仍精炼的回复，尽可能覆盖关键信息，且总长度不超过 ${platformLimit} 字符（按 X 计数规则）。`
+            : `输出标准回复，约 3-5 句，且总长度不超过 ${platformLimit} 字符（按 X 计数规则）。`
+        : replyLength === "short"
+          ? "输出简短回复，约 1-2 句（或至少 50 字）。"
+          : replyLength === "long"
+            ? "输出详细回复，约 6-10 句（或至少 300 字）。"
+            : "输出标准回复，约 3-5 句（或至少 150 字）。";
 
     const conversationText = context.conversation
       .map((item, idx) => {

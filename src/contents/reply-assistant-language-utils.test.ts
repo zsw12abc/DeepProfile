@@ -49,7 +49,14 @@ describe("reply-assistant-language-utils", () => {
       .spyOn(chrome.runtime, "sendMessage")
       .mockResolvedValue({
         success: true,
-        data: { reply: "respuesta" },
+        data: {
+          reply: "respuesta",
+          wasTrimmed: false,
+          limit: null,
+          countMethod: "plain",
+          originalCount: 9,
+          finalCount: 9,
+        },
       } as any);
 
     const reply = await requestGeneratedReply({
@@ -60,7 +67,7 @@ describe("reply-assistant-language-utils", () => {
       targetInput: textarea,
     });
 
-    expect(reply).toBe("respuesta");
+    expect(reply.reply).toBe("respuesta");
     expect(sendMessageMock).toHaveBeenCalledTimes(1);
     const payload = sendMessageMock.mock.calls[0][0] as any;
     expect(payload.type).toBe("GENERATE_REPLY");

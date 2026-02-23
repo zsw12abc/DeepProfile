@@ -13,6 +13,7 @@ describe("ReplyAssistantService", () => {
       .mockResolvedValue("reply text");
 
     await ReplyAssistantService.generateReply(
+      "twitter",
       "Friendly",
       {
         targetUser: "Alice",
@@ -37,6 +38,7 @@ describe("ReplyAssistantService", () => {
     vi.spyOn(LLMService, "generateRawText").mockResolvedValue("'ok reply'");
 
     const reply = await ReplyAssistantService.generateReply(
+      "zhihu",
       "Objective",
       {
         targetUser: "Bob",
@@ -47,7 +49,8 @@ describe("ReplyAssistantService", () => {
       "short",
     );
 
-    expect(reply).toBe("ok reply");
+    expect(reply.reply).toBe("ok reply");
+    expect(reply.wasTrimmed).toBe(false);
   });
 
   it("rewrites output when generated language mismatches preferred language", async () => {
@@ -57,6 +60,7 @@ describe("ReplyAssistantService", () => {
       .mockResolvedValueOnce("这是中文输出");
 
     const reply = await ReplyAssistantService.generateReply(
+      "zhihu",
       "Friendly",
       {
         targetUser: "Alice",
@@ -70,7 +74,7 @@ describe("ReplyAssistantService", () => {
       "你好",
     );
 
-    expect(reply).toBe("这是中文输出");
+    expect(reply.reply).toBe("这是中文输出");
     expect(generateRawTextMock).toHaveBeenCalledTimes(2);
     const secondPrompt = generateRawTextMock.mock.calls[1][0];
     expect(secondPrompt).toContain(
@@ -84,6 +88,7 @@ describe("ReplyAssistantService", () => {
       .mockResolvedValue("mock reply");
 
     await ReplyAssistantService.generateReply(
+      "zhihu",
       "巨魔风格 (Troll)",
       {
         targetUser: "Eve",
@@ -98,5 +103,26 @@ describe("ReplyAssistantService", () => {
     expect(prompt).toContain("风格细则");
     expect(prompt).toContain("禁止辱骂");
     expect(prompt).toContain("不可攻击身份");
+  });
+
+  it("applies X length guard for long mode", async () => {
+    const tooLong = "a".repeat(350);
+    vi.spyOn(LLMService, "generateRawText").mockResolvedValue(tooLong);
+
+    const result = await ReplyAssistantService.generateReply(
+      "twitter",
+      "Objective",
+      {
+        targetUser: "Bob",
+        pageTitle: "Context",
+        answerContent: "Some text",
+        conversation: [{ author: "Bob", content: "Thanks", isTarget: true }],
+      },
+      "long",
+    );
+
+    expect(result.limit).toBe(280);
+    expect(result.wasTrimmed).toBe(true);
+    expect(result.finalCount).toBeLessThanOrEqual(280);
   });
 });

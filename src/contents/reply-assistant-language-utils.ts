@@ -14,6 +14,15 @@ export interface ReplyGenerationContext {
   }>;
 }
 
+export interface GeneratedReplyPayload {
+  reply: string;
+  wasTrimmed: boolean;
+  limit: number | null;
+  countMethod: "x_weighted" | "plain";
+  originalCount: number;
+  finalCount: number;
+}
+
 type LanguageDetectionResult = {
   languageCode: string;
   languageName: string;
@@ -135,7 +144,7 @@ export const requestGeneratedReply = async (params: {
   replyLength: ReplyLength;
   context: ReplyGenerationContext;
   targetInput: EditableTarget;
-}): Promise<string> => {
+}): Promise<GeneratedReplyPayload> => {
   const detected = detectReplyLanguage(params.targetInput, params.context);
 
   const response = await chrome.runtime.sendMessage({
@@ -153,5 +162,19 @@ export const requestGeneratedReply = async (params: {
     throw new Error(response?.error || "Generation failed");
   }
 
-  return String(response.data.reply).trim();
+  return {
+    reply: String(response.data.reply).trim(),
+    wasTrimmed: !!response.data.wasTrimmed,
+    limit: typeof response.data.limit === "number" ? response.data.limit : null,
+    countMethod:
+      response.data.countMethod === "x_weighted" ? "x_weighted" : "plain",
+    originalCount:
+      typeof response.data.originalCount === "number"
+        ? response.data.originalCount
+        : 0,
+    finalCount:
+      typeof response.data.finalCount === "number"
+        ? response.data.finalCount
+        : 0,
+  };
 };
