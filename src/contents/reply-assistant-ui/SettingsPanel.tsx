@@ -59,9 +59,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   settings,
   reply,
   error,
-  loading,
   canApply,
-  onSiteToggleChange,
   onAnalysisModeChange,
   onAnalyzeLimitChange,
   onToneChange,
@@ -70,11 +68,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   onApply,
   platformSettingsControls,
 }) => {
-  const primaryGlow = colorWithAlpha(themeState.primary, 0.34);
-  const borderGlow = colorWithAlpha(themeState.accent, 0.24);
-  const cardBg = themeState.isDark
-    ? colorWithAlpha(themeState.surface, 0.95)
-    : "rgba(255,255,255,0.96)";
   const chipBg = themeState.isDark ? "rgba(10,24,42,0.9)" : "#f8fbff";
   const inputBg = themeState.isDark ? "rgba(8,18,30,0.94)" : "#ffffff";
   const subtleBorder = `1px solid ${themeState.border}`;

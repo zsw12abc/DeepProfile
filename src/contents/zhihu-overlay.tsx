@@ -7,7 +7,6 @@ import { I18nService } from "../services/I18nService";
 import type { ZhihuContent, UserProfile } from "../services/ZhihuClient";
 import type {
   AnalysisProgress,
-  ProfileData,
   SupportedPlatform,
 } from "../types";
 import { DEFAULT_CONFIG } from "../types";
@@ -158,27 +157,7 @@ const ZhihuOverlay = () => {
         />,
       );
 
-      // 添加点击外部区域关闭overlay的功能
-      const handleClickOutside = (event: MouseEvent) => {
-        // 检查点击是否在ProfileCard内部
-        // 由于ProfileCard渲染在container内部，我们只需要检查container是否包含target
-        // 但是ProfileCard组件本身有样式，container只是一个包装器
-        // 实际上ProfileCard组件渲染了一个fixed定位的div，我们需要确保点击不在那个div上
-        // 这里简化处理：如果点击的是container本身（如果它覆盖全屏）或者body，则关闭
-        // 但目前的实现container只是一个挂载点，ProfileCard是fixed定位
-        // 最好的方式是在ProfileCard内部处理点击外部，或者在这里通过类名判断
-        // 简单实现：如果点击的目标不在ProfileCard的DOM树中，则关闭
-        // 注意：这需要ProfileCard组件有一个明确的根元素引用，或者我们可以假设container的第一个子元素是ProfileCard
-        // 由于React Portal或直接render，container内部就是ProfileCard的内容
-        // 更好的方法：让ProfileCard组件处理点击外部，或者在这里不做处理，只依赖关闭按钮
-        // 为了用户体验，我们暂时只依赖关闭按钮，避免误触关闭
-      };
-
-      // document.addEventListener('mousedown', handleClickOutside);
-
-      return () => {
-        // document.removeEventListener('mousedown', handleClickOutside);
-      };
+      return;
     } else {
       // 当没有目标用户时，移除容器
       removeOverlayContainer();
@@ -301,7 +280,7 @@ const ZhihuOverlay = () => {
 
           const nickname = link.textContent?.trim();
 
-          let contextParts: string[] = [];
+          const contextParts: string[] = [];
           const questionHeader = document.querySelector(
             ".QuestionHeader-title",
           );
