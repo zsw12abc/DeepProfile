@@ -1,4 +1,4 @@
-import * as twitterText from "twitter-text";
+import { parseTweet } from "twitter-text";
 import type { SupportedPlatform } from "~types";
 
 export type ReplyLengthCountMethod = "x_weighted" | "plain";
@@ -23,11 +23,16 @@ export class ReplyLengthPolicyService {
 
   static countForPlatform(
     text: string,
-    platform: SupportedPlatform,
+  platform: SupportedPlatform,
   ): { count: number; method: ReplyLengthCountMethod } {
     if (platform === "twitter") {
-      const parsed = twitterText.parseTweet(text || "");
-      return { count: parsed.weightedLength, method: "x_weighted" };
+      try {
+        const parsed = parseTweet(text || "");
+        return { count: parsed.weightedLength, method: "x_weighted" };
+      } catch {
+        // Fallback to plain length if parser interop fails in specific runtimes.
+        return { count: Array.from(text || "").length, method: "plain" };
+      }
     }
     return { count: Array.from(text || "").length, method: "plain" };
   }
@@ -96,4 +101,3 @@ export class ReplyLengthPolicyService {
     return best;
   }
 }
-
