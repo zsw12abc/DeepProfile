@@ -27,7 +27,7 @@
     "html2canvas": "^1.4.1",
     "langchain": "^0.1.21",
     "plasmo": "^0.90.5",
-    "react": "18.2.0",
+    "react": "19.2.4",
     "react-dom": "18.2.0",
     "zod": "^3.22.4"
   },
@@ -36,7 +36,7 @@
     "@testing-library/react": "^16.3.2",
     "@types/chrome": "0.0.258",
     "@types/node": "20.11.5",
-    "@types/react": "18.2.48",
+    "@types/react": "19.2.14",
     "@types/react-dom": "18.2.18",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
