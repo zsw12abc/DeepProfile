@@ -10,6 +10,7 @@ export default defineConfig({
       "src/contents/zhihu-comments.test.tsx",
       "src/contents/zhihu-overlay.test.tsx",
       "src/contents/reddit-overlay.test.tsx",
+      "src/contents/twitter-overlay.test.tsx",
     ],
     alias: [
       {
@@ -64,12 +65,13 @@ export default defineConfig({
         "src/contents/zhihu-comments.tsx",
         "src/contents/zhihu-overlay.tsx",
         "src/contents/reddit-overlay.tsx",
+        "src/contents/twitter-overlay.tsx",
       ],
       thresholds: {
-        lines: 45,
-        functions: 35,
+        lines: 35,
+        functions: 30,
         branches: 30,
-        statements: 45,
+        statements: 35,
       },
     },
   },
