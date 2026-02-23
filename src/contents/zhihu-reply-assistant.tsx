@@ -43,16 +43,16 @@ type ReplyContext = {
 const BALL_POSITION_STORAGE_KEY = "deep_profile_zhihu_ball_pos";
 
 const toneOptions = [
+  "巨魔风格 (Troll)",
+  "贴吧大神风格",
+  "古早公知风格",
+  "当代衍生变体",
   "客观",
   "讽刺",
   "学术",
   "友好",
   "犀利",
   "简洁",
-  "巨魔风格 (Troll)",
-  "贴吧大神风格",
-  "古早公知风格",
-  "当代衍生变体",
 ];
 const REPLY_HINT_KEYS = ["回复", "reply", "评论", "comment"];
 const INLINE_REPLY_BTN_CLASS = "deep-profile-inline-reply-btn";

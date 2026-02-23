@@ -43,16 +43,16 @@ type ReplyContext = {
 const BALL_POSITION_STORAGE_KEY = "deep_profile_reddit_ball_pos";
 
 const toneOptions = [
+  "Troll",
+  "Forum Meme Lord",
+  "Classic Public Intellectual",
+  "Deconstructive Parody",
   "Objective",
   "Sarcastic",
   "Academic",
   "Friendly",
   "Witty",
   "Concise",
-  "Troll",
-  "Forum Meme Lord",
-  "Classic Public Intellectual",
-  "Deconstructive Parody",
 ];
 const INLINE_REPLY_BTN_CLASS = "deep-profile-inline-reply-btn";
 const INLINE_TONE_CLASS = "deep-profile-inline-tone-select";
