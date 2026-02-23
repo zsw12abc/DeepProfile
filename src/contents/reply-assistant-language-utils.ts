@@ -1,17 +1,16 @@
 import type { ReplyAssistantSettings } from "~types";
+import type {
+  ConversationItem,
+  EditableTarget,
+} from "./reply-assistant-shared/types";
 
-export type EditableTarget = HTMLTextAreaElement | HTMLElement;
 export type ReplyLength = ReplyAssistantSettings["replyLength"];
 
 export interface ReplyGenerationContext {
   targetUser: string;
   pageTitle?: string;
   answerContent?: string;
-  conversation: Array<{
-    author: string;
-    content: string;
-    isTarget?: boolean;
-  }>;
+  conversation: ConversationItem[];
 }
 
 export interface GeneratedReplyPayload {
@@ -139,7 +138,7 @@ export const detectReplyLanguage = (
 };
 
 export const requestGeneratedReply = async (params: {
-  platform: "reddit" | "quora" | "twitter";
+  platform: "reddit" | "quora" | "twitter" | "zhihu";
   tone: string;
   replyLength: ReplyLength;
   context: ReplyGenerationContext;
