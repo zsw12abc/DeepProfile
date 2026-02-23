@@ -1,11 +1,11 @@
-# Chrome Web Store 提交清单（DeepProfile v1.0.0）
+# Chrome Web Store 提交清单（DeepProfile v1.0.2）
 
 ## 1. 上传包
 - [ ] 执行 `npm run build`
 - [ ] 执行 `npx plasmo package`
 - [ ] 在打包输出目录确认 zip 文件存在（用于上传到 CWS）
 - [ ] 解压自检 `manifest.json`：
-  - [ ] `version` 为 `1.0.0`
+  - [ ] `version` 为 `1.0.2`
   - [ ] `permissions` 仅包含 `storage`
 
 ## 2. Store Listing（商店信息）
