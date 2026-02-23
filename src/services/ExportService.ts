@@ -1,5 +1,5 @@
 import { TopicService } from "./TopicService";
-import { calculateFinalLabel, parseLabelName } from "./LabelUtils";
+import { parseLabelName } from "./LabelUtils";
 import type { MacroCategory, ProfileData } from "~types";
 import { I18nService } from "./I18nService";
 
@@ -76,7 +76,6 @@ ${profile.summary}
     // 10 blocks total, 5 for left, 5 for right
     // Center is between block 5 and 6
 
-    const totalBlocks = 10;
     const halfBlocks = 5;
 
     // Calculate how many blocks to fill from center

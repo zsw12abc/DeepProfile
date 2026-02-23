@@ -1,18 +1,13 @@
 import React from "react";
 import { Card } from "./UIComponents";
-import { HistoryService } from "~services/HistoryService";
-import { ExportService } from "~services/ExportService";
-import { calculateFinalLabel, parseLabelName } from "~services/LabelUtils";
+import { parseLabelName } from "~services/LabelUtils";
 import { TopicService, type MacroCategory } from "~services/TopicService";
-import { ZhihuClient } from "~services/ZhihuClient";
 import { I18nService } from "~services/I18nService";
 import {
   type UserHistoryRecord,
   type ProfileData,
   type SupportedPlatform,
 } from "~types";
-import html2canvas from "html2canvas";
-import MarkdownRenderer from "~components/MarkdownRenderer";
 
 interface HistorySectionProps {
   historyRecords: UserHistoryRecord[];
@@ -392,7 +387,7 @@ export const HistorySection: React.FC<HistorySectionProps> = ({
                         <p
                           style={{ margin: "0 0 10px 0", fontStyle: "italic" }}
                         >
-                          "{summary}"
+                          &quot;{summary}&quot;
                         </p>
                         <div
                           style={{

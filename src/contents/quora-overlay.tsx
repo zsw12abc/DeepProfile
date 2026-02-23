@@ -5,11 +5,7 @@ import { ProfileCard } from "../components/ProfileCard";
 import { ConfigService } from "../services/ConfigService";
 import { I18nService } from "../services/I18nService";
 import type { ZhihuContent, UserProfile } from "../services/ZhihuClient";
-import type {
-  AnalysisProgress,
-  ProfileData,
-  SupportedPlatform,
-} from "../types";
+import type { AnalysisProgress, SupportedPlatform } from "../types";
 import { DEFAULT_CONFIG } from "../types";
 import { createInjectionScheduler } from "./injection-utils";
 
@@ -203,23 +199,7 @@ const QuoraOverlay = () => {
         console.error("Failed to render ProfileCard:", e);
       }
 
-      // 添加点击外部区域关闭overlay的功能
-      const handleClickOutside = (event: MouseEvent) => {
-        // 检查点击是否在ProfileCard内部
-        // 由于ProfileCard渲染在container内部，我们只需要检查container是否包含target
-        // 但是ProfileCard组件本身有样式，container只是一个包装器
-        // 实际上ProfileCard组件渲染了一个fixed定位的div，我们需要确保点击不在那个div上
-        // 这里简化处理：如果点击的是container本身（如果它覆盖全屏）或者body，则关闭
-        // 但目前的实现container只是一个挂载点，ProfileCard是fixed定位
-        // 最好的方式是在ProfileCard内部处理点击外部，或者在这里不做处理，只依赖关闭按钮
-        // 为了用户体验，我们暂时只依赖关闭按钮，避免误触关闭
-      };
-
-      // document.addEventListener('mousedown', handleClickOutside);
-
-      return () => {
-        // document.removeEventListener('mousedown', handleClickOutside);
-      };
+      return;
     } else {
       // 当没有目标用户时，移除容器
       removeOverlayContainer();
@@ -237,13 +217,9 @@ const QuoraOverlay = () => {
 
   // 监听来自后台脚本的消息
   useEffect(() => {
-    const handleMessageFromBackground = async (
-      request: any,
-      sender: any,
-      sendResponse: (response: any) => void,
-    ) => {
+    const handleMessageFromBackground = async (request: any) => {
       if (request && request.type === "QUORA_CONTENT_REQUEST") {
-        const { requestId, username, limit, url } = request;
+        const { requestId, username, limit } = request;
 
         // 从页面中抓取Quora内容
         const scrapedContent = await scrapeQuoraContent(username, limit);
@@ -367,7 +343,7 @@ const QuoraOverlay = () => {
 
         const href = link.href;
         // 提取Quora用户名
-        const match = href.match(/\/profile\/([^\/\?#]+)/i);
+        const match = href.match(/\/profile\/([^/?#]+)/i);
         if (!match) return;
 
         const userId = match[1];
@@ -453,7 +429,7 @@ const QuoraOverlay = () => {
           const nickname = link.textContent?.trim();
 
           // Extract context from the current question/answer
-          let contextParts: string[] = [];
+          const contextParts: string[] = [];
 
           // Get question title if available - try multiple selectors
           const questionSelectors = [
@@ -812,7 +788,7 @@ const QuoraOverlay = () => {
                 const style = window.getComputedStyle(parent);
                 if (
                   style.borderBottomWidth !== "0px" ||
-                  parent.parentElement?.childElementCount! > 3
+                  (parent.parentElement?.childElementCount ?? 0) > 3
                 ) {
                   potentialContainers.add(parent);
                   // Don't break immediately, we might find a better outer container
@@ -909,7 +885,7 @@ const QuoraOverlay = () => {
 
           // Extract Content
           let content = "";
-          let contentEl =
+          const contentEl =
             container.querySelector(".puppeteer_test_answer_content") ||
             container.querySelector(".spacing_log_answer_content");
 
@@ -1019,46 +995,6 @@ const QuoraOverlay = () => {
       console.error("Error scraping Quora content:", error);
       return [];
     }
-  };
-
-  // 计算两个字符串的相似度
-  const calculateSimilarity = (str1: string, str2: string): number => {
-    const longer = str1.length > str2.length ? str1 : str2;
-    const shorter = str1.length > str2.length ? str2 : str1;
-
-    if (longer.length === 0) {
-      return 1.0;
-    }
-
-    const editDistance = computeEditDistance(longer, shorter);
-    return (longer.length - editDistance) / longer.length;
-  };
-
-  // 计算编辑距离（Levenshtein距离）
-  const computeEditDistance = (s1: string, s2: string): number => {
-    s1 = s1.toLowerCase();
-    s2 = s2.toLowerCase();
-
-    const costs = [];
-    for (let i = 0; i <= s1.length; i++) {
-      let lastValue = i;
-      for (let j = 0; j <= s2.length; j++) {
-        if (i === 0) {
-          costs[j] = j;
-        } else if (j > 0) {
-          let newValue = costs[j - 1];
-          if (s1.charAt(i - 1) !== s2.charAt(j - 1)) {
-            newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
-          }
-          costs[j - 1] = lastValue;
-          lastValue = newValue;
-        }
-      }
-      if (i > 0) {
-        costs[s2.length] = lastValue;
-      }
-    }
-    return costs[s2.length];
   };
 
   return <div style={{ display: "none" }} />;

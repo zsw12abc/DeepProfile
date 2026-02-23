@@ -1,9 +1,6 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { ProfileCard } from "./ProfileCard";
-import { I18nService } from "../services/I18nService";
-import { ThemeService } from "../services/ThemeService";
-import { TopicService } from "../services/TopicService";
 import { ExportService } from "../services/ExportService";
 import { ZhihuClient } from "../services/ZhihuClient";
 import { ZHIHU_WHITE_THEME } from "../types";
@@ -199,8 +196,6 @@ describe("ProfileCard", () => {
 
     // Find the specific expand button for evidence section by navigating the DOM structure
     // First, find the evidence section header
-    const evidenceHeader = screen.getByText("evidence");
-
     // Find the closest container that holds the expand button for this section
     // Using a more direct approach - get the button that's within the same section
     const expandButtons = screen.getAllByText("expand");

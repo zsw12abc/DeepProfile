@@ -17,7 +17,6 @@ import { SettingsPanel } from "./reply-assistant-ui/SettingsPanel";
 import {
   FLOATING_BALL_MARGIN,
   FLOATING_BALL_SIZE,
-  colorWithAlpha,
 } from "./reply-assistant-ui/utils";
 import { requestGeneratedReply } from "./reply-assistant-language-utils";
 
@@ -43,12 +42,6 @@ type ReplyContext = {
 
 const BALL_POSITION_STORAGE_KEY = "deep_profile_quora_ball_pos";
 
-// Quora specific selectors
-const ANSWER_EDITOR_SELECTOR = "#editor";
-const COMMENT_TEXTAREA_SELECTOR = ".q-textArea textarea";
-const EDITOR_TOOLBAR_SELECTOR = ".editor_toolbar";
-const COMMENT_SUBMIT_BTN_SELECTOR = "button.q-click-wrapper"; // Loose, needs refinement
-
 const toneOptions = [
   "Objective",
   "Sarcastic",
@@ -61,15 +54,8 @@ const toneOptions = [
   "Classic Public Intellectual",
   "Deconstructive Parody",
 ];
-const replyLengthOptions = [
-  { value: "short", label: "Short" },
-  { value: "medium", label: "Standard" },
-  { value: "long", label: "Detailed" },
-] as const;
-
 const INLINE_REPLY_BTN_CLASS = "deep-profile-inline-reply-btn";
 const INLINE_TONE_CLASS = "deep-profile-inline-tone-select";
-const INLINE_LENGTH_CLASS = "deep-profile-inline-length-select";
 const INLINE_CONTAINER_CLASS = "deep-profile-inline-controls";
 
 const extractReplyContext = (targetInput: EditableTarget): ReplyContext => {

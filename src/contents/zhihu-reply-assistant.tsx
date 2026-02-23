@@ -54,12 +54,6 @@ const toneOptions = [
   "古早公知风格",
   "当代衍生变体",
 ];
-const replyLengthOptions = [
-  { value: "short", label: "简略" },
-  { value: "medium", label: "标准" },
-  { value: "long", label: "详细" },
-] as const;
-
 const REPLY_HINT_KEYS = ["回复", "reply", "评论", "comment"];
 const INLINE_REPLY_BTN_CLASS = "deep-profile-inline-reply-btn";
 const INLINE_TONE_CLASS = "deep-profile-inline-tone-select";
@@ -205,17 +199,6 @@ const parseTargetFromPlaceholder = (placeholder?: string): string | null => {
   if (!placeholder) return null;
   const match = placeholder.match(/(?:回复|Reply)\s*([^：:]+)[:：]?/i);
   return match?.[1]?.trim() || null;
-};
-
-const findPublishButtonInRoot = (root: Element): HTMLButtonElement | null => {
-  const candidates = Array.from(root.querySelectorAll("button"));
-  const publish = candidates.find((btn) => {
-    if (!(btn instanceof HTMLButtonElement)) return false;
-    if (!isVisible(btn)) return false;
-    const text = (btn.textContent || "").trim();
-    return text === "发布" || text === "Publish";
-  });
-  return (publish as HTMLButtonElement) || null;
 };
 
 const setEditableText = (target: EditableTarget, value: string) => {
@@ -1038,19 +1021,6 @@ const FloatingReplyAssistant = () => {
   );
   const panelLeft = panelPos.left;
   const panelTop = panelPos.top;
-  const primaryGlow = colorWithAlpha(themeState.primary, 0.34);
-  const borderGlow = colorWithAlpha(themeState.accent, 0.24);
-  const cardBg = themeState.isDark
-    ? colorWithAlpha(themeState.surface, 0.95)
-    : "rgba(255,255,255,0.96)";
-  const chipBg = themeState.isDark ? "rgba(10,24,42,0.9)" : "#f8fbff";
-  const inputBg = themeState.isDark ? "rgba(8,18,30,0.94)" : "#ffffff";
-  const subtleBorder = `1px solid ${themeState.border}`;
-
-  // 从 options.tsx 复刻的背景光晕样式
-  const backgroundGlows =
-    "radial-gradient(circle at top left, rgba(37, 99, 235, 0.12), transparent 45%), radial-gradient(circle at 20% 20%, rgba(34, 211, 238, 0.15), transparent 40%), radial-gradient(circle at 85% 10%, rgba(56, 189, 248, 0.12), transparent 30%)";
-
   if (!enabled) return null;
 
   return (

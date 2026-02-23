@@ -1,20 +1,22 @@
 {
   "name": "deep-profile",
   "displayName": "DeepProfile",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A Chrome extension to analyze social media user profiles using AI.",
   "author": "DeepProfile Team",
   "license": "SEE LICENSE IN LICENSE",
   "scripts": {
     "dev": "plasmo dev",
     "build": "plasmo build",
+    "release:check": "npm run lint && npm run typecheck && npm run typecheck:core && npm run test && npm run test:coverage:contents",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "typecheck:core": "tsc --noEmit -p tsconfig.typecheck-core.json",
     "test:ui": "vitest --ui",
     "test:unit": "vitest run --exclude '**/LLMService.test.{ts,tsx}'",
     "test:coverage": "vitest run --coverage",
-    "lint": "eslint \"src/**/*.{ts,tsx}\"",
+    "test:coverage:contents": "vitest run --config vitest.contents.config.ts --coverage",
+    "lint": "eslint \"src/**/*.{ts,tsx}\" --max-warnings=0",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,md}\""
   },
   "dependencies": {

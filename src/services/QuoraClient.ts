@@ -54,6 +54,8 @@ export class QuoraClient {
     limit: number = 15,
     context?: string,
   ): Promise<FetchResult> {
+    void context;
+
     try {
       console.log(
         `Attempting to fetch Quora content for user: ${username} via content script`,

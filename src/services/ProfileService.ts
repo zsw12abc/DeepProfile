@@ -29,7 +29,7 @@ export class ProfileService {
     context?: string,
   ): Promise<FetchResult> {
     switch (platform) {
-      case "zhihu":
+      case "zhihu": {
         const zhihuResult = await ZhihuClient.fetchUserContent(
           userId,
           limit,
@@ -39,7 +39,8 @@ export class ProfileService {
           ...zhihuResult,
           platform: "zhihu",
         };
-      case "reddit":
+      }
+      case "reddit": {
         const redditResult = await RedditClient.fetchUserContent(
           userId,
           limit,
@@ -49,7 +50,8 @@ export class ProfileService {
           ...redditResult,
           platform: "reddit",
         };
-      case "twitter":
+      }
+      case "twitter": {
         const twitterResult = await TwitterClient.fetchUserContent(
           userId,
           limit,
@@ -59,7 +61,8 @@ export class ProfileService {
           ...twitterResult,
           platform: "twitter",
         };
-      case "quora":
+      }
+      case "quora": {
         const quoraResult = await QuoraClient.fetchUserContent(
           userId,
           limit,
@@ -69,6 +72,7 @@ export class ProfileService {
           ...quoraResult,
           platform: "quora",
         };
+      }
       case "weibo":
       default:
         throw new Error(`Platform ${platform} is not implemented yet`);

@@ -1,6 +1,5 @@
 import { AnalysisMode, MacroCategory } from "~types";
 import { I18nService } from "./I18nService";
-import { calculateFinalLabel } from "./LabelUtils";
 
 interface LabelDefinition {
   id: string;
@@ -470,10 +469,6 @@ export class LabelService {
     // 这是一个简化的启发式方法，实际实现可能会使用ML模型
 
     // 简单的关键词匹配逻辑
-    const nameParts = label.name.split("|");
-    const chineseTerms = (nameParts[0] || "").split(/[|，,]/);
-    const englishTerms = (nameParts[1] || "").split(/[|-]/);
-
     let positiveCount = 0;
     let negativeCount = 0;
 

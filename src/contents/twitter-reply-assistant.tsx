@@ -17,7 +17,6 @@ import { SettingsPanel } from "./reply-assistant-ui/SettingsPanel";
 import {
   FLOATING_BALL_MARGIN,
   FLOATING_BALL_SIZE,
-  colorWithAlpha,
 } from "./reply-assistant-ui/utils";
 import { requestGeneratedReply } from "./reply-assistant-language-utils";
 
@@ -62,17 +61,10 @@ const toneOptions = [
   "Classic Public Intellectual",
   "Deconstructive Parody",
 ];
-const replyLengthOptions = [
-  { value: "short", label: "Short" },
-  { value: "medium", label: "Standard" },
-  { value: "long", label: "Detailed" },
-] as const;
-
 const INLINE_REPLY_BTN_CLASS = "deep-profile-inline-reply-btn";
 const INLINE_CONTAINER_CLASS = "deep-profile-inline-controls";
 
 const INLINE_TONE_CLASS = "deep-profile-inline-tone-select";
-const INLINE_LENGTH_CLASS = "deep-profile-inline-length-select";
 
 const extractReplyContext = (targetInput: EditableTarget): ReplyContext => {
   let targetUser = "User";

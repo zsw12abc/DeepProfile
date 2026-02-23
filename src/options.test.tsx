@@ -3,8 +3,6 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import Options from "./options";
 import { ConfigService } from "./services/ConfigService";
 import { HistoryService } from "./services/HistoryService";
-import { I18nService } from "./services/I18nService";
-import { ThemeService } from "./services/ThemeService";
 import { DEFAULT_CONFIG } from "./types";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 

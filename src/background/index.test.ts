@@ -1,6 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { LLMService } from "../services/LLMService";
-import { ZhihuClient } from "../services/ZhihuClient";
 import { ConfigService } from "../services/ConfigService";
 import { ProfileService } from "../services/ProfileService";
 import { HistoryService } from "../services/HistoryService";
@@ -67,7 +66,9 @@ global.chrome = {
 // So we need to simulate the message listener callback.
 
 describe("Background Service", () => {
-  let messageListener: Function;
+  let messageListener:
+    | ((message: any, sender: any, sendResponse: (v: any) => void) => any)
+    | undefined;
 
   beforeEach(async () => {
     vi.clearAllMocks();

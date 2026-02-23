@@ -326,7 +326,7 @@ export const normalizeLabelId = (labelId: string): string => {
     .toLowerCase()
     .trim()
     .replace(/\s+/g, "_")
-    .replace(/[\-.]/g, "_")
+    .replace(/[.-]/g, "_")
     .replace(/_{2,}/g, "_");
 
   const result = LABEL_VARIATIONS[normalized] || normalized;

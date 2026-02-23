@@ -59,7 +59,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === "ANALYZE_COMMENTS") {
     // 如果有 answerId，先获取回答内容
     const analyzeWithContext = async () => {
-      let contextTitle = request.contextTitle;
+      const contextTitle = request.contextTitle;
       let contextContent = request.contextContent;
 
       // 如果前端没有提取到内容，但提供了 answerId，则尝试从 API 获取
@@ -201,82 +201,75 @@ async function testConnection(
   baseUrl: string,
   model: string,
 ): Promise<string> {
-  try {
-    const testPrompt = "Hello";
-    let url = "";
-    let body = {};
-    let headers: any = { "Content-Type": "application/json" };
+  const testPrompt = "Hello";
+  let url = "";
+  let body = {};
+  const headers: any = { "Content-Type": "application/json" };
 
-    if (
-      provider === "openai" ||
-      provider === "deepseek" ||
-      provider === "qwen" ||
-      provider === "qwen-intl" ||
-      provider === "custom"
-    ) {
-      if (provider === "openai")
-        url = "https://api.openai.com/v1/chat/completions";
-      else if (provider === "deepseek")
-        url = "https://api.deepseek.com/v1/chat/completions";
-      else if (provider === "qwen")
-        url =
-          "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
-      else if (provider === "qwen-intl")
-        url =
-          "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions";
-      else if (provider === "custom") url = `${baseUrl}/chat/completions`;
+  if (
+    provider === "openai" ||
+    provider === "deepseek" ||
+    provider === "qwen" ||
+    provider === "qwen-intl" ||
+    provider === "custom"
+  ) {
+    if (provider === "openai")
+      url = "https://api.openai.com/v1/chat/completions";
+    else if (provider === "deepseek")
+      url = "https://api.deepseek.com/v1/chat/completions";
+    else if (provider === "qwen")
+      url =
+        "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
+    else if (provider === "qwen-intl")
+      url =
+        "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions";
+    else if (provider === "custom") url = `${baseUrl}/chat/completions`;
 
-      if (baseUrl && provider !== "custom") url = `${baseUrl}/chat/completions`;
+    if (baseUrl && provider !== "custom") url = `${baseUrl}/chat/completions`;
 
-      headers["Authorization"] = `Bearer ${apiKey}`;
-      body = {
-        model:
-          model ||
-          (provider === "qwen" || provider === "qwen-intl"
-            ? "qwen-turbo"
-            : "gpt-3.5-turbo"),
-        messages: [{ role: "user", content: testPrompt }],
-        max_tokens: 5,
-      };
-    } else if (provider === "ollama") {
-      url = `${baseUrl || "http://localhost:11434"}/api/generate`;
-      body = {
-        model: model || "llama3",
-        prompt: testPrompt,
-        stream: false,
-      };
-    } else if (provider === "gemini") {
-      url = `https://generativelanguage.googleapis.com/v1beta/models/${model || "gemini-1.5-flash"}:generateContent?key=${apiKey}`;
-      body = {
-        contents: [{ parts: [{ text: testPrompt }] }],
-      };
-    }
-
-    const response = await fetch(url, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(body),
-    });
-
-    if (!response.ok) {
-      const errText = await response.text().catch(() => "");
-      let friendlyMsg = `API Error (${response.status})`;
-
-      if (response.status === 401) friendlyMsg = I18nService.t("error_401");
-      else if (response.status === 402)
-        friendlyMsg = I18nService.t("error_402");
-      else if (response.status === 404)
-        friendlyMsg = I18nService.t("error_404");
-      else if (response.status === 429)
-        friendlyMsg = I18nService.t("error_429");
-
-      throw new Error(`${friendlyMsg} \nDetails: ${errText.slice(0, 100)}`);
-    }
-
-    return I18nService.t("connection_success");
-  } catch (e: any) {
-    throw e;
+    headers["Authorization"] = `Bearer ${apiKey}`;
+    body = {
+      model:
+        model ||
+        (provider === "qwen" || provider === "qwen-intl"
+          ? "qwen-turbo"
+          : "gpt-3.5-turbo"),
+      messages: [{ role: "user", content: testPrompt }],
+      max_tokens: 5,
+    };
+  } else if (provider === "ollama") {
+    url = `${baseUrl || "http://localhost:11434"}/api/generate`;
+    body = {
+      model: model || "llama3",
+      prompt: testPrompt,
+      stream: false,
+    };
+  } else if (provider === "gemini") {
+    url = `https://generativelanguage.googleapis.com/v1beta/models/${model || "gemini-1.5-flash"}:generateContent?key=${apiKey}`;
+    body = {
+      contents: [{ parts: [{ text: testPrompt }] }],
+    };
   }
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text().catch(() => "");
+    let friendlyMsg = `API Error (${response.status})`;
+
+    if (response.status === 401) friendlyMsg = I18nService.t("error_401");
+    else if (response.status === 402) friendlyMsg = I18nService.t("error_402");
+    else if (response.status === 404) friendlyMsg = I18nService.t("error_404");
+    else if (response.status === 429) friendlyMsg = I18nService.t("error_429");
+
+    throw new Error(`${friendlyMsg} \nDetails: ${errText.slice(0, 100)}`);
+  }
+
+  return I18nService.t("connection_success");
 }
 
 async function listModels(

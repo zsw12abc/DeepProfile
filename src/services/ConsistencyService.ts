@@ -40,7 +40,7 @@ export class ConsistencyService {
     );
 
     if (highScoreLabels.length > 0) {
-      let fixedSummary = profile.summary;
+      const summary = profile.summary;
 
       // 检查每个高分标签是否在摘要中得到体现
       for (const labelItem of highScoreLabels) {
@@ -55,17 +55,15 @@ export class ConsistencyService {
 
         // 检查摘要中是否提及了对应方向
         if (
-          !this.containsKeyword(fixedSummary, expectedDirection) &&
-          !this.containsKeyword(fixedSummary, labelInfo.id) &&
-          !this.containsKeyword(fixedSummary, labelInfo.name)
+          !this.containsKeyword(summary, expectedDirection) &&
+          !this.containsKeyword(summary, labelInfo.id) &&
+          !this.containsKeyword(summary, labelInfo.name)
         ) {
           // 不再添加解释性句子，因为这些信息会在其他地方显示
           // 保持摘要的自然性，仅当摘要完全没有体现价值倾向时才考虑添加
           // 目前我们只做检查，不修改摘要
         }
       }
-
-      fixedProfile.summary = fixedSummary;
     }
 
     return fixedProfile;
@@ -89,21 +87,12 @@ export class ConsistencyService {
 
     if (highScoreLabels.length > 0) {
       const labelService = LabelService.getInstance();
-      const existingEvidence = [...profile.evidence];
 
       for (const labelItem of highScoreLabels) {
         const labelInfo = labelService.getLabelById(labelItem.label);
         if (!labelInfo) continue;
 
         // 检查是否已有支持该标签的证据
-        const hasSupportingEvidence = existingEvidence.some(
-          (e) =>
-            this.containsKeyword(e.analysis, labelInfo.name) ||
-            this.containsKeyword(e.analysis, labelInfo.id) ||
-            this.containsKeyword(e.quote, labelInfo.name) ||
-            this.containsKeyword(e.quote, labelInfo.id),
-        );
-
         // 不再添加模板化证据，只是检查现有证据
         // 如果没有支持证据，保留原有证据不变
       }
@@ -122,14 +111,6 @@ export class ConsistencyService {
         if (!labelInfo) continue;
 
         // 检查是否已有支持该标签的证据
-        const hasSupportingEvidence = profile.evidence.some(
-          (e) =>
-            this.containsKeyword(e.analysis, labelInfo.name) ||
-            this.containsKeyword(e.analysis, labelInfo.id) ||
-            this.containsKeyword(e.quote, labelInfo.name) ||
-            this.containsKeyword(e.quote, labelInfo.id),
-        );
-
         // 同样，不添加模板化证据
       }
     }
@@ -299,6 +280,8 @@ export class ConsistencyService {
     profile: ProfileData,
     labelIds: string[],
   ): ProfileData {
+    void labelIds;
+
     if (
       !profile.value_orientation ||
       profile.value_orientation.length === 0 ||

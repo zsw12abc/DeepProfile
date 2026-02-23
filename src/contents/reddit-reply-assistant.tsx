@@ -17,7 +17,6 @@ import { SettingsPanel } from "./reply-assistant-ui/SettingsPanel";
 import {
   FLOATING_BALL_MARGIN,
   FLOATING_BALL_SIZE,
-  colorWithAlpha,
 } from "./reply-assistant-ui/utils";
 import { requestGeneratedReply } from "./reply-assistant-language-utils";
 
@@ -55,15 +54,8 @@ const toneOptions = [
   "Classic Public Intellectual",
   "Deconstructive Parody",
 ];
-const replyLengthOptions = [
-  { value: "short", label: "Short" },
-  { value: "medium", label: "Standard" },
-  { value: "long", label: "Detailed" },
-] as const;
-
 const INLINE_REPLY_BTN_CLASS = "deep-profile-inline-reply-btn";
 const INLINE_TONE_CLASS = "deep-profile-inline-tone-select";
-const INLINE_LENGTH_CLASS = "deep-profile-inline-length-select";
 const INLINE_CONTAINER_CLASS = "deep-profile-inline-controls";
 
 const isVisible = (el: Element) => {
@@ -105,71 +97,6 @@ const findEditableInContainer = (container: Element): EditableTarget | null => {
   return (visibleInput as EditableTarget) || null;
 };
 
-const findPublishButton = (root: Element): HTMLButtonElement | null => {
-  // Standard buttons
-  const buttons = Array.from(root.querySelectorAll("button"));
-  const publish = buttons.find((btn) => {
-    if (!isVisible(btn)) return false;
-    const text = (btn.textContent || "").trim().toLowerCase();
-    return (
-      text === "comment" ||
-      text === "reply" ||
-      text === "post" ||
-      btn.getAttribute("type") === "submit"
-    );
-  });
-
-  if (publish) return publish as HTMLButtonElement;
-
-  // Shadow DOM buttons
-  if (root.shadowRoot) {
-    const shadowButtons = Array.from(
-      root.shadowRoot.querySelectorAll("button"),
-    );
-    const shadowPublish = shadowButtons.find((btn) => {
-      const text = (btn.textContent || "").trim().toLowerCase();
-      return (
-        text === "comment" ||
-        text === "reply" ||
-        text === "post" ||
-        btn.getAttribute("type") === "submit" ||
-        btn.getAttribute("data-testid")?.toLowerCase().includes("comment") ||
-        btn.getAttribute("data-testid")?.toLowerCase().includes("submit")
-      );
-    });
-    if (shadowPublish) return shadowPublish as HTMLButtonElement;
-  }
-
-  return null;
-};
-
-const isLikelyReplySubmitButton = (btn: HTMLButtonElement): boolean => {
-  if (!isVisible(btn)) return false;
-  const text = (btn.textContent || "").trim().toLowerCase();
-  return (
-    text.includes("comment") ||
-    text.includes("reply") ||
-    text.includes("post") ||
-    btn.getAttribute("type") === "submit"
-  );
-};
-
-const findMountContainerForButton = (
-  btn: HTMLButtonElement,
-): HTMLElement | null => {
-  const rootNode = btn.getRootNode();
-  if (rootNode instanceof ShadowRoot) {
-    const slot = rootNode.querySelector(
-      "slot[name='comment-composer']",
-    ) as HTMLSlotElement | null;
-    if (slot?.parentElement instanceof HTMLElement) {
-      return slot.parentElement;
-    }
-  }
-
-  return btn.parentElement instanceof HTMLElement ? btn.parentElement : null;
-};
-
 const extractReplyContext = (targetInput: EditableTarget): ReplyContext => {
   let targetUser = "OP";
   let pageTitle = document.title;
@@ -184,7 +111,6 @@ const extractReplyContext = (targetInput: EditableTarget): ReplyContext => {
 
   if (parentComment) {
     targetUser = parentComment.getAttribute("author") || "User";
-    const contentId = parentComment.getAttribute("thing-id"); // e.g. t1_...
     // Try to get content text
     const contentDiv =
       parentComment.querySelector("div[slot='comment']") || parentComment;

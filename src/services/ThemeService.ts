@@ -255,7 +255,7 @@ export class ThemeService {
    */
   public async initialize(): Promise<void> {
     try {
-      const config = await this.getConfig();
+      await this.getConfig();
 
       // 清理旧主题并确保只保留内置主题
       await this.cleanupOldThemes();

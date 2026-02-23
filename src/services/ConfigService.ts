@@ -395,7 +395,8 @@ export class ConfigService {
       if (!replyAssistant || typeof replyAssistant !== "object") continue;
 
       if ("autoFill" in replyAssistant) {
-        const { autoFill: _removed, ...rest } = replyAssistant;
+        const rest = { ...replyAssistant };
+        delete (rest as Record<string, unknown>).autoFill;
         (cloned.platformConfigs as Record<string, any>)[platform] = {
           ...pConfig,
           settings: {

@@ -1,8 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ExportService } from "./ExportService";
-import { TopicService } from "./TopicService";
-import { I18nService } from "./I18nService";
-import { calculateFinalLabel, parseLabelName } from "./LabelUtils";
 
 // Mock dependencies
 vi.mock("./TopicService", () => ({

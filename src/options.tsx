@@ -1,46 +1,20 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { ConfigService } from "./services/ConfigService";
 import { HistoryService } from "./services/HistoryService";
-import { TopicService, type MacroCategory } from "./services/TopicService";
+import type { MacroCategory } from "./services/TopicService";
 import { calculateFinalLabel } from "./services/LabelUtils";
 import { ExportService } from "./services/ExportService";
 import {
   DEFAULT_CONFIG,
   type AIProvider,
   type ExtendedAppConfig,
-  type AnalysisMode,
   type SupportedPlatform,
   type UserHistoryRecord,
   type ProfileData,
-  type Language,
 } from "./types";
-// 动态导入图标以支持测试环境
-let icon: string;
-
-try {
-  // 尝试动态导入实际图标
-  const actualIcon = require("../assets/icon.png");
-  icon = typeof actualIcon === "string" ? actualIcon : actualIcon.default;
-} catch (e) {
-  // 在生产环境中，使用runtime获取图标路径
-  if (
-    typeof chrome !== "undefined" &&
-    chrome.runtime &&
-    chrome.runtime.getURL
-  ) {
-    icon = chrome.runtime.getURL("assets/icon.png");
-  } else {
-    // 如果在测试环境中，chrome API 不可用，使用默认路径
-    icon = "/assets/icon.png";
-  }
-}
-
-// 导出最终图标
-const finalIcon = icon;
 import html2canvas from "html2canvas";
 import { ZhihuClient } from "./services/ZhihuClient";
 import { I18nService } from "./services/I18nService";
-import MarkdownRenderer from "./components/MarkdownRenderer";
 // 动态导入CHANGELOG文件以支持测试环境
 import { zhCNChangelog, zhCNVersionHistory } from "./locales/zh-CN";
 import { enUSChangelog, enUSVersionHistory } from "./locales/en-US";
@@ -56,42 +30,16 @@ import {
   RedditIcon,
   TwitterIcon,
   QuoraIcon,
-  getBaseUrlPlaceholder,
-  shouldShowBaseUrlInput,
 } from "./components/HelperComponents";
 import { ModelSelector } from "./components/ModelSelector";
 import ThemeSettings from "./components/ThemeSettings";
 import { ThemeService } from "./services/ThemeService";
 import { LabelService } from "./services/LabelService";
 
-// 获取版本信息
-const getVersion = (): string => {
-  if (
-    typeof chrome !== "undefined" &&
-    chrome.runtime &&
-    chrome.runtime.getManifest
-  ) {
-    try {
-      const manifest = chrome.runtime.getManifest();
-      return manifest.version;
-    } catch (e) {
-      return "1.0.0"; // Fallback
-    }
-  } else {
-    return "1.0.0"; // Fallback
-  }
-};
-
-// 新增函数：获取CHANGELOG内容
-const fetchChangelogContent = async (
-  lang: string,
-): Promise<{ changelog: string; versionHistory: string }> => {
-  if (lang === "zh-CN") {
-    return { changelog: zhCNChangelog, versionHistory: zhCNVersionHistory };
-  } else {
-    return { changelog: enUSChangelog, versionHistory: enUSVersionHistory };
-  }
-};
+const icon =
+  typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.getURL
+    ? chrome.runtime.getURL("assets/icon.png")
+    : new URL("../assets/icon.png", import.meta.url).href;
 
 type PlatformId =
   | "general"
@@ -278,7 +226,7 @@ export default function Options() {
         valueOrientationHtml = valueOrientation
           .map((item) => {
             const { label: labelName, score } = item;
-            const { label, percentage } = calculateFinalLabel(labelName, score);
+            const { label } = calculateFinalLabel(labelName, score);
 
             // 确保分数在-1到1的范围内
             const normalizedScore = Math.max(-1, Math.min(1, score));
@@ -321,7 +269,7 @@ export default function Options() {
           .join("");
       }
 
-      let avatarSrc = finalIcon;
+      let avatarSrc = icon;
       if (userInfo?.avatar_url) {
         const base64Avatar = await ZhihuClient.fetchImageAsBase64(
           userInfo.avatar_url,
@@ -595,8 +543,6 @@ export default function Options() {
       />
     );
   };
-
-  const showBaseUrlInput = shouldShowBaseUrlInput(config.selectedProvider);
 
   const PLATFORMS: Array<{
     id: PlatformId;

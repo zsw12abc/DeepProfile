@@ -136,7 +136,7 @@ const CommentAnalysisPanel = ({
         let contextContent = "";
         try {
           // 尝试从 container 往上找
-          let contentContainer =
+          const contentContainer =
             containerElement.closest(".ContentItem") ||
             containerElement.closest(".Post-content");
 
@@ -499,7 +499,7 @@ const CommentAnalysisPanel = ({
                           fontStyle: "italic",
                         }}
                       >
-                        "{quote}"
+                        &quot;{quote}&quot;
                       </div>
                     ))}
                 </div>

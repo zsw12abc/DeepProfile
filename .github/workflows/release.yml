@@ -1,8 +1,23 @@
-﻿name: Release Extension
+name: Release Extension
 
 on:
   release:
-    types: [created]
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publish to Chrome Web Store after upload"
+        required: true
+        type: boolean
+        default: true
+      publish_target:
+        description: "CWS publish target"
+        required: true
+        type: choice
+        default: default
+        options:
+          - default
+          - trustedTesters
 
 permissions:
   contents: write
@@ -18,11 +33,14 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Run release preflight checks
+        run: npm run release:check
 
       - name: Build Extension
         run: npm run build
@@ -42,3 +60,20 @@ jobs:
         with:
           files: DeepProfile-Extension.zip
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload and Publish to Chrome Web Store
+        if: ${{ secrets.CWS_EXTENSION_ID != '' && secrets.CWS_CLIENT_ID != '' && secrets.CWS_CLIENT_SECRET != '' && secrets.CWS_REFRESH_TOKEN != '' }}
+        uses: mnao305/chrome-extension-upload@v5.0.0
+        with:
+          file-path: DeepProfile-Extension.zip
+          extension-id: ${{ secrets.CWS_EXTENSION_ID }}
+          client-id: ${{ secrets.CWS_CLIENT_ID }}
+          client-secret: ${{ secrets.CWS_CLIENT_SECRET }}
+          refresh-token: ${{ secrets.CWS_REFRESH_TOKEN }}
+          publish: ${{ github.event_name == 'workflow_dispatch' && (inputs.publish && 'true' || 'false') || 'true' }}
+          publish-target: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_target || 'default' }}
+
+      - name: Warn if CWS secrets are missing
+        if: ${{ !(secrets.CWS_EXTENSION_ID != '' && secrets.CWS_CLIENT_ID != '' && secrets.CWS_CLIENT_SECRET != '' && secrets.CWS_REFRESH_TOKEN != '') }}
+        run: |
+          echo "::warning::Skipped Chrome Web Store publish because one or more secrets are missing: CWS_EXTENSION_ID, CWS_CLIENT_ID, CWS_CLIENT_SECRET, CWS_REFRESH_TOKEN"

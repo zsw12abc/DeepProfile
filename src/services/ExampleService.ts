@@ -195,6 +195,8 @@ export class ExampleService {
     mode: AnalysisMode = "balanced",
     count: number = 2,
   ): Example[] {
+    void mode;
+
     // 根据输入内容和目标类别筛选示例
     let filteredExamples = this.examples.filter(
       (example) =>
@@ -257,7 +259,7 @@ export class ExampleService {
     // 简化版：按空格、标点符号和中文字符分割
     return text
       .replace(/[，。！？；：、]/g, " ") // 替换中文标点为空格
-      .replace(/[,\.\!\?\;\:]/g, " ") // 替换英文标点为空格
+      .replace(/[,.!?;:]/g, " ") // 替换英文标点为空格
       .split(/\s+/) // 按空白字符分割
       .concat(text.match(/[\u4e00-\u9fa5]/g) || []) // 添加中文字符作为单独token
       .filter((token) => token.length > 0) // 过滤空字符串
@@ -268,6 +270,7 @@ export class ExampleService {
    * 将示例格式化为few-shot prompt
    */
   formatExamplesAsPrompt(examples: Example[], mode: AnalysisMode): string {
+    void mode;
     const isEn = I18nService.getLanguage() === "en-US";
 
     if (examples.length === 0) {

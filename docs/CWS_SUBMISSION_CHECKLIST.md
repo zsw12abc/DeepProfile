@@ -1,12 +1,12 @@
-# Chrome Web Store 提交清单（DeepProfile v1.0.0）
+# Chrome Web Store 提交清单（DeepProfile v1.0.2）
 
 ## 1. 上传包
-- [ ] 执行 `npm run build`
-- [ ] 执行 `npx plasmo package`
-- [ ] 在打包输出目录确认 zip 文件存在（用于上传到 CWS）
-- [ ] 解压自检 `manifest.json`：
-  - [ ] `version` 为 `1.0.0`
-  - [ ] `permissions` 仅包含 `storage`
+- [x] 执行 `npm run build`
+- [x] 执行 `npx plasmo package`
+- [x] 在打包输出目录确认 zip 文件存在（用于上传到 CWS）
+- [x] 解压自检 `manifest.json`：
+  - [x] `version` 为 `1.0.2`
+  - [x] `permissions` 仅包含 `storage`
 
 ## 2. Store Listing（商店信息）
 - [ ] 名称：`DeepProfile`
@@ -32,9 +32,10 @@
 - [ ] 避免出现与主功能无关的营销或模糊功能描述
 
 ## 6. 发布前回归
-- [ ] `npm test`
-- [ ] `npm run typecheck`
-- [ ] `npm run build`
+- [x] 一键预检：执行 `npm run release:check`（包含 lint/typecheck/test/content coverage）
+- [x] `npm test`
+- [x] `npm run typecheck`
+- [x] `npm run build`
 - [ ] 手工验证：四个平台至少各测 1 次按钮注入与分析流程
 
 ## 7. 提交流程
@@ -48,3 +49,15 @@
 - [ ] 记录审核单号与提交时间
 - [ ] 若被拒，按 rejection reason 定位到文件并修复
 - [ ] 修复后提高 `version`（patch）并重新打包提交
+
+## 9. 自动化发布（GitHub Actions）
+- [x] 已提供发布工作流：`.github/workflows/release.yml`
+- [x] 已提供自动化配置文档：`docs/CWS_AUTOMATION_SETUP.md`
+- [ ] 在仓库 Secrets 中配置以下变量：
+  - [ ] `CWS_EXTENSION_ID`
+  - [ ] `CWS_CLIENT_ID`
+  - [ ] `CWS_CLIENT_SECRET`
+  - [ ] `CWS_REFRESH_TOKEN`
+- [ ] 验证自动发布：
+  - [ ] 创建并发布 GitHub Release（会自动构建、打包并发布到 CWS）
+  - [ ] 或手动触发 `Release Extension` workflow（可选择 `publish=false` 仅上传，或发布到 `trustedTesters`）
