@@ -25,7 +25,7 @@ export class HistoryService {
     const history = await this.getAllUserRecords();
 
     // 1. Find existing user record
-    let userRecordIndex = history.findIndex(
+    const userRecordIndex = history.findIndex(
       (r) => r.userId === userId && r.platform === platform,
     );
     let userRecord: UserHistoryRecord;

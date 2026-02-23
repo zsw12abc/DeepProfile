@@ -1,5 +1,5 @@
 ﻿import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import MarkdownRenderer from "./MarkdownRenderer";
 import React from "react";
 
@@ -57,7 +57,7 @@ describe("MarkdownRenderer", () => {
   });
 
   it("should handle null content gracefully", () => {
-    // @ts-ignore - Testing runtime behavior with invalid props
+    // @ts-expect-error - Testing runtime behavior with invalid props
     const { container } = render(<MarkdownRenderer content={null} />);
     expect(container.textContent).toBe("");
   });

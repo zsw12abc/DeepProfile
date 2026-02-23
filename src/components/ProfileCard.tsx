@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import type { ZhihuContent, UserProfile } from "../services/ZhihuClient";
 import { ZhihuClient } from "../services/ZhihuClient";
-import { calculateFinalLabel, parseLabelName } from "../services/LabelUtils";
-import { TopicService, type MacroCategory } from "../services/TopicService";
+import { parseLabelName } from "../services/LabelUtils";
+import { TopicService } from "../services/TopicService";
 import { ExportService } from "../services/ExportService";
 import { ThemeService } from "../services/ThemeService";
 import html2canvas from "html2canvas";
@@ -49,16 +49,13 @@ interface ProfileCardProps {
 
 const ProfileCard: React.FC<ProfileCardProps> = ({
   record,
-  platform,
   isLoading = false,
   statusMessage,
   error,
   onRefresh,
   onClose,
-  onExport,
   progressInfo,
 }) => {
-  const [isExpanded, setIsExpanded] = useState(true);
   const [theme, setTheme] = useState<ThemeConfig>(ZHIHU_WHITE_THEME);
   const [showDebug, setShowDebug] = useState(false);
   const [expandedEvidence, setExpandedEvidence] = useState(false);
@@ -1029,7 +1026,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                             marginBottom: theme.spacing.xs,
                           }}
                         >
-                          "{item.quote}"
+                          &quot;{item.quote}&quot;
                         </div>
                         <div
                           style={{

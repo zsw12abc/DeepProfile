@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { I18nService } from "../services/I18nService";
 import { ThemeService } from "../services/ThemeService";
-import { ConfigService } from "../services/ConfigService";
 import type { ThemeConfig, ExtendedAppConfig } from "../types";
 
 const BUILTIN_THEME_IDS = [

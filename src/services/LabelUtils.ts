@@ -1,4 +1,4 @@
-import { getLabelCategories, createLabelCategories } from "./LabelDefinitions";
+import { createLabelCategories } from "./LabelDefinitions";
 import { I18nService } from "./I18nService";
 
 // 后备映射：确保即使无法加载LabelDefinitions，也能将ID转换为中文名称

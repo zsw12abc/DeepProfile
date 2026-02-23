@@ -38,8 +38,6 @@ export class TwitterClient {
     try {
       // 尝试使用公开的非API方式获取用户信息
       // 由于Twitter限制较多，这里使用模拟方法，实际部署时可能需要使用官方API
-      const url = `${this.TWITTER_BASE_URL}/${username}`;
-
       // 由于在扩展中直接fetch Twitter会有CORS限制，我们返回一个基本的用户信息
       // 实际实现需要使用官方API或更复杂的代理方案
       return {
@@ -59,6 +57,8 @@ export class TwitterClient {
     limit: number = 15,
     context?: string,
   ): Promise<FetchResult> {
+    void context;
+
     try {
       console.log(
         `Attempting to fetch Twitter content for user: ${username} via content script`,

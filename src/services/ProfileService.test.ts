@@ -37,7 +37,6 @@ vi.mock("./QuoraClient", () => ({
 
 // We'll mock ConfigService differently - after imports
 vi.mock("./ConfigService", async () => {
-  const actualConfigService = await vi.importActual("./ConfigService");
   const mockConfig = {
     globalEnabled: true,
     language: "zh-CN",

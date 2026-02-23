@@ -59,7 +59,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === "ANALYZE_COMMENTS") {
     // 如果有 answerId，先获取回答内容
     const analyzeWithContext = async () => {
-      let contextTitle = request.contextTitle;
+      const contextTitle = request.contextTitle;
       let contextContent = request.contextContent;
 
       // 如果前端没有提取到内容，但提供了 answerId，则尝试从 API 获取
@@ -201,11 +201,10 @@ async function testConnection(
   baseUrl: string,
   model: string,
 ): Promise<string> {
-  try {
-    const testPrompt = "Hello";
-    let url = "";
-    let body = {};
-    let headers: any = { "Content-Type": "application/json" };
+  const testPrompt = "Hello";
+  let url = "";
+  let body = {};
+  const headers: any = { "Content-Type": "application/json" };
 
     if (
       provider === "openai" ||
@@ -273,10 +272,7 @@ async function testConnection(
       throw new Error(`${friendlyMsg} \nDetails: ${errText.slice(0, 100)}`);
     }
 
-    return I18nService.t("connection_success");
-  } catch (e: any) {
-    throw e;
-  }
+  return I18nService.t("connection_success");
 }
 
 async function listModels(

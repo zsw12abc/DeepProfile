@@ -3,7 +3,6 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { HistorySection } from "./HistorySection";
 import {
   type UserHistoryRecord,
-  type ProfileData,
   type SupportedPlatform,
 } from "~types";
 import { type MacroCategory } from "~services/TopicService";

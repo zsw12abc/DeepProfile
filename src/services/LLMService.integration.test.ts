@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { LLMService } from "./LLMService";
-import { ConfigService } from "./ConfigService";
 import { LabelService } from "./LabelService";
 import { I18nService } from "./I18nService";
 import { TopicService } from "./TopicService";

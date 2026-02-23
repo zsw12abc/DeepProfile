@@ -35,7 +35,7 @@ describe("I18nService", () => {
   });
 
   it("should return key if translation missing", () => {
-    // @ts-ignore - Testing runtime behavior with invalid key
+    // @ts-expect-error - Testing runtime behavior with invalid key
     expect(I18nService.t("non_existent_key")).toBe("non_existent_key");
   });
 });

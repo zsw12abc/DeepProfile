@@ -1,12 +1,12 @@
 # Chrome Web Store 提交清单（DeepProfile v1.0.2）
 
 ## 1. 上传包
-- [ ] 执行 `npm run build`
-- [ ] 执行 `npx plasmo package`
-- [ ] 在打包输出目录确认 zip 文件存在（用于上传到 CWS）
-- [ ] 解压自检 `manifest.json`：
-  - [ ] `version` 为 `1.0.2`
-  - [ ] `permissions` 仅包含 `storage`
+- [x] 执行 `npm run build`
+- [x] 执行 `npx plasmo package`
+- [x] 在打包输出目录确认 zip 文件存在（用于上传到 CWS）
+- [x] 解压自检 `manifest.json`：
+  - [x] `version` 为 `1.0.2`
+  - [x] `permissions` 仅包含 `storage`
 
 ## 2. Store Listing（商店信息）
 - [ ] 名称：`DeepProfile`
@@ -32,10 +32,10 @@
 - [ ] 避免出现与主功能无关的营销或模糊功能描述
 
 ## 6. 发布前回归
-- [ ] 一键预检：执行 `npm run release:check`（包含 lint/typecheck/test/content coverage）
-- [ ] `npm test`
-- [ ] `npm run typecheck`
-- [ ] `npm run build`
+- [x] 一键预检：执行 `npm run release:check`（包含 lint/typecheck/test/content coverage）
+- [x] `npm test`
+- [x] `npm run typecheck`
+- [x] `npm run build`
 - [ ] 手工验证：四个平台至少各测 1 次按钮注入与分析流程
 
 ## 7. 提交流程

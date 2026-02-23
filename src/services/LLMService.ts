@@ -557,7 +557,7 @@ class LangChainProvider implements LLMProvider {
       const durationMs = Date.now() - startTime;
 
       // Since we're using structured parser, result should already be the parsed object
-      let parsedContent = result;
+      const parsedContent = result;
 
       // Normalize labels and deduplicate
       if (
