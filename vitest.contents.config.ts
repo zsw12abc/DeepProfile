@@ -62,6 +62,7 @@ export default defineConfig({
     ],
     coverage: {
       provider: "v8",
+      reporter: ['text', 'json', 'html', 'lcov'],
       include: [
         "src/contents/zhihu-comments.tsx",
         "src/contents/zhihu-overlay.tsx",

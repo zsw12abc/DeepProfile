@@ -1,0 +1,921 @@
+build-and-release	UNKNOWN STEP	﻿2026-02-24T03:32:57.5396881Z Current runner version: '2.331.0'
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:57.5420759Z ##[group]Runner Image Provisioner
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:57.5421637Z Hosted Compute Agent
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:57.5422357Z Version: 20260123.484
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:57.5423061Z Commit: 6bd6555ca37d84114959e1c76d2c01448ff61c5d
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:57.5423795Z Build Date: 2026-01-23T19:41:17Z
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:57.5424444Z Worker ID: {bc2b6ab9-be5c-40d5-b333-262d805ac894}
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:57.5425212Z Azure Region: northcentralus
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:57.5425768Z ##[endgroup]
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:57.5427641Z ##[group]Operating System
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:57.5428409Z Ubuntu
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:57.5428905Z 24.04.3
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:57.5429424Z LTS
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:57.5429924Z ##[endgroup]
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:57.5430413Z ##[group]Runner Image
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:57.5431024Z Image: ubuntu-24.04
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:57.5431610Z Version: 20260201.15.1
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:57.5433034Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260201.15/images/ubuntu/Ubuntu2404-Readme.md
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:57.5434522Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260201.15
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:57.5435441Z ##[endgroup]
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:57.5436578Z ##[group]GITHUB_TOKEN Permissions
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:57.5438659Z Contents: write
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:57.5439301Z Metadata: read
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:57.5439831Z ##[endgroup]
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:57.5442419Z Secret source: Actions
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:57.5443982Z Prepare workflow directory
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:57.5945661Z Prepare all required actions
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:57.5981999Z Getting action download info
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:57.9552964Z Download action repository 'actions/checkout@v6' (SHA:de0fac2e4500dabe0009e67214ff5f5447ce83dd)
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:58.0746759Z Download action repository 'actions/setup-node@v6' (SHA:6044e13b5dc448c55e2357c09f80417699197238)
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:58.1616958Z Download action repository 'softprops/action-gh-release@v2' (SHA:a06a81a03ee405af7f2048a818ed3f03bbf83c7b)
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:58.5086097Z Download action repository 'mnao305/chrome-extension-upload@v5.0.0' (SHA:4008e29e13c144d0f6725462cbd49b7c291b4928)
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.0591152Z Complete job name: build-and-release
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.1370003Z ##[group]Run actions/checkout@v6
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.1371358Z with:
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.1372290Z   repository: zsw12abc/DeepProfile
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.1373565Z   token: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.1374327Z   ssh-strict: true
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.1375125Z   ssh-user: git
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.1375928Z   persist-credentials: true
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.1376833Z   clean: true
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.1377629Z   sparse-checkout-cone-mode: true
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.1378613Z   fetch-depth: 1
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.1379405Z   fetch-tags: false
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.1380212Z   show-progress: true
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.1381025Z   lfs: false
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.1381760Z   submodules: false
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.1382757Z   set-safe-directory: true
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.1383904Z env:
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.1384852Z   CWS_EXTENSION_ID: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.1386482Z   CWS_CLIENT_ID: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.1387659Z   CWS_CLIENT_SECRET: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.1390072Z   CWS_REFRESH_TOKEN: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.1390970Z ##[endgroup]
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2315901Z Syncing repository: zsw12abc/DeepProfile
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2318641Z ##[group]Getting Git version info
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2320172Z Working directory is '/home/runner/work/DeepProfile/DeepProfile'
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2322446Z [command]/usr/bin/git version
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2433223Z git version 2.52.0
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2455256Z ##[endgroup]
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2469011Z Temporarily overriding HOME='/home/runner/work/_temp/b75819bc-56bd-48b1-a010-b365f4ea80e0' before making global git config changes
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2472101Z Adding repository directory to the temporary git global config as a safe directory
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2475228Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/DeepProfile/DeepProfile
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2512297Z Deleting the contents of '/home/runner/work/DeepProfile/DeepProfile'
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2516220Z ##[group]Initializing the repository
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2519746Z [command]/usr/bin/git init /home/runner/work/DeepProfile/DeepProfile
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2644980Z hint: Using 'master' as the name for the initial branch. This default branch name
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2646980Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2649424Z hint: to use in all of your new repositories, which will suppress this warning,
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2651657Z hint: call:
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2653273Z hint:
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2655009Z hint: 	git config --global init.defaultBranch <name>
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2657137Z hint:
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2659039Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2662512Z hint: 'development'. The just-created branch can be renamed via this command:
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2665048Z hint:
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2666296Z hint: 	git branch -m <name>
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2667819Z hint:
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2669328Z hint: Disable this message with "git config set advice.defaultBranchName false"
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2671415Z Initialized empty Git repository in /home/runner/work/DeepProfile/DeepProfile/.git/
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2675866Z [command]/usr/bin/git remote add origin https://github.com/zsw12abc/DeepProfile
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2700560Z ##[endgroup]
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2701973Z ##[group]Disabling automatic garbage collection
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2704423Z [command]/usr/bin/git config --local gc.auto 0
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2732350Z ##[endgroup]
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2733816Z ##[group]Setting up auth
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2735282Z Removing SSH command configuration
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2738457Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.2770743Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.3130100Z Removing HTTP extra header
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.3136948Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.3167921Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.3380259Z Removing includeIf entries pointing to credentials config files
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.3386206Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.3417406Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.3640572Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-6e3e5dd1-7282-4f31-b3b8-485700f0764a.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.3676404Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/DeepProfile/DeepProfile/.git.path /home/runner/work/_temp/git-credentials-6e3e5dd1-7282-4f31-b3b8-485700f0764a.config
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.3707030Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/DeepProfile/DeepProfile/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-6e3e5dd1-7282-4f31-b3b8-485700f0764a.config
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.3737136Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-6e3e5dd1-7282-4f31-b3b8-485700f0764a.config
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.3769289Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-6e3e5dd1-7282-4f31-b3b8-485700f0764a.config
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.3795855Z ##[endgroup]
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.3798277Z ##[group]Fetching the repository
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.3806197Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/tags/1.0.3:refs/tags/1.0.3
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9176889Z From https://github.com/zsw12abc/DeepProfile
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9178311Z  * [new tag]         1.0.3      -> 1.0.3
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9211847Z [command]/usr/bin/git tag --list 1.0.3
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9239188Z 1.0.3
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9248021Z [command]/usr/bin/git rev-parse refs/tags/1.0.3^{commit}
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9270676Z 89c0df71bca4ca650e290b371beb1516eaacad9c
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9276494Z ##[endgroup]
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9277854Z ##[group]Determining the checkout info
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9279487Z ##[endgroup]
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9280784Z [command]/usr/bin/git sparse-checkout disable
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9321858Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9352488Z ##[group]Checking out the ref
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9354751Z [command]/usr/bin/git checkout --progress --force refs/tags/1.0.3
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9643511Z Note: switching to 'refs/tags/1.0.3'.
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9644735Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9645635Z You are in 'detached HEAD' state. You can look around, make experimental
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9647638Z changes and commit them, and you can discard any commits you make in this
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9649519Z state without impacting any branches by switching back to a branch.
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9651371Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9652808Z If you want to create a new branch to retain commits you create, you may
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9655691Z do so (now or later) by using -c with the switch command. Example:
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9657479Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9658094Z   git switch -c <new-branch-name>
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9659207Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9659851Z Or undo this operation with:
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9660902Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9661460Z   git switch -
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9662390Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9663581Z Turn off this advice by setting config variable advice.detachedHead to false
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9665407Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9666891Z HEAD is now at 89c0df7 Merge pull request #56 from zsw12abc/feat/1.0.3_CommentsOptimization
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9670623Z ##[endgroup]
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9696717Z [command]/usr/bin/git log -1 --format=%H
+build-and-release	UNKNOWN STEP	2026-02-24T03:32:59.9719103Z 89c0df71bca4ca650e290b371beb1516eaacad9c
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:00.0074740Z ##[group]Run actions/setup-node@v6
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:00.0075743Z with:
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:00.0076460Z   node-version: 20
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:00.0077248Z   cache: npm
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:00.0078009Z   check-latest: false
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:00.0079150Z   token: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:00.0079959Z   package-manager-cache: true
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:00.0080883Z env:
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:00.0081792Z   CWS_EXTENSION_ID: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:00.0083469Z   CWS_CLIENT_ID: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:00.0084506Z   CWS_CLIENT_SECRET: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:00.0087054Z   CWS_REFRESH_TOKEN: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:00.0087925Z ##[endgroup]
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:00.1412490Z Found in cache @ /opt/hostedtoolcache/node/20.20.0/x64
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:00.1415641Z ##[group]Environment details
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:00.4918891Z node: v20.20.0
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:00.4920399Z npm: 10.8.2
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:00.4921621Z yarn: 1.22.22
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:00.4924196Z ##[endgroup]
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:00.4941821Z [command]/opt/hostedtoolcache/node/20.20.0/x64/bin/npm config get cache
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:00.6148463Z /home/runner/.npm
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:00.7390508Z Cache hit for: node-cache-Linux-x64-npm-57d4daee0f676524167976172522577721a23415a8c160a4f0564dba48996be7
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:01.8868544Z Received 134217728 of 271851162 (49.4%), 126.4 MBs/sec
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:02.5810497Z Received 271851162 of 271851162 (100.0%), 151.9 MBs/sec
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:02.5811601Z Cache Size: ~259 MB (271851162 B)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:02.5852781Z [command]/usr/bin/tar -xf /home/runner/work/_temp/5af5f43a-a00f-4240-b6af-605ad08b4206/cache.tzst -P -C /home/runner/work/DeepProfile/DeepProfile --use-compress-program unzstd
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:03.2081194Z Cache restored successfully
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:03.2593019Z Cache restored from key: node-cache-Linux-x64-npm-57d4daee0f676524167976172522577721a23415a8c160a4f0564dba48996be7
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:03.2793916Z ##[group]Run npm ci
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:03.2794219Z [36;1mnpm ci[0m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:03.2839618Z shell: /usr/bin/bash -e {0}
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:03.2839905Z env:
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:03.2840379Z   CWS_EXTENSION_ID: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:03.2840815Z   CWS_CLIENT_ID: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:03.2841124Z   CWS_CLIENT_SECRET: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:03.2841741Z   CWS_REFRESH_TOKEN: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:03.2841986Z ##[endgroup]
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:04.3978736Z npm warn ERESOLVE overriding peer dependency
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:04.3979662Z npm warn While resolving: htmlnano@2.1.5
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:04.3980346Z npm warn Found: svgo@2.8.0
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:04.3981181Z npm warn node_modules/@parcel/optimizer-htmlnano/node_modules/svgo
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:04.3982411Z npm warn   svgo@"^2.4.0" from @parcel/optimizer-htmlnano@2.9.3
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:04.3983285Z npm warn   node_modules/@parcel/optimizer-htmlnano
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:04.3984332Z npm warn     @parcel/optimizer-htmlnano@"2.9.3" from @parcel/config-default@2.9.3
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:04.3985442Z npm warn     node_modules/@parcel/config-default
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:04.3986032Z npm warn
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:04.3986556Z npm warn Could not resolve dependency:
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:04.3987330Z npm warn peerOptional svgo@"^3.0.2" from htmlnano@2.1.5
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:04.3988286Z npm warn node_modules/@parcel/optimizer-htmlnano/node_modules/htmlnano
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:04.3989330Z npm warn   htmlnano@"^2.0.0" from @parcel/optimizer-htmlnano@2.9.3
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:04.3990235Z npm warn   node_modules/@parcel/optimizer-htmlnano
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:04.3990865Z npm warn
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:04.3991493Z npm warn Conflicting peer dependency: svgo@3.3.2
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:04.3992345Z npm warn node_modules/svgo
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:04.3993086Z npm warn   peerOptional svgo@"^3.0.2" from htmlnano@2.1.5
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:04.3994107Z npm warn   node_modules/@parcel/optimizer-htmlnano/node_modules/htmlnano
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:04.3995158Z npm warn     htmlnano@"^2.0.0" from @parcel/optimizer-htmlnano@2.9.3
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:04.3996057Z npm warn     node_modules/@parcel/optimizer-htmlnano
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:09.3253270Z npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:09.3679445Z npm warn deprecated stable@0.1.8: Modern JS already guarantees Array#sort() is a stable sort, so this library is deprecated. See the compatibility table on MDN: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#browser_compatibility
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:09.4901563Z npm warn deprecated @humanwhocodes/config-array@0.13.0: Use @eslint/config-array instead
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:09.5056514Z npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:09.6562481Z npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:09.6701113Z npm warn deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:10.5231219Z npm warn deprecated source-map@0.8.0-beta.0: The work that was done in this beta branch won't be included in future versions
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:10.6151904Z npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:13.3776998Z npm warn deprecated eslint@8.57.1: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:15.2277381Z npm warn deprecated core-js@2.6.12: core-js@<3.23.3 is no longer maintained and not recommended for usage due to the number of issues. Because of the V8 engine whims, feature detection in old core-js versions could cause a slowdown up to 100x even if nothing is polyfilled. Some versions have web compatibility issues. Please, upgrade your dependencies to the actual version of core-js.
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:18.3359190Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:18.3360334Z added 976 packages, and audited 977 packages in 15s
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:18.3360867Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:18.3361154Z 329 packages are looking for funding
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:18.3361677Z   run `npm fund` for details
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:19.0524084Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:19.0524966Z 97 vulnerabilities (6 moderate, 90 high, 1 critical)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:19.0525435Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:19.1473499Z To address issues that do not require attention, run:
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:19.1473956Z   npm audit fix
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:19.1474119Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:19.1474412Z To address all issues (including breaking changes), run:
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:19.1474860Z   npm audit fix --force
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:19.1475057Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:19.1475214Z Run `npm audit` for details.
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:19.1509337Z ##[group]Run npm run release:check
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:19.1509681Z [36;1mnpm run release:check[0m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:19.1541057Z shell: /usr/bin/bash -e {0}
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:19.1541311Z env:
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:19.1541662Z   CWS_EXTENSION_ID: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:19.1542280Z   CWS_CLIENT_ID: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:19.1542723Z   CWS_CLIENT_SECRET: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:19.1543351Z   CWS_REFRESH_TOKEN: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:19.1543583Z ##[endgroup]
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:19.2658520Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:19.2658950Z > deep-profile@1.0.3 release:check
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:19.2659926Z > npm run lint && npm run typecheck && npm run typecheck:core && npm run test && npm run test:coverage:contents
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:19.2660550Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:19.3768986Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:19.3769662Z > deep-profile@1.0.3 lint
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:19.3770425Z > eslint "src/**/*.{ts,tsx}" --max-warnings=0
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:19.3770831Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:23.3383985Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:23.3384654Z > deep-profile@1.0.3 typecheck
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:23.3385353Z > tsc --noEmit
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:23.3385597Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:28.5151159Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:28.5151727Z > deep-profile@1.0.3 typecheck:core
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:28.5152515Z > tsc --noEmit -p tsconfig.typecheck-core.json
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:28.5152837Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:31.1886559Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:31.1887151Z > deep-profile@1.0.3 test
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:31.1887703Z > vitest run
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:31.1887935Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:31.4962783Z [33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:31.5324259Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:31.5325749Z [7m[1m[36m RUN [39m[22m[27m [36mv1.2.1[39m [90m/home/runner/work/DeepProfile/DeepProfile[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:31.5326437Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:32.8593451Z  [32m✓[39m src/services/HistoryService.test.ts [2m ([22m[2m15 tests[22m[2m)[22m[90m 17[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:32.9528443Z  [32m✓[39m src/services/ProfileService.test.ts [2m ([22m[2m22 tests[22m[2m)[22m[90m 19[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.2006186Z [90mstderr[2m | src/components/ThemeSettings.test.tsx[2m > [22m[2mThemeSettings[2m > [22m[2mshows error message when loading themes fails[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.2007623Z Failed to load themes: Error: load failed
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.2008632Z     at /home/runner/work/DeepProfile/DeepProfile/src/components/ThemeSettings.test.tsx:165:44
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.2009978Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:128:14
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.2011376Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:59:26
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.2013053Z     at runTest (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:675:17)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.2014606Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.2016168Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.2017708Z     at runFiles (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:842:5)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.2019672Z     at startTests (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:851:3)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.2021312Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/vitest/dist/chunks/runtime-runBaseTests.S8ZSFig3.js:114:7
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.2023289Z     at withEnv (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/vitest/dist/chunks/runtime-runBaseTests.S8ZSFig3.js:82:5)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.2024254Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.2974285Z [90mstderr[2m | src/components/ThemeSettings.test.tsx[2m > [22m[2mThemeSettings[2m > [22m[2mshows error when apply theme fails[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.2975625Z Failed to apply theme: Error: apply failed
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.2977246Z     at /home/runner/work/DeepProfile/DeepProfile/src/components/ThemeSettings.test.tsx:187:42
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.2978690Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:128:14
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.2980161Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:59:26
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.2981680Z     at runTest (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:675:17)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.2983448Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.2985043Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.2986625Z     at runFiles (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:842:5)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.2988234Z     at startTests (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:851:3)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.2989892Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/vitest/dist/chunks/runtime-runBaseTests.S8ZSFig3.js:114:7
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.2991756Z     at withEnv (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/vitest/dist/chunks/runtime-runBaseTests.S8ZSFig3.js:82:5)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.2992938Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.4556944Z [90mstderr[2m | src/components/ThemeSettings.test.tsx[2m > [22m[2mThemeSettings[2m > [22m[2mshows error when creating custom theme fails[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.4560116Z Failed to create theme: Error: create failed
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.4561188Z     at /home/runner/work/DeepProfile/DeepProfile/src/components/ThemeSettings.test.tsx:259:40
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.4562715Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:128:14
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.4564136Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:59:26
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.4565588Z     at runTest (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:675:17)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.4567080Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.4568593Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.4570079Z     at runFiles (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:842:5)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.4571595Z     at startTests (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:851:3)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.4573368Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/vitest/dist/chunks/runtime-runBaseTests.S8ZSFig3.js:114:7
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.4575049Z     at withEnv (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/vitest/dist/chunks/runtime-runBaseTests.S8ZSFig3.js:82:5)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.4575935Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.5753736Z [90mstderr[2m | src/components/ThemeSettings.test.tsx[2m > [22m[2mThemeSettings[2m > [22m[2mshows error when deleting custom theme fails[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.5755725Z Failed to delete theme: Error: delete failed
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.5756814Z     at /home/runner/work/DeepProfile/DeepProfile/src/components/ThemeSettings.test.tsx:324:43
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.5758163Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:128:14
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.5759386Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:59:26
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.5760680Z     at runTest (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:675:17)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.5762629Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.5764103Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.5765538Z     at runFiles (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:842:5)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.5767010Z     at startTests (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:851:3)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.5768601Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/vitest/dist/chunks/runtime-runBaseTests.S8ZSFig3.js:114:7
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.5770345Z     at withEnv (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/vitest/dist/chunks/runtime-runBaseTests.S8ZSFig3.js:82:5)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.5771267Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.8410520Z [90mstderr[2m | src/components/ThemeSettings.test.tsx[2m > [22m[2mThemeSettings[2m > [22m[2mshows error when saving edited theme fails[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.8411876Z Failed to save theme: Error: save failed
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.8413025Z     at /home/runner/work/DeepProfile/DeepProfile/src/components/ThemeSettings.test.tsx:359:40
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.8414390Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:128:14
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.8415793Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:59:26
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.8417253Z     at runTest (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:675:17)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.8418774Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.8420296Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.8421821Z     at runFiles (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:842:5)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.8423538Z     at startTests (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:851:3)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.8425196Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/vitest/dist/chunks/runtime-runBaseTests.S8ZSFig3.js:114:7
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.8426976Z     at withEnv (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/vitest/dist/chunks/runtime-runBaseTests.S8ZSFig3.js:82:5)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.8427917Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:33.9906816Z  [32m✓[39m src/components/ThemeSettings.test.tsx [2m ([22m[2m16 tests[22m[2m)[22m[33m 1009[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:34.2932032Z  [32m✓[39m src/services/ConsistencyService.test.ts [2m ([22m[2m14 tests[22m[2m)[22m[90m 17[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:34.6624671Z  [32m✓[39m src/services/LLMService.test.ts [2m ([22m[2m12 tests[22m[2m)[22m[90m 33[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:34.6657102Z [90mstderr[2m | src/services/LLMService.test.ts[2m > [22m[2mLLMService[2m > [22m[2mcontent safety fallback[2m > [22m[2mretries generateRawText once with sanitized input after content safety block[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:34.6659012Z [ContentSafety] generateRawText blocked by provider (attempt 1/2).
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:34.6659660Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:34.6661993Z [90mstderr[2m | src/services/LLMService.test.ts[2m > [22m[2mLLMService[2m > [22m[2mcontent safety fallback[2m > [22m[2mthrows unified actionable content filter error after retries exhausted[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:34.6664235Z [ContentSafety] generateRawText blocked by provider (attempt 1/2).
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:34.6665391Z [ContentSafety] generateRawText blocked by provider (attempt 2/2).
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:34.6666824Z [ContentSafety] generateRawText failed after 2 attempts. Error: data_inspection_failed: content moderation blocked
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:34.6668378Z     at /home/runner/work/DeepProfile/DeepProfile/src/services/LLMService.test.ts:198:13
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:34.6670084Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:128:14
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:34.6671700Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:59:26
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:34.6673299Z     at runTest (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:675:17)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:34.6674841Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:34.6676374Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:34.6677919Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:34.6679452Z     at runFiles (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:842:5)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:34.6680987Z     at startTests (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:851:3)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:34.6682691Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/vitest/dist/chunks/runtime-runBaseTests.S8ZSFig3.js:114:7
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:34.6683517Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:35.4483319Z  [32m✓[39m src/services/ConfigService.test.ts [2m ([22m[2m7 tests[22m[2m)[22m[90m 13[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:35.7750303Z  [32m✓[39m src/background/index.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[90m 145[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:35.7752541Z [90mstdout[2m | src/background/index.test.ts[2m > [22m[2mBackground Service[2m > [22m[2mshould handle ANALYZE_PROFILE message[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:35.7753826Z DeepProfile Background Service Started
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:35.7754834Z Analyzing user: test-user, Platform: zhihu, Context: test context, ForceRefresh: false
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:35.7755806Z Context classified as: technology (Technology)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:35.7756219Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:35.7757475Z [90mstdout[2m | src/background/index.test.ts[2m > [22m[2mBackground Service[2m > [22m[2mshould use cache if available[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:35.7759040Z Analyzing user: test-user, Platform: zhihu, Context: test context, ForceRefresh: false
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:35.7760036Z Context classified as: technology (undefined)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:35.7760822Z Cache hit for user test-user in category technology
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:35.7761258Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:36.2876453Z  [32m✓[39m src/services/ImprovedEdgeCaseTests.test.ts [2m ([22m[2m14 tests[22m[2m)[22m[90m 13[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:37.1238334Z  [32m✓[39m src/services/ThemeService.test.ts [2m ([22m[2m6 tests[22m[2m)[22m[90m 24[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:37.1308798Z  [32m✓[39m src/components/PlatformSettings.test.tsx [2m ([22m[2m10 tests[22m[2m)[22m[90m 293[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:38.1950354Z  [32m✓[39m src/components/ProfileCard.test.tsx [2m ([22m[2m6 tests[22m[2m)[22m[33m 511[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:38.8456966Z [90mstdout[2m | src/contents/twitter-overlay.test.tsx[2m > [22m[2mTwitterOverlay[2m > [22m[2mhandles TWITTER_CONTENT_REQUEST and responds with scraped content[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:38.8473282Z Scraping Twitter content for testuser (testuser) on http://localhost:3000/
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:38.8474409Z Scraped 1 items
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:38.8476192Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:38.9374996Z  [32m✓[39m src/contents/twitter-overlay.test.tsx [2m ([22m[2m7 tests[22m[2m)[22m[90m 284[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.4331288Z [90mstderr[2m | src/options.test.tsx[2m > [22m[2mOptions Page[2m > [22m[2mswitches tabs correctly[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.4332825Z Warning: An update to Options inside a test was not wrapped in act(...).
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.4333365Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.4333978Z When testing, code that causes React state updates should be wrapped into act(...):
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.4334590Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.4334745Z act(() => {
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.4335186Z   /* fire events that update state */
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.4335665Z });
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.4336492Z /* assert on the output */
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.4336839Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.4337899Z This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.4339390Z     at Options (/home/runner/work/DeepProfile/DeepProfile/src/options.tsx:43:53)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.4340483Z Warning: An update to Options inside a test was not wrapped in act(...).
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.4341019Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.4341607Z When testing, code that causes React state updates should be wrapped into act(...):
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.4342418Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.4342587Z act(() => {
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.4343016Z   /* fire events that update state */
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.4343483Z });
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.4343857Z /* assert on the output */
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.4344133Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.4345181Z This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.4346612Z     at Options (/home/runner/work/DeepProfile/DeepProfile/src/options.tsx:43:53)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.4347198Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.4508729Z  [32m✓[39m src/options.test.tsx [2m ([22m[2m3 tests[22m[2m)[22m[33m 458[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.7864524Z  [32m✓[39m src/services/TopicService.test.ts [2m ([22m[2m16 tests[22m[2m)[22m[90m 17[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.7919666Z [90mstderr[2m | src/services/TopicService.test.ts[2m > [22m[2mTopicService[2m > [22m[2mclassifyWithLLM[2m > [22m[2mshould return general on LLM error[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.7921632Z LLM classification failed: Error: API Error
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.7923187Z     at /home/runner/work/DeepProfile/DeepProfile/src/services/TopicService.test.ts:113:9
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.7924732Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:128:14
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.7926529Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:59:26
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.7928440Z     at runTest (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:675:17)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.7930278Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.7932346Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.7934302Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.7936171Z     at runFiles (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:842:5)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.7937994Z     at startTests (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:851:3)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.7939974Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/vitest/dist/chunks/runtime-runBaseTests.S8ZSFig3.js:114:7
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:39.7941229Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1402508Z  [32m✓[39m src/services/ZhihuClient.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[90m 17[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1415953Z [90mstderr[2m | src/services/ZhihuClient.test.ts[2m > [22m[2mZhihuClient[2m > [22m[2mfetchUserProfile[2m > [22m[2mshould throw error on network failure[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1418627Z [90mstdout[2m | src/services/ZhihuClient.test.ts[2m > [22m[2mZhihuClient[2m > [22m[2mfetchUserContent[2m > [22m[2mshould fetch user content successfully[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1421672Z Failed to fetch user profile Error: Network error
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1422526Z API Response for answers: {
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1428086Z     at /home/runner/work/DeepProfile/DeepProfile/src/services/ZhihuClient.test.ts:55:35
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1428943Z   data: [
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1433215Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:128:14
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1434664Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:59:26
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1436137Z     at runTest (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:675:17)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1437679Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1439238Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1440778Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1442509Z     at runFiles (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:842:5)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1444048Z     at startTests (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:851:3)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1445678Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/vitest/dist/chunks/runtime-runBaseTests.S8ZSFig3.js:114:7
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1446572Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1446726Z     {
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1447065Z       id: '1',
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1447427Z       type: 'answer',
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1447835Z       question: [Object],
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1448254Z       excerpt: 'Answer 1',
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1448682Z       created_time: 1000,
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1449205Z       url: 'http://zhihu.com/answer/1',
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1449724Z       voteup_count: 10,
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1450143Z       comment_count: 5
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1450531Z     },
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1450864Z     {
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1451275Z       id: '3',
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1451635Z       type: 'answer',
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1452031Z       question: [Object],
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1452691Z       excerpt: 'Answer 3',
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1453118Z       created_time: 3000,
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1453622Z       url: 'http://zhihu.com/answer/3',
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1454138Z       voteup_count: 20,
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1454545Z       comment_count: 8
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1454897Z     }
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1455186Z   ],
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1455494Z   paging: { is_end: true }
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1455888Z }
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1456236Z API Response for articles: {
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1456662Z   data: [
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1456975Z     {
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1457310Z       id: '2',
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1457671Z       type: 'article',
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1458071Z       title: 'Article 1',
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1458557Z       excerpt: 'Article Content',
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1459043Z       created_time: 2000,
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1459552Z       url: 'http://zhihu.com/article/2',
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1460065Z       voteup_count: 15,
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1460462Z       comment_count: 3
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1460835Z     }
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1461161Z   ],
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1461510Z   paging: { is_end: true }
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1461922Z }
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1462745Z Fetched activities: { data: [], paging: { is_end: true } }
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1463479Z Found 0 items with empty content to enhance
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1464091Z Fetched 3 items, returning top 3
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:40.1464655Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.0467352Z [90mstdout[2m | src/contents/zhihu-comments.test.tsx[2m > [22m[2mZhihuComments integration[2m > [22m[2minjects summary button and runs comment analysis flow[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.0469761Z [DeepProfile] Extracted 3 comments from container.
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.0471630Z [DeepProfile] Received analysis result: {
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.0472869Z   summary: '这是评论摘要',
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.0473457Z   stance_ratio: { support: 0.5, neutral: 0.3, oppose: 0.2 },
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.0474042Z   key_points: [],
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.0474427Z   sentiment: 'neutral'
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.0474797Z }
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.0474972Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.1888774Z [90mstderr[2m | src/contents/zhihu-comments.test.tsx[2m > [22m[2mZhihuComments integration[2m > [22m[2mshows error when comments are insufficient[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.1892321Z [DeepProfile] Analysis failed: Error: 评论数量不足以进行分析 (2，请尝试增加显示的评论数量。
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.1894869Z     at analyze (/home/runner/work/DeepProfile/DeepProfile/src/contents/zhihu-comments.tsx:130:17)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.1902461Z     at /home/runner/work/DeepProfile/DeepProfile/src/contents/zhihu-comments.tsx:218:5
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.1904101Z     at commitHookEffectListMount (/home/runner/work/DeepProfile/DeepProfile/node_modules/react-dom/cjs/react-dom.development.js:23150:26)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.1906052Z     at commitPassiveMountOnFiber (/home/runner/work/DeepProfile/DeepProfile/node_modules/react-dom/cjs/react-dom.development.js:24931:11)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.1908099Z     at commitPassiveMountEffects_complete (/home/runner/work/DeepProfile/DeepProfile/node_modules/react-dom/cjs/react-dom.development.js:24891:9)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.1910170Z     at commitPassiveMountEffects_begin (/home/runner/work/DeepProfile/DeepProfile/node_modules/react-dom/cjs/react-dom.development.js:24878:7)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.1912387Z     at commitPassiveMountEffects (/home/runner/work/DeepProfile/DeepProfile/node_modules/react-dom/cjs/react-dom.development.js:24866:3)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.1914354Z     at flushPassiveEffectsImpl (/home/runner/work/DeepProfile/DeepProfile/node_modules/react-dom/cjs/react-dom.development.js:27039:3)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.1916227Z     at flushPassiveEffects (/home/runner/work/DeepProfile/DeepProfile/node_modules/react-dom/cjs/react-dom.development.js:26984:14)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.1917993Z     at commitRootImpl (/home/runner/work/DeepProfile/DeepProfile/node_modules/react-dom/cjs/react-dom.development.js:26935:5)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.1918869Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.1920399Z [90mstdout[2m | src/contents/zhihu-comments.test.tsx[2m > [22m[2mZhihuComments integration[2m > [22m[2mshows error when comments are insufficient[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.1921933Z [DeepProfile] Extracted 2 comments from container.
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.1922561Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.2295462Z [90mstderr[2m | src/contents/zhihu-comments.test.tsx[2m > [22m[2mZhihuComments integration[2m > [22m[2mshows extension-context-specific error message[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.2298139Z [90mstdout[2m | src/contents/zhihu-comments.test.tsx[2m > [22m[2mZhihuComments integration[2m > [22m[2mshows extension-context-specific error message[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.2299688Z [DeepProfile] Extracted 3 comments from container.
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.2300148Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.2301603Z [DeepProfile] Extension context invalidated, please refresh the page
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.2332508Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.2456108Z  [32m✓[39m src/contents/zhihu-comments.test.tsx [2m ([22m[2m4 tests[22m[2m)[22m[33m 444[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:41.5473276Z  [32m✓[39m src/components/ModelSelector.test.tsx [2m ([22m[2m9 tests[22m[2m)[22m[33m 494[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:42.3105476Z  [32m✓[39m src/components/HistorySection.test.tsx [2m ([22m[2m9 tests[22m[2m)[22m[33m 761[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:42.5256840Z  [32m✓[39m src/services/LabelUtils.test.ts [2m ([22m[2m16 tests[22m[2m)[22m[90m 9[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:43.1427950Z  [32m✓[39m src/services/LLMService.integration.test.ts [2m ([22m[2m6 tests[22m[2m)[22m[90m 15[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:43.7615364Z  [32m✓[39m src/components/VersionInfo.test.tsx [2m ([22m[2m8 tests[22m[2m)[22m[90m 97[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:43.9214339Z  [32m✓[39m src/services/StructuredOutputService.test.ts [2m ([22m[2m7 tests[22m[2m)[22m[90m 16[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:44.9353522Z  [32m✓[39m src/contents/test_reddit_overlay_context.test.tsx [2m ([22m[2m5 tests[22m[2m)[22m[90m 65[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:45.3654832Z  [32m✓[39m src/contents/reddit-overlay.test.tsx [2m ([22m[2m5 tests[22m[2m)[22m[90m 186[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:45.4126180Z  [32m✓[39m src/contents/zhihu-overlay.test.tsx [2m ([22m[2m4 tests[22m[2m)[22m[90m 186[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.2600716Z [90mstderr[2m | src/services/RedditClient.test.ts[2m > [22m[2mRedditClient[2m > [22m[2mfetchUserProfile[2m > [22m[2mshould return null on error[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.2602415Z Failed to fetch Reddit user profile Error: Network error
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.2603423Z     at /home/runner/work/DeepProfile/DeepProfile/src/services/RedditClient.test.ts:35:35
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.2604797Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:128:14
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.2606232Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:59:26
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.2607704Z     at runTest (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:675:17)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.2609299Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.2610800Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.2612535Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.2614043Z     at runFiles (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:842:5)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.2615585Z     at startTests (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:851:3)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.2617219Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/vitest/dist/chunks/runtime-runBaseTests.S8ZSFig3.js:114:7
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.2618102Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.2619597Z [90mstderr[2m | src/services/RedditClient.test.ts[2m > [22m[2mRedditClient[2m > [22m[2mfetchUserContent[2m > [22m[2mshould handle fetch errors gracefully[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.2621049Z Failed to fetch Reddit content: Error: Network error
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.2622073Z     at /home/runner/work/DeepProfile/DeepProfile/src/services/RedditClient.test.ts:102:35
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.2623655Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:128:14
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.2625034Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:59:26
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.2626580Z     at runTest (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:675:17)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.2628169Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.2629733Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.2631302Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.2633251Z     at runFiles (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:842:5)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.2634851Z     at startTests (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:851:3)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.2637020Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/vitest/dist/chunks/runtime-runBaseTests.S8ZSFig3.js:114:7
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.2637966Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.2639469Z [90mstdout[2m | src/services/RedditClient.test.ts[2m > [22m[2mRedditClient[2m > [22m[2mfetchUserContent[2m > [22m[2mshould fetch user content successfully[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.2640733Z Fetched 2 items, returning top 2
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.2641024Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.2641842Z  [32m✓[39m src/services/RedditClient.test.ts [2m ([22m[2m6 tests[22m[2m)[22m[90m 9[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.6644356Z  [32m✓[39m src/services/TelemetryService.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[90m 16[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.6648449Z [90mstdout[2m | src/services/TelemetryService.test.ts[2m > [22m[2mTelemetryService[2m > [22m[2mrecords events in development when enabled[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.6650050Z [Telemetry] {
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.6650733Z   id: '1771904026648-',
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.6651198Z   category: 'event',
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.6651692Z   name: 'analysis_button_clicked',
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.6652409Z   timestamp: 1771904026648,
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.6652854Z   data: { platform: 'zhihu' }
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.6653256Z }
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:46.6653420Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:47.0103242Z  [32m✓[39m src/services/ReplyAssistantService.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[90m 11[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:47.5176490Z  [32m✓[39m src/contents/overlay-logic.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[90m 12[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:47.9092811Z  [32m✓[39m src/services/LabelService.test.ts [2m ([22m[2m11 tests[22m[2m)[22m[90m 10[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2565589Z  [32m✓[39m src/services/CommentAnalysisService.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[90m 14[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2570522Z [90mstderr[2m | src/services/CommentAnalysisService.test.ts[2m > [22m[2mCommentAnalysisService[2m > [22m[2manalyzeComments[2m > [22m[2mshould handle LLM parsing error[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2573137Z [DeepProfile] Direct JSON.parse failed. Trying to extract from a larger structure. SyntaxError: Unexpected token 'I', "Invalid JSON" is not valid JSON
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2574396Z     at JSON.parse (<anonymous>)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2575496Z     at Function.parseResult (/home/runner/work/DeepProfile/DeepProfile/src/services/CommentAnalysisService.ts:189:19)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2577179Z     at Function.analyzeComments (/home/runner/work/DeepProfile/DeepProfile/src/services/CommentAnalysisService.ts:72:27)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2578701Z     at /home/runner/work/DeepProfile/DeepProfile/src/services/CommentAnalysisService.test.ts:83:7
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2580170Z     at runTest (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:675:11)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2581682Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2583320Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2584801Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2586294Z     at runFiles (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:842:5)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2587812Z     at startTests (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:851:3)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2593752Z [DeepProfile] Could not parse JSON from LLM response. SyntaxError: Unexpected token 'I', "Invalid JSON" is not valid JSON
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2594874Z     at JSON.parse (<anonymous>)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2596011Z     at Function.parseResult (/home/runner/work/DeepProfile/DeepProfile/src/services/CommentAnalysisService.ts:197:34)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2624190Z     at Function.analyzeComments (/home/runner/work/DeepProfile/DeepProfile/src/services/CommentAnalysisService.ts:72:27)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2626154Z     at /home/runner/work/DeepProfile/DeepProfile/src/services/CommentAnalysisService.test.ts:83:7
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2627632Z     at runTest (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:675:11)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2629190Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2630778Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2632464Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2634279Z     at runFiles (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:842:5)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2636117Z     at startTests (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:851:3) Original response string: Invalid JSON
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2637753Z Comment analysis failed: Error: AI 返回的数据格式不正确，无法解析。
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2638962Z     at Function.parseResult (/home/runner/work/DeepProfile/DeepProfile/src/services/CommentAnalysisService.ts:211:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2640668Z     at Function.analyzeComments (/home/runner/work/DeepProfile/DeepProfile/src/services/CommentAnalysisService.ts:72:27)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2650014Z     at /home/runner/work/DeepProfile/DeepProfile/src/services/CommentAnalysisService.test.ts:83:7
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2651587Z     at runTest (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:675:11)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2653475Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2654973Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2656339Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2657688Z     at runFiles (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:842:5)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2659050Z     at startTests (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:851:3)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2660555Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/vitest/dist/chunks/runtime-runBaseTests.S8ZSFig3.js:114:7
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.2661412Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:48.6884772Z  [32m✓[39m src/services/ExportService.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:49.1118435Z  [32m✓[39m src/contents/reply-assistant-language-utils.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[90m 9[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:49.7310615Z  [32m✓[39m src/services/ExampleService.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:50.1173979Z  [32m✓[39m src/components/MarkdownRenderer.test.tsx [2m ([22m[2m6 tests[22m[2m)[22m[90m 102[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:50.3305094Z  [32m✓[39m src/services/PerformanceTest.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[90m 6[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:50.9158185Z  [32m✓[39m src/services/Logger.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[90m 5[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:51.3434660Z  [32m✓[39m src/contents/zhihu-reply-assistant-utils.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[90m 6[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:51.5353250Z [90mstderr[2m | src/services/LLMResponseNormalizer.test.ts[2m > [22m[2mLLMResponseNormalizer[2m > [22m[2mfalls back to political_leaning when value_orientation is missing[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:51.5355195Z LLM returned string label at index 0: discipline_vs_hedonism. Converting to object.
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:51.5355844Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:51.5358924Z [90mstderr[2m | src/services/LLMResponseNormalizer.test.ts[2m > [22m[2mLLMResponseNormalizer[2m > [22m[2mreturns fallback when response is not json[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:51.5361309Z Could not find JSON object in response: not json
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:51.5362805Z Response validation error: Error: Could not parse LLM response as JSON: not json
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:51.5364364Z     at Module.normalizeAndFixResponse (/home/runner/work/DeepProfile/DeepProfile/src/services/LLMResponseNormalizer.ts:61:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:51.5366010Z     at /home/runner/work/DeepProfile/DeepProfile/src/services/LLMResponseNormalizer.test.ts:40:20
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:51.5367420Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:128:14
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:51.5369169Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:59:26
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:51.5370722Z     at runTest (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:675:17)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:51.5372511Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:51.5374107Z     at runSuite (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:793:15)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:51.5375653Z     at runFiles (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:842:5)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:51.5377130Z     at startTests (file:///home/runner/work/DeepProfile/DeepProfile/node_modules/@vitest/runner/dist/index.js:851:3)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:51.5378866Z     at file:///home/runner/work/DeepProfile/DeepProfile/node_modules/vitest/dist/chunks/runtime-runBaseTests.S8ZSFig3.js:114:7 Raw response: not json
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:51.5379887Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:51.5380920Z  [32m✓[39m src/services/LLMResponseNormalizer.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[90m 12[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:52.0521882Z  [32m✓[39m src/services/LLMRegression.test.ts [2m ([22m[2m10 tests[22m[2m)[22m[90m 10[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:52.5053432Z  [32m✓[39m src/contents/injection-utils.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[90m 9[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:52.7641669Z  [32m✓[39m src/services/LLMRetry.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[90m 8[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:53.6084011Z  [32m✓[39m src/components/UIComponents.test.tsx [2m ([22m[2m4 tests[22m[2m)[22m[90m 300[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:53.7946827Z  [32m✓[39m src/services/I18nService.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[90m 3[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:53.9861590Z  [32m✓[39m src/services/ReplyLengthPolicyService.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[90m 25[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:54.8498119Z  [32m✓[39m src/contents/reply-assistant-shared/tone-options.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[90m 5[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:54.9740797Z  [32m✓[39m src/contents/reply-assistant-shared/editable.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[90m 24[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:55.5297327Z  [32m✓[39m src/contents/reply-assistant-ui/FloatingBall.test.tsx [2m ([22m[2m1 test[22m[2m)[22m[90m 245[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:55.5625641Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:55.5639960Z [2m Test Files [22m [1m[32m48 passed[39m[22m[90m (48)[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:55.5642397Z [2m      Tests [22m [1m[32m330 passed[39m[22m[90m (330)[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:55.5643447Z [2m   Start at [22m 03:33:31
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:55.5644868Z [2m   Duration [22m 24.03s[2m (transform 1.76s, setup 3.71s, collect 7.56s, tests 6.00s, environment 39.25s, prepare 5.58s)[22m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:55.5645683Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:55.6975742Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:55.6976473Z > deep-profile@1.0.3 test:coverage:contents
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:55.6977404Z > vitest run --config vitest.contents.config.ts --coverage
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:55.6977750Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:55.9880586Z [33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:56.1340409Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:56.1341736Z [7m[1m[36m RUN [39m[22m[27m [36mv1.2.1[39m [90m/home/runner/work/DeepProfile/DeepProfile[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:56.1343023Z [2m      Coverage enabled with [22m[33mv8[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:56.1343320Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:57.9204837Z [90mstdout[2m | src/contents/twitter-overlay.test.tsx[2m > [22m[2mTwitterOverlay[2m > [22m[2mhandles TWITTER_CONTENT_REQUEST and responds with scraped content[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:57.9206657Z Scraping Twitter content for testuser (testuser) on http://localhost:3000/
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:57.9207438Z Scraped 1 items
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:57.9207753Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:57.9275126Z [90mstdout[2m | src/contents/zhihu-comments.test.tsx[2m > [22m[2mZhihuComments integration[2m > [22m[2minjects summary button and runs comment analysis flow[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:57.9276512Z [DeepProfile] Extracted 3 comments from container.
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:57.9277126Z [DeepProfile] Received analysis result: {
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:57.9277673Z   summary: '这是评论摘要',
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:57.9278183Z   stance_ratio: { support: 0.5, neutral: 0.3, oppose: 0.2 },
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:57.9278698Z   key_points: [],
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:57.9279197Z   sentiment: 'neutral'
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:57.9280142Z }
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:57.9280966Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:58.0544849Z [90mstdout[2m | src/contents/zhihu-comments.test.tsx[2m > [22m[2mZhihuComments integration[2m > [22m[2mshows error when comments are insufficient[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:58.0546284Z [DeepProfile] Extracted 2 comments from container.
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:58.0546713Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:58.0548149Z [90mstderr[2m | src/contents/zhihu-comments.test.tsx[2m > [22m[2mZhihuComments integration[2m > [22m[2mshows error when comments are insufficient[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:58.0549831Z [DeepProfile] Analysis failed: Error: 评论数量不足以进行分析 (2，请尝试增加显示的评论数量。
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:58.0550969Z     at analyze (/home/runner/work/DeepProfile/DeepProfile/src/contents/zhihu-comments.tsx:130:17)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:58.0552468Z     at /home/runner/work/DeepProfile/DeepProfile/src/contents/zhihu-comments.tsx:218:5
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:58.0554026Z     at commitHookEffectListMount (/home/runner/work/DeepProfile/DeepProfile/node_modules/react-dom/cjs/react-dom.development.js:23150:26)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:58.0556810Z     at commitPassiveMountOnFiber (/home/runner/work/DeepProfile/DeepProfile/node_modules/react-dom/cjs/react-dom.development.js:24931:11)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:58.0558918Z     at commitPassiveMountEffects_complete (/home/runner/work/DeepProfile/DeepProfile/node_modules/react-dom/cjs/react-dom.development.js:24891:9)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:58.0560886Z     at commitPassiveMountEffects_begin (/home/runner/work/DeepProfile/DeepProfile/node_modules/react-dom/cjs/react-dom.development.js:24878:7)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:58.0562928Z     at commitPassiveMountEffects (/home/runner/work/DeepProfile/DeepProfile/node_modules/react-dom/cjs/react-dom.development.js:24866:3)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:58.0564770Z     at flushPassiveEffectsImpl (/home/runner/work/DeepProfile/DeepProfile/node_modules/react-dom/cjs/react-dom.development.js:27039:3)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:58.0566589Z     at flushPassiveEffects (/home/runner/work/DeepProfile/DeepProfile/node_modules/react-dom/cjs/react-dom.development.js:26984:14)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:58.0568627Z     at commitRootImpl (/home/runner/work/DeepProfile/DeepProfile/node_modules/react-dom/cjs/react-dom.development.js:26935:5)
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:58.0569508Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:58.1114771Z [90mstderr[2m | src/contents/zhihu-comments.test.tsx[2m > [22m[2mZhihuComments integration[2m > [22m[2mshows extension-context-specific error message[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:58.1117405Z [90mstdout[2m | src/contents/zhihu-comments.test.tsx[2m > [22m[2mZhihuComments integration[2m > [22m[2mshows extension-context-specific error message[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:58.1118860Z [DeepProfile] Extracted 3 comments from container.
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:58.1119293Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:58.1120184Z [DeepProfile] Extension context invalidated, please refresh the page
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:58.1121453Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:58.1326996Z  [32m✓[39m src/contents/twitter-overlay.test.tsx [2m ([22m[2m7 tests[22m[2m)[22m[33m 304[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:58.2645692Z  [32m✓[39m src/contents/zhihu-comments.test.tsx [2m ([22m[2m4 tests[22m[2m)[22m[33m 429[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:58.6554455Z  [32m✓[39m src/contents/test_reddit_overlay_context.test.tsx [2m ([22m[2m5 tests[22m[2m)[22m[90m 59[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:59.5944084Z  [32m✓[39m src/contents/reddit-overlay.test.tsx [2m ([22m[2m5 tests[22m[2m)[22m[90m 168[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:59.7672713Z  [32m✓[39m src/contents/zhihu-overlay.test.tsx [2m ([22m[2m4 tests[22m[2m)[22m[90m 152[2mms[22m[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:59.7969951Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:59.7979806Z [2m Test Files [22m [1m[32m5 passed[39m[22m[90m (5)[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:59.7980931Z [2m      Tests [22m [1m[32m25 passed[39m[22m[90m (25)[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:59.7982358Z [2m   Start at [22m 03:33:56
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:59.7984233Z [2m   Duration [22m 3.66s[2m (transform 754ms, setup 470ms, collect 1.86s, tests 1.11s, environment 4.06s, prepare 701ms)[22m
+build-and-release	UNKNOWN STEP	2026-02-24T03:33:59.7985400Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:00.1718607Z [34m % [39m[2mCoverage report from [22m[33mv8[39m
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:00.1789704Z -------------------|---------|----------|---------|---------|-------------------
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:00.1790747Z File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:00.1791713Z -------------------|---------|----------|---------|---------|-------------------
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:00.1796585Z All files          |   73.98 |    50.42 |   58.18 |   73.98 |                   
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:00.1800560Z  ...it-overlay.tsx |   72.71 |       60 |   64.28 |   72.71 | ...24-625,627-645 
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:00.1805381Z  ...er-overlay.tsx |   71.67 |    40.17 |   56.25 |   71.67 | ...09-917,922-924 
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:00.1809508Z  ...u-comments.tsx |   75.54 |    49.47 |   63.63 |   75.54 | ...61-764,776-777 
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:00.1812884Z  zhihu-overlay.tsx |    77.9 |    56.66 |      50 |    77.9 | ...07,434-435,437 
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:00.1813905Z -------------------|---------|----------|---------|---------|-------------------
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:00.2644317Z ##[group]Run npm run build
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:00.2644622Z [36;1mnpm run build[0m
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:00.2676531Z shell: /usr/bin/bash -e {0}
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:00.2676785Z env:
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:00.2677132Z   CWS_EXTENSION_ID: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:00.2677588Z   CWS_CLIENT_ID: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:00.2677893Z   CWS_CLIENT_SECRET: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:00.2678524Z   CWS_REFRESH_TOKEN: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:00.2678765Z   NODE_ENV: production
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:00.2678986Z ##[endgroup]
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:00.3736069Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:00.3736468Z > deep-profile@1.0.3 build
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:00.3736848Z > plasmo build
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:00.3737022Z 
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:01.3213971Z 🟣 Plasmo v0.90.5
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:01.3218277Z 🔴 The Browser Extension Framework
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:01.3303192Z 🔵 INFO   | Prepare to bundle the extension...
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:01.3315917Z 🔵 INFO   | Building for target: chrome-mv3
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:01.9525528Z 🔵 INFO   | Loaded environment variables from: []
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.0348428Z 🟢 DONE   | Finished in 16057ms!
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.0901066Z ##[group]Run # Plasmo 默认输出目录是 build/chrome-mv3-prod
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.0901790Z [36;1m# Plasmo 默认输出目录是 build/chrome-mv3-prod[0m
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.0902593Z [36;1mcd build/chrome-mv3-prod[0m
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.0903161Z [36;1mzip -r ../../DeepProfile-Extension.zip .[0m
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.0903744Z [36;1mcd ../..[0m
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.0949505Z shell: /usr/bin/bash -e {0}
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.0949949Z env:
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.0950492Z   CWS_EXTENSION_ID: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.0951252Z   CWS_CLIENT_ID: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.0951818Z   CWS_CLIENT_SECRET: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.0953260Z   CWS_REFRESH_TOKEN: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.0953965Z ##[endgroup]
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.1213468Z updating: api_chain.628c04f6.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.1214181Z 	zip warning: Local Entry CRC does not match CD: api_chain.628c04f6.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.1353405Z  (deflated 76%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.1354097Z updating: api_chain.6b84e202.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.1355187Z 	zip warning: Local Entry CRC does not match CD: api_chain.6b84e202.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.1355954Z  (deflated 64%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.1356546Z updating: combine_docs_chain.6eff0458.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.1357685Z 	zip warning: Local Entry CRC does not match CD: combine_docs_chain.6eff0458.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.1358351Z  (deflated 75%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.1358796Z updating: combine_docs_chain.fe025a77.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.1359519Z 	zip warning: Local Entry CRC does not match CD: combine_docs_chain.fe025a77.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.1494129Z  (deflated 76%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.1494776Z updating: few_shot.1f42b3be.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.1495610Z 	zip warning: Local Entry CRC does not match CD: few_shot.1f42b3be.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.1602548Z  (deflated 76%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.1603319Z updating: few_shot.4ef1c42d.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.1604127Z 	zip warning: Local Entry CRC does not match CD: few_shot.4ef1c42d.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.1606639Z  (deflated 77%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.1607303Z updating: icon.c766bb78.png
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.1608211Z 	zip warning: Local Entry CRC does not match CD: icon.c766bb78.png
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2160281Z  (deflated 0%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2160868Z updating: icon128.plasmo.3c1ed2d2.png
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2161629Z 	zip warning: Local Entry CRC does not match CD: icon128.plasmo.3c1ed2d2.png
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2165833Z  (stored 0%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2166309Z updating: icon16.plasmo.6c567d50.png
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2167083Z 	zip warning: Local Entry CRC does not match CD: icon16.plasmo.6c567d50.png
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2167806Z  (stored 0%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2168274Z updating: icon32.plasmo.76b92899.png
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2168919Z 	zip warning: Local Entry CRC does not match CD: icon32.plasmo.76b92899.png
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2169628Z  (stored 0%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2169951Z updating: icon48.plasmo.aced7582.png
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2170509Z 	zip warning: Local Entry CRC does not match CD: icon48.plasmo.aced7582.png
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2171212Z  (stored 0%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2171695Z updating: icon64.plasmo.8bb5e6e0.png
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2172613Z 	zip warning: Local Entry CRC does not match CD: icon64.plasmo.8bb5e6e0.png
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2173092Z  (stored 0%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2173399Z updating: injection-utils.230541ec.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2173912Z 	zip warning: Local Entry CRC does not match CD: injection-utils.230541ec.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2174370Z  (deflated 56%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2174664Z updating: llm_chain.68e1cfaf.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2175132Z 	zip warning: Local Entry CRC does not match CD: llm_chain.68e1cfaf.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2307257Z  (deflated 76%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2307838Z updating: llm_chain.d4fd9eb1.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2308610Z 	zip warning: Local Entry CRC does not match CD: llm_chain.d4fd9eb1.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2335084Z  (deflated 73%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2335555Z updating: manifest.json
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2336270Z 	zip warning: Local Entry CRC does not match CD: manifest.json
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2336921Z  (deflated 77%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2337496Z updating: options.95eda3f3.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2338012Z 	zip warning: Local Entry CRC does not match CD: options.95eda3f3.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2586258Z  (deflated 75%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2586783Z updating: options.html
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2587556Z 	zip warning: Local Entry CRC does not match CD: options.html
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2588069Z  (deflated 38%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2588418Z updating: prompt.68b01345.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2588977Z 	zip warning: Local Entry CRC does not match CD: prompt.68b01345.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2690440Z  (deflated 76%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2690972Z updating: prompt.cc7e3302.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2691727Z 	zip warning: Local Entry CRC does not match CD: prompt.cc7e3302.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2793796Z  (deflated 76%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2794415Z updating: quora-overlay.190b7052.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.2795246Z 	zip warning: Local Entry CRC does not match CD: quora-overlay.190b7052.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.3176903Z  (deflated 75%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.3177585Z updating: quora-reply-assistant.59c1db0c.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.3178430Z 	zip warning: Local Entry CRC does not match CD: quora-reply-assistant.59c1db0c.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.3243767Z  (deflated 69%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.3244383Z updating: reddit-overlay.a5983bf0.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.3245206Z 	zip warning: Local Entry CRC does not match CD: reddit-overlay.a5983bf0.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.3624348Z  (deflated 75%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.3624943Z updating: reddit-reply-assistant.3d34d0fc.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.3625687Z 	zip warning: Local Entry CRC does not match CD: reddit-reply-assistant.3d34d0fc.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.3692523Z  (deflated 69%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.3693148Z updating: reply-assistant-language-utils.f2dfa36e.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.3694125Z 	zip warning: Local Entry CRC does not match CD: reply-assistant-language-utils.f2dfa36e.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.3694788Z  (deflated 55%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.3695173Z updating: sequential_chain.10ed0f08.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.3695865Z 	zip warning: Local Entry CRC does not match CD: sequential_chain.10ed0f08.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.3805482Z  (deflated 76%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.3805906Z updating: sequential_chain.f99f3444.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.3806545Z 	zip warning: Local Entry CRC does not match CD: sequential_chain.f99f3444.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.3916896Z  (deflated 76%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.3917267Z updating: static/ (stored 0%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.3917725Z updating: twitter-overlay.67ee93e9.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.3918375Z 	zip warning: Local Entry CRC does not match CD: twitter-overlay.67ee93e9.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.4300417Z  (deflated 75%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.4300891Z updating: twitter-reply-assistant.fe674c37.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.4301611Z 	zip warning: Local Entry CRC does not match CD: twitter-reply-assistant.fe674c37.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.4367576Z  (deflated 69%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.4367980Z updating: vector_db_qa.3d73acf5.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.4368585Z 	zip warning: Local Entry CRC does not match CD: vector_db_qa.3d73acf5.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.4511651Z  (deflated 76%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.4512257Z updating: vector_db_qa.555e0292.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.4512978Z 	zip warning: Local Entry CRC does not match CD: vector_db_qa.555e0292.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.4517909Z  (deflated 70%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.4518317Z updating: zhihu-comments.35afb273.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.4518941Z 	zip warning: Local Entry CRC does not match CD: zhihu-comments.35afb273.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.4596991Z  (deflated 70%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.4597394Z updating: zhihu-overlay.bc0fd008.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.4598603Z 	zip warning: Local Entry CRC does not match CD: zhihu-overlay.bc0fd008.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.4977040Z  (deflated 75%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.4977631Z updating: zhihu-reply-assistant-utils.d6bb5390.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.4978472Z 	zip warning: Local Entry CRC does not match CD: zhihu-reply-assistant-utils.d6bb5390.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.4979086Z  (deflated 57%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.4979499Z updating: zhihu-reply-assistant.2bcad7ef.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.4980681Z 	zip warning: Local Entry CRC does not match CD: zhihu-reply-assistant.2bcad7ef.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.5045542Z  (deflated 69%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.5045970Z updating: static/background/ (stored 0%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.5046452Z updating: static/background/index.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.5047066Z 	zip warning: Local Entry CRC does not match CD: static/background/index.js
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.5363289Z  (deflated 75%)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.5461654Z ##[group]Run softprops/action-gh-release@v2
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.5461983Z with:
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.5462477Z   files: DeepProfile-Extension.zip
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.5462909Z   token: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.5463118Z   overwrite_files: true
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.5463397Z env:
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.5463689Z   CWS_EXTENSION_ID: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.5464294Z   CWS_CLIENT_ID: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.5464584Z   CWS_CLIENT_SECRET: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.5465185Z   CWS_REFRESH_TOKEN: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.5465401Z ##[endgroup]
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:18.9686104Z Found release  DeepProfile v1.0.3 发布说明 (with id=289685625)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:19.1784666Z ⬆️ Uploading DeepProfile-Extension.zip...
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.0131670Z ✅ Uploaded DeepProfile-Extension.zip
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.0141053Z Finalizing release...
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.2321775Z 🎉 Release ready at https://github.com/zsw12abc/DeepProfile/releases/tag/1.0.3
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.2444525Z ##[group]Run mnao305/chrome-extension-upload@v5.0.0
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.2455348Z with:
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.2455623Z   file-path: DeepProfile-Extension.zip
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.2456007Z   extension-id: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.2456417Z   client-id: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.2456728Z   client-secret: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.2457313Z   refresh-token: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.2457527Z   publish: true
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.2457754Z   publish-target: default
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.2457982Z   glob: false
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.2458169Z env:
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.2458408Z   CWS_EXTENSION_ID: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.2458809Z   CWS_CLIENT_ID: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.2459088Z   CWS_CLIENT_SECRET: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.2459682Z   CWS_REFRESH_TOKEN: ***
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.2459903Z ##[endgroup]
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.6494764Z HTTPError: Response code 403 (Forbidden)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.6495841Z     at Request.<anonymous> (/home/runner/work/_actions/mnao305/chrome-extension-upload/v5.0.0/dist/index.js:5491:42)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.6497160Z     at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.6497769Z   code: undefined,
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.6498038Z   timings: {
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.6498335Z     start: 1771904060415,
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.6498628Z     socket: 1771904060415,
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.6498915Z     lookup: 1771904060415,
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.6499203Z     connect: 1771904060415,
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.6499543Z     secureConnect: 1771904060415,
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.6499860Z     upload: 1771904060473,
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.6500148Z     response: 1771904060645,
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.6500467Z     end: 1771904060645,
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.6500715Z     error: undefined,
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.6500951Z     abort: undefined,
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.6501185Z     phases: {
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.6501397Z       wait: 0,
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.6501605Z       dns: 0,
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.6501807Z       tcp: 0,
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.6502008Z       tls: 0,
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.6502400Z       request: 58,
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.6502632Z       firstByte: 172,
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.6502863Z       download: 0,
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.6503079Z       total: 230
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.6503290Z     }
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.6503480Z   }
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.6503669Z }
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.6519207Z ##[error]HTTPError: Response code 403 (Forbidden)
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.6529059Z ##[error]upload error - You will need to go to the Chrome Web Store Developer Dashboard and upload it manually.
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.6626974Z Post job cleanup.
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.7380850Z [command]/usr/bin/git version
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.7415857Z git version 2.52.0
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.7454209Z Temporarily overriding HOME='/home/runner/work/_temp/151ed88b-6393-42b1-a0ea-cf77a1df4d13' before making global git config changes
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.7455761Z Adding repository directory to the temporary git global config as a safe directory
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.7460067Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/DeepProfile/DeepProfile
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.7489559Z Removing SSH command configuration
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.7495852Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.7528529Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.7750729Z Removing HTTP extra header
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.7755886Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.7787351Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.7998850Z Removing includeIf entries pointing to credentials config files
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.8004477Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.8026134Z includeif.gitdir:/home/runner/work/DeepProfile/DeepProfile/.git.path
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.8027264Z includeif.gitdir:/home/runner/work/DeepProfile/DeepProfile/.git/worktrees/*.path
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.8028140Z includeif.gitdir:/github/workspace/.git.path
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.8028858Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.8037135Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/DeepProfile/DeepProfile/.git.path
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.8057221Z /home/runner/work/_temp/git-credentials-6e3e5dd1-7282-4f31-b3b8-485700f0764a.config
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.8068030Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/DeepProfile/DeepProfile/.git.path /home/runner/work/_temp/git-credentials-6e3e5dd1-7282-4f31-b3b8-485700f0764a.config
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.8099758Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/DeepProfile/DeepProfile/.git/worktrees/*.path
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.8120230Z /home/runner/work/_temp/git-credentials-6e3e5dd1-7282-4f31-b3b8-485700f0764a.config
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.8129806Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/DeepProfile/DeepProfile/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-6e3e5dd1-7282-4f31-b3b8-485700f0764a.config
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.8158041Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.8178153Z /github/runner_temp/git-credentials-6e3e5dd1-7282-4f31-b3b8-485700f0764a.config
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.8185841Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-6e3e5dd1-7282-4f31-b3b8-485700f0764a.config
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.8214874Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.8234628Z /github/runner_temp/git-credentials-6e3e5dd1-7282-4f31-b3b8-485700f0764a.config
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.8243621Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-6e3e5dd1-7282-4f31-b3b8-485700f0764a.config
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.8272325Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.8483010Z Removing credentials config '/home/runner/work/_temp/git-credentials-6e3e5dd1-7282-4f31-b3b8-485700f0764a.config'
+build-and-release	UNKNOWN STEP	2026-02-24T03:34:20.8609698Z Cleaning up orphan processes

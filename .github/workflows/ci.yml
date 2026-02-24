@@ -34,6 +34,12 @@ jobs:
       - name: Run content-script coverage thresholds
         run: npm run test:coverage:contents
 
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+
       - name: Lint
         run: npm run lint
 
