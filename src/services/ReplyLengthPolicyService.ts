@@ -23,7 +23,6 @@ export class ReplyLengthPolicyService {
 
   static getPlatformLimit(
     platform: SupportedPlatform,
-    _surface: "reply" | "post" | "quote" = "reply",
   ): number | null {
     if (platform === "twitter") return 280;
     return null;
@@ -55,7 +54,8 @@ export class ReplyLengthPolicyService {
     surface: "reply" | "post" | "quote" = "reply",
   ): ReplyLengthPolicyResult {
     const input = text || "";
-    const limit = this.getPlatformLimit(platform, surface);
+    void surface;
+    const limit = this.getPlatformLimit(platform);
     const { count: originalCount, method } = this.countForPlatform(
       input,
       platform,
