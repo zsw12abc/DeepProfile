@@ -3,7 +3,10 @@ import type React from "react";
 
 interface UseFloatingBallStateOptions {
   storageKey: string;
-  clampPos: (pos: { left: number; top: number }) => { left: number; top: number };
+  clampPos: (pos: { left: number; top: number }) => {
+    left: number;
+    top: number;
+  };
   onToggleOpen: () => void;
   initialPos: { left: number; top: number };
   clampDuringDrag?: boolean;
@@ -62,7 +65,14 @@ export const useFloatingBallState = ({
       window.addEventListener("pointermove", handleMove);
       window.addEventListener("pointerup", handleUp);
     },
-    [ballPos.left, ballPos.top, clampDuringDrag, clampPos, onToggleOpen, storageKey],
+    [
+      ballPos.left,
+      ballPos.top,
+      clampDuringDrag,
+      clampPos,
+      onToggleOpen,
+      storageKey,
+    ],
   );
 
   return { ballPos, setBallPos, onBallPointerDown };

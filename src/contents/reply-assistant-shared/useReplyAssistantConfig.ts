@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
-import { DEFAULT_CONFIG, type ReplyAssistantSettings, type SupportedPlatform } from "~types";
+import {
+  DEFAULT_CONFIG,
+  type ReplyAssistantSettings,
+  type SupportedPlatform,
+} from "~types";
 import { ConfigService } from "~services/ConfigService";
 import { isDarkThemeId } from "../zhihu-reply-assistant-utils";
 import { DEFAULT_SITE_SETTINGS } from "./defaults";
@@ -16,8 +20,11 @@ export const useReplyAssistantConfig = ({
   defaultSettings,
   themeFallback,
 }: UseReplyAssistantConfigOptions) => {
-  const [settings, setSettings] = useState<ReplyAssistantSettings>(defaultSettings);
-  const [siteSettings, setSiteSettings] = useState<SiteSettingsState>(DEFAULT_SITE_SETTINGS);
+  const [settings, setSettings] =
+    useState<ReplyAssistantSettings>(defaultSettings);
+  const [siteSettings, setSiteSettings] = useState<SiteSettingsState>(
+    DEFAULT_SITE_SETTINGS,
+  );
   const [enabled, setEnabled] = useState(true);
   const [themeState, setThemeState] = useState<ThemeState>(() => {
     const defaultTheme = DEFAULT_CONFIG.themes[DEFAULT_CONFIG.themeId];
@@ -26,15 +33,18 @@ export const useReplyAssistantConfig = ({
       primary: defaultTheme?.colors.primary || themeFallback.primary,
       secondary: defaultTheme?.colors.secondary || themeFallback.secondary,
       text: defaultTheme?.colors.text || themeFallback.text,
-      textSecondary: defaultTheme?.colors.textSecondary || themeFallback.textSecondary,
+      textSecondary:
+        defaultTheme?.colors.textSecondary || themeFallback.textSecondary,
       border: defaultTheme?.colors.border || themeFallback.border,
       surface: defaultTheme?.colors.surface || themeFallback.surface,
       background: defaultTheme?.colors.background || themeFallback.background,
       accent: defaultTheme?.colors.accent || themeFallback.accent,
-      primaryText: defaultTheme?.colors.primaryText || themeFallback.primaryText,
+      primaryText:
+        defaultTheme?.colors.primaryText || themeFallback.primaryText,
       success: defaultTheme?.colors.success || themeFallback.success,
       error: defaultTheme?.colors.error || themeFallback.error,
-      fontFamily: defaultTheme?.typography.fontFamily || themeFallback.fontFamily,
+      fontFamily:
+        defaultTheme?.typography.fontFamily || themeFallback.fontFamily,
       shadow: defaultTheme?.shadows.large || themeFallback.shadow,
     };
   });
@@ -69,7 +79,8 @@ export const useReplyAssistantConfig = ({
   const loadSettings = useCallback(async () => {
     const config = await ConfigService.getConfig();
     const platformConfig = config.platformConfigs[platform];
-    const assistantSettings = platformConfig.settings?.replyAssistant || defaultSettings;
+    const assistantSettings =
+      platformConfig.settings?.replyAssistant || defaultSettings;
 
     setSettings({
       tone: assistantSettings.tone || defaultSettings.tone,
@@ -77,11 +88,21 @@ export const useReplyAssistantConfig = ({
     });
 
     setSiteSettings({
-      platformEnabled: config.enabledPlatforms?.[platform] ?? DEFAULT_SITE_SETTINGS.platformEnabled,
-      analysisButtonEnabled: platformConfig.analysisButtonEnabled ?? DEFAULT_SITE_SETTINGS.analysisButtonEnabled,
-      commentAnalysisEnabled: platformConfig.commentAnalysisEnabled ?? DEFAULT_SITE_SETTINGS.commentAnalysisEnabled,
-      replyAssistantEnabled: platformConfig.replyAssistantEnabled ?? DEFAULT_SITE_SETTINGS.replyAssistantEnabled,
-      analysisMode: config.platformAnalysisModes?.[platform] ?? DEFAULT_SITE_SETTINGS.analysisMode,
+      platformEnabled:
+        config.enabledPlatforms?.[platform] ??
+        DEFAULT_SITE_SETTINGS.platformEnabled,
+      analysisButtonEnabled:
+        platformConfig.analysisButtonEnabled ??
+        DEFAULT_SITE_SETTINGS.analysisButtonEnabled,
+      commentAnalysisEnabled:
+        platformConfig.commentAnalysisEnabled ??
+        DEFAULT_SITE_SETTINGS.commentAnalysisEnabled,
+      replyAssistantEnabled:
+        platformConfig.replyAssistantEnabled ??
+        DEFAULT_SITE_SETTINGS.replyAssistantEnabled,
+      analysisMode:
+        config.platformAnalysisModes?.[platform] ??
+        DEFAULT_SITE_SETTINGS.analysisMode,
       analyzeLimit: config.analyzeLimit || DEFAULT_SITE_SETTINGS.analyzeLimit,
     });
 
@@ -91,7 +112,8 @@ export const useReplyAssistantConfig = ({
         (platformConfig.replyAssistantEnabled ?? true),
     );
 
-    const activeTheme = config.themes?.[config.themeId] || DEFAULT_CONFIG.themes[config.themeId];
+    const activeTheme =
+      config.themes?.[config.themeId] || DEFAULT_CONFIG.themes[config.themeId];
     if (activeTheme) {
       setThemeState({
         isDark: isDarkThemeId(config.themeId),

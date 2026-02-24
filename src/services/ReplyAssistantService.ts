@@ -84,7 +84,10 @@ export class ReplyAssistantService {
       normalized = this.normalizeReply(rewritten);
     }
 
-    const policyResult = ReplyLengthPolicyService.applyLimit(normalized, platform);
+    const policyResult = ReplyLengthPolicyService.applyLimit(
+      normalized,
+      platform,
+    );
     return {
       reply: policyResult.text,
       wasTrimmed: policyResult.wasTrimmed,

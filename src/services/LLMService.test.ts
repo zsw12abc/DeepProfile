@@ -227,7 +227,11 @@ describe("LLMService", () => {
         provider,
       );
 
-      await LLMService.generateProfileForPlatform("台湾 香港", "general", "zhihu");
+      await LLMService.generateProfileForPlatform(
+        "台湾 香港",
+        "general",
+        "zhihu",
+      );
 
       expect(provider.generateProfile).toHaveBeenCalledTimes(1);
       expect(provider.generateProfile.mock.calls[0][0]).toContain("TW");

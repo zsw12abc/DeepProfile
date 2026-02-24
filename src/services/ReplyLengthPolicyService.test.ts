@@ -21,10 +21,11 @@ describe("ReplyLengthPolicyService", () => {
 
   it("handles emoji and url within twitter weighted count", () => {
     const text =
-      "😀😀😀 Check this https://example.com/very/long/path?query=1 ".repeat(20);
+      "😀😀😀 Check this https://example.com/very/long/path?query=1 ".repeat(
+        20,
+      );
     const result = ReplyLengthPolicyService.applyLimit(text, "twitter");
     expect(result.countMethod).toBe("x_weighted");
     expect(result.finalCount).toBeLessThanOrEqual(280);
   });
 });
-

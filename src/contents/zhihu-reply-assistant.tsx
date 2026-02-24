@@ -26,7 +26,10 @@ import {
   INLINE_TONE_CLASS,
   ZH_TONE_OPTIONS,
 } from "./reply-assistant-shared/tone-options";
-import type { EditableTarget, ReplyContext } from "./reply-assistant-shared/types";
+import type {
+  EditableTarget,
+  ReplyContext,
+} from "./reply-assistant-shared/types";
 import {
   isContentEditableElement,
   isVisible,

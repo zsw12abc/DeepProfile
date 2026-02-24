@@ -17,13 +17,12 @@ export class ReplyLengthPolicyService {
     | ((text: string) => { weightedLength: number })
     | null {
     const candidate =
-      (twitterText as any)?.parseTweet || (twitterText as any)?.default?.parseTweet;
+      (twitterText as any)?.parseTweet ||
+      (twitterText as any)?.default?.parseTweet;
     return typeof candidate === "function" ? candidate : null;
   }
 
-  static getPlatformLimit(
-    platform: SupportedPlatform,
-  ): number | null {
+  static getPlatformLimit(platform: SupportedPlatform): number | null {
     if (platform === "twitter") return 280;
     return null;
   }

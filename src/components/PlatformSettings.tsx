@@ -486,9 +486,7 @@ export const PlatformSpecificSettings: React.FC<
     ...(platformConfig.settings?.replyAssistant || {}),
   };
   const baseToneOptions: string[] =
-    config.language === "zh-CN"
-      ? [...ZH_TONE_OPTIONS]
-      : [...EN_TONE_OPTIONS];
+    config.language === "zh-CN" ? [...ZH_TONE_OPTIONS] : [...EN_TONE_OPTIONS];
   const toneOptions = baseToneOptions.includes(replyAssistantSettings.tone)
     ? baseToneOptions
     : [replyAssistantSettings.tone, ...baseToneOptions];

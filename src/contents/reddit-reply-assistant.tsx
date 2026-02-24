@@ -12,8 +12,16 @@ import {
   FLOATING_BALL_MARGIN,
   FLOATING_BALL_SIZE,
 } from "./reply-assistant-ui/utils";
-import { EN_TONE_OPTIONS, INLINE_CONTAINER_CLASS, INLINE_REPLY_BTN_CLASS, INLINE_TONE_CLASS } from "./reply-assistant-shared/tone-options";
-import type { EditableTarget, ReplyContext } from "./reply-assistant-shared/types";
+import {
+  EN_TONE_OPTIONS,
+  INLINE_CONTAINER_CLASS,
+  INLINE_REPLY_BTN_CLASS,
+  INLINE_TONE_CLASS,
+} from "./reply-assistant-shared/tone-options";
+import type {
+  EditableTarget,
+  ReplyContext,
+} from "./reply-assistant-shared/types";
 import {
   isContentEditableElement,
   isVisible,

@@ -58,7 +58,13 @@ export const useReplyGeneration = ({
         setLoading(false);
       }
     },
-    [extractContext, platform, setEditableText, settings.replyLength, settings.tone],
+    [
+      extractContext,
+      platform,
+      setEditableText,
+      settings.replyLength,
+      settings.tone,
+    ],
   );
 
   const onCopy = useCallback(async () => {
