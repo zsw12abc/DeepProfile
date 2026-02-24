@@ -31,6 +31,14 @@ export const enUS: LocaleDict = {
     "Control whether analysis buttons appear on this site.",
   comment_analysis_toggle: "Enable comment analysis",
   comment_analysis_toggle_desc: "Show the comment analysis button on Zhihu.",
+  reply_assistant_toggle: "Enable AI Reply Assistant",
+  reply_assistant_toggle_desc:
+    "Control whether the floating AI reply assistant is available on this platform.",
+  reply_tone: "Default Reply Tone",
+  reply_length: "Default Reply Length",
+  reply_length_short: "Short",
+  reply_length_medium: "Medium",
+  reply_length_long: "Long",
   observability_settings: "Observability",
   observability_error: "Error monitoring",
   observability_error_desc: "Capture runtime errors and exceptions.",
@@ -128,7 +136,7 @@ export const enUS: LocaleDict = {
   error_extension_context:
     "Extension context invalidated. Please refresh the page to retry.",
   error_content_filter:
-    "Content Safety Review Failed: The input content was flagged by the AI provider as potentially inappropriate. Please try switching to a different model like DeepSeek or OpenAI.",
+    "Content Safety Review Failed: The system automatically retried with safety handling but the request is still blocked. Please try switching to DeepSeek/OpenAI, shortening context, or rewriting sensitive passages before retrying.",
   error_missing_api_key:
     "API Key is missing 🔑: Please set your API Key for the selected provider.",
 

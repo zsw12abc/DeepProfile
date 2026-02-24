@@ -29,6 +29,13 @@ export const zhCN: LocaleDict = {
   analysis_button_toggle_desc: "控制是否在该网站显示分析按钮。",
   comment_analysis_toggle: "启用评论分析",
   comment_analysis_toggle_desc: "控制是否在知乎显示评论分析按钮。",
+  reply_assistant_toggle: "启用 AI 评论助手",
+  reply_assistant_toggle_desc: "控制该平台是否显示悬浮 AI 评论助手。",
+  reply_tone: "默认评论语气",
+  reply_length: "默认评论长度",
+  reply_length_short: "简略",
+  reply_length_medium: "标准",
+  reply_length_long: "详细",
   observability_settings: "可观测性",
   observability_error: "异常监控",
   observability_error_desc: "捕获运行时错误与异常。",
@@ -115,7 +122,7 @@ export const zhCN: LocaleDict = {
     "哎呀，找不到这个用户的数据 🕵️‍♂️，可能是账号被封禁或设置了隐私保护。",
   error_extension_context: "扩展上下文已失效，请刷新页面重试。",
   error_content_filter:
-    "内容安全审查失败：输入内容被AI服务商标记为可能不当。请尝试切换到DeepSeek或OpenAI等模型。",
+    "内容安全审查失败：系统已自动进行安全处理并重试，但请求仍被拦截。请尝试切换到 DeepSeek/OpenAI、缩短上下文，或改写敏感片段后重试。",
   error_missing_api_key: "API Key 缺失 🔑：请为当前选择的模型配置 API Key。",
 
   // Export

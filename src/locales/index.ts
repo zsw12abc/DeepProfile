@@ -47,6 +47,13 @@ export type LocaleKey =
   | "analysis_button_toggle_desc"
   | "comment_analysis_toggle"
   | "comment_analysis_toggle_desc"
+  | "reply_assistant_toggle"
+  | "reply_assistant_toggle_desc"
+  | "reply_tone"
+  | "reply_length"
+  | "reply_length_short"
+  | "reply_length_medium"
+  | "reply_length_long"
 
   // Profile Card
   | "analyzing"

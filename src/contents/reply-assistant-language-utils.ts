@@ -1,17 +1,25 @@
 import type { ReplyAssistantSettings } from "~types";
+import type {
+  ConversationItem,
+  EditableTarget,
+} from "./reply-assistant-shared/types";
 
-export type EditableTarget = HTMLTextAreaElement | HTMLElement;
 export type ReplyLength = ReplyAssistantSettings["replyLength"];
 
 export interface ReplyGenerationContext {
   targetUser: string;
   pageTitle?: string;
   answerContent?: string;
-  conversation: Array<{
-    author: string;
-    content: string;
-    isTarget?: boolean;
-  }>;
+  conversation: ConversationItem[];
+}
+
+export interface GeneratedReplyPayload {
+  reply: string;
+  wasTrimmed: boolean;
+  limit: number | null;
+  countMethod: "x_weighted" | "plain";
+  originalCount: number;
+  finalCount: number;
 }
 
 type LanguageDetectionResult = {
@@ -130,12 +138,12 @@ export const detectReplyLanguage = (
 };
 
 export const requestGeneratedReply = async (params: {
-  platform: "reddit" | "quora" | "twitter";
+  platform: "reddit" | "quora" | "twitter" | "zhihu";
   tone: string;
   replyLength: ReplyLength;
   context: ReplyGenerationContext;
   targetInput: EditableTarget;
-}): Promise<string> => {
+}): Promise<GeneratedReplyPayload> => {
   const detected = detectReplyLanguage(params.targetInput, params.context);
 
   const response = await chrome.runtime.sendMessage({
@@ -153,5 +161,19 @@ export const requestGeneratedReply = async (params: {
     throw new Error(response?.error || "Generation failed");
   }
 
-  return String(response.data.reply).trim();
+  return {
+    reply: String(response.data.reply).trim(),
+    wasTrimmed: !!response.data.wasTrimmed,
+    limit: typeof response.data.limit === "number" ? response.data.limit : null,
+    countMethod:
+      response.data.countMethod === "x_weighted" ? "x_weighted" : "plain",
+    originalCount:
+      typeof response.data.originalCount === "number"
+        ? response.data.originalCount
+        : 0,
+    finalCount:
+      typeof response.data.finalCount === "number"
+        ? response.data.finalCount
+        : 0,
+  };
 };

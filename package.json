@@ -1,7 +1,7 @@
 {
   "name": "deep-profile",
   "displayName": "DeepProfile",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A Chrome extension to analyze social media user profiles using AI.",
   "author": "DeepProfile Team",
   "license": "SEE LICENSE IN LICENSE",
@@ -29,6 +29,7 @@
     "plasmo": "^0.90.5",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "twitter-text": "^3.1.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {
@@ -38,6 +39,7 @@
     "@types/node": "20.11.5",
     "@types/react": "18.2.48",
     "@types/react-dom": "18.2.18",
+    "@types/twitter-text": "^3.1.10",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
     "@vitest/coverage-v8": "^1.2.1",

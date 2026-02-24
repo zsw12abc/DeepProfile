@@ -19,46 +19,31 @@ import {
   FLOATING_BALL_SIZE,
   colorWithAlpha,
 } from "./reply-assistant-ui/utils";
+import {
+  INLINE_CONTAINER_CLASS,
+  INLINE_LENGTH_CLASS,
+  INLINE_REPLY_BTN_CLASS,
+  INLINE_TONE_CLASS,
+  ZH_TONE_OPTIONS,
+} from "./reply-assistant-shared/tone-options";
+import type {
+  EditableTarget,
+  ReplyContext,
+} from "./reply-assistant-shared/types";
+import {
+  isContentEditableElement,
+  isVisible,
+  setEditableText as setSharedEditableText,
+} from "./reply-assistant-shared/editable";
 
 export const config: PlasmoCSConfig = {
   matches: ["https://www.zhihu.com/*"],
 };
 
-type EditableTarget = HTMLTextAreaElement | HTMLElement;
-
-type ConversationItem = {
-  author: string;
-  content: string;
-  isTarget?: boolean;
-};
-
-type ReplyContext = {
-  targetUser: string;
-  pageTitle?: string;
-  answerContent?: string;
-  conversation: ConversationItem[];
-  targetInput: EditableTarget;
-};
-
 const BALL_POSITION_STORAGE_KEY = "deep_profile_zhihu_ball_pos";
 
-const toneOptions = [
-  "客观",
-  "讽刺",
-  "学术",
-  "友好",
-  "犀利",
-  "简洁",
-  "巨魔风格 (Troll)",
-  "贴吧大神风格",
-  "古早公知风格",
-  "当代衍生变体",
-];
+const toneOptions = ZH_TONE_OPTIONS;
 const REPLY_HINT_KEYS = ["回复", "reply", "评论", "comment"];
-const INLINE_REPLY_BTN_CLASS = "deep-profile-inline-reply-btn";
-const INLINE_TONE_CLASS = "deep-profile-inline-tone-select";
-const INLINE_LENGTH_CLASS = "deep-profile-inline-length-select";
-const INLINE_CONTAINER_CLASS = "deep-profile-inline-controls";
 const EDITOR_ROOT_SELECTORS = [
   ".CommentEditorV2",
   ".CommentEditor",
@@ -69,22 +54,6 @@ const EDITOR_ROOT_SELECTORS = [
   ".Comments-container",
   ".Modal-content",
 ].join(", ");
-
-const isVisible = (el: Element) => {
-  const htmlEl = el as HTMLElement;
-  const style = window.getComputedStyle(htmlEl);
-  return style.display !== "none" && style.visibility !== "hidden";
-};
-
-const isContentEditableElement = (el: Element): el is HTMLElement => {
-  if (!(el instanceof HTMLElement)) return false;
-  return (
-    el.isContentEditable ||
-    el.hasAttribute("contenteditable") ||
-    el.getAttribute("contenteditable") === "true" ||
-    el.getAttribute("contenteditable") === "plaintext-only"
-  );
-};
 
 const getElementHintText = (el: Element): string => {
   const candidates = [
@@ -201,91 +170,8 @@ const parseTargetFromPlaceholder = (placeholder?: string): string | null => {
   return match?.[1]?.trim() || null;
 };
 
-const setEditableText = (target: EditableTarget, value: string) => {
-  let writableTarget: EditableTarget | null = null;
-
-  if (target instanceof HTMLTextAreaElement) {
-    writableTarget = target;
-  } else if (
-    target instanceof HTMLElement &&
-    isContentEditableElement(target)
-  ) {
-    writableTarget = target;
-  } else {
-    const container = target as HTMLElement;
-    const nested = container.querySelector(
-      "textarea, [contenteditable='true'], [contenteditable='plaintext-only'], [contenteditable]",
-    );
-    if (
-      nested &&
-      (nested instanceof HTMLTextAreaElement ||
-        isContentEditableElement(nested))
-    ) {
-      writableTarget = nested;
-    }
-  }
-
-  if (!writableTarget) return;
-
-  if (writableTarget instanceof HTMLTextAreaElement) {
-    const nativeSetter = Object.getOwnPropertyDescriptor(
-      HTMLTextAreaElement.prototype,
-      "value",
-    )?.set;
-    nativeSetter?.call(writableTarget, value);
-    writableTarget.dispatchEvent(new Event("input", { bubbles: true }));
-    writableTarget.dispatchEvent(new Event("change", { bubbles: true }));
-    writableTarget.focus();
-    return;
-  }
-
-  writableTarget.focus();
-
-  let insertedByCommand = false;
-  try {
-    const selection = window.getSelection();
-    if (selection) {
-      const range = document.createRange();
-      range.selectNodeContents(writableTarget);
-      selection.removeAllRanges();
-      selection.addRange(range);
-    }
-    insertedByCommand = document.execCommand("insertText", false, value);
-  } catch {
-    insertedByCommand = false;
-  }
-
-  if (!insertedByCommand) {
-    writableTarget.textContent = value;
-  }
-
-  try {
-    writableTarget.dispatchEvent(
-      new InputEvent("beforeinput", {
-        bubbles: true,
-        cancelable: true,
-        inputType: "insertText",
-        data: value,
-      }),
-    );
-  } catch {
-    // Ignore InputEvent compatibility issues.
-  }
-
-  try {
-    writableTarget.dispatchEvent(
-      new InputEvent("input", {
-        bubbles: true,
-        inputType: "insertText",
-        data: value,
-      }),
-    );
-  } catch {
-    writableTarget.dispatchEvent(new Event("input", { bubbles: true }));
-  }
-
-  writableTarget.dispatchEvent(new Event("change", { bubbles: true }));
-};
+const setEditableText = (target: EditableTarget, value: string) =>
+  setSharedEditableText(target, value, { resolveNested: true });
 
 const extractReplyContext = (
   targetInput: EditableTarget,
@@ -335,7 +221,7 @@ const extractReplyContext = (
     ),
   );
 
-  const conversation: ConversationItem[] = [];
+  const conversation: ReplyContext["conversation"] = [];
   for (const node of nodes) {
     const contentEl =
       node.querySelector(".CommentContent") ||
@@ -1070,6 +956,7 @@ const FloatingReplyAssistant = () => {
           logoSrc={logoSrc || logoCandidates[0]}
           siteSettings={siteSettings}
           settings={settings}
+          toneOptions={toneOptions}
           reply={reply}
           error={error}
           loading={loading}

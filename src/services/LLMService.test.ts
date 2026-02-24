@@ -152,6 +152,93 @@ describe("LLMService", () => {
     });
   });
 
+  describe("content safety fallback", () => {
+    const buildConfig = () => ({
+      selectedProvider: "qwen",
+      apiKeys: { qwen: "test-key" },
+      customBaseUrls: {},
+      customModelNames: {},
+      analysisMode: "balanced",
+      enableDebug: false,
+      platformAnalysisModes: { zhihu: "balanced" },
+    });
+
+    it("retries generateRawText once with sanitized input after content safety block", async () => {
+      const provider = {
+        generateRawText: vi
+          .fn()
+          .mockRejectedValueOnce(
+            new Error(
+              "400 Input data may contain inappropriate content, please check.",
+            ),
+          )
+          .mockResolvedValueOnce("safe reply"),
+        generateProfile: vi.fn(),
+      };
+
+      (ConfigService.getConfig as any).mockResolvedValue(buildConfig());
+      vi.spyOn(LLMService as any, "getProviderInstance").mockReturnValue(
+        provider,
+      );
+      (I18nService.t as any).mockReturnValue("content filter failed");
+
+      const result = await LLMService.generateRawText("台湾 需要讨论");
+
+      expect(result).toBe("safe reply");
+      expect(provider.generateRawText).toHaveBeenCalledTimes(2);
+      expect(provider.generateRawText.mock.calls[0][0]).toBe("台湾 需要讨论");
+      expect(provider.generateRawText.mock.calls[1][0]).toContain("TW");
+    });
+
+    it("throws unified actionable content filter error after retries exhausted", async () => {
+      const provider = {
+        generateRawText: vi
+          .fn()
+          .mockRejectedValue(
+            new Error("data_inspection_failed: content moderation blocked"),
+          ),
+        generateProfile: vi.fn(),
+      };
+
+      (ConfigService.getConfig as any).mockResolvedValue(buildConfig());
+      vi.spyOn(LLMService as any, "getProviderInstance").mockReturnValue(
+        provider,
+      );
+      (I18nService.t as any).mockReturnValue("content filter failed");
+
+      await expect(LLMService.generateRawText("test")).rejects.toThrow(
+        "content filter failed (auto-handled attempts: 2)",
+      );
+      expect(provider.generateRawText).toHaveBeenCalledTimes(2);
+    });
+
+    it("sanitizes generateProfileForPlatform input before provider call", async () => {
+      const provider = {
+        generateRawText: vi.fn(),
+        generateProfile: vi.fn().mockResolvedValue({
+          content: { summary: "ok" },
+          durationMs: 10,
+          model: "qwen-turbo",
+        }),
+      };
+
+      (ConfigService.getConfig as any).mockResolvedValue(buildConfig());
+      vi.spyOn(LLMService as any, "getProviderInstance").mockReturnValue(
+        provider,
+      );
+
+      await LLMService.generateProfileForPlatform(
+        "台湾 香港",
+        "general",
+        "zhihu",
+      );
+
+      expect(provider.generateProfile).toHaveBeenCalledTimes(1);
+      expect(provider.generateProfile.mock.calls[0][0]).toContain("TW");
+      expect(provider.generateProfile.mock.calls[0][0]).toContain("HK");
+    });
+  });
+
   describe("normalizeLabelId", () => {
     it("should normalize common label variations correctly", () => {
       const testCases = [

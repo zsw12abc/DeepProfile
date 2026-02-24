@@ -80,6 +80,7 @@ type MockAppConfig = {
     zhihu?: string;
     reddit?: string;
   };
+  platformConfigs?: Record<string, any>;
   analyzeLimit?: number;
   enableDebug?: boolean;
 };
@@ -92,6 +93,26 @@ describe("PlatformSettings", () => {
     apiKeys: { openai: "test-key" },
     customBaseUrls: { openai: "https://api.openai.com" },
     platformAnalysisModes: { zhihu: "balanced", reddit: "fast" },
+    platformConfigs: {
+      zhihu: {
+        replyAssistantEnabled: true,
+        settings: {
+          replyAssistant: {
+            tone: "客观",
+            replyLength: "medium",
+          },
+        },
+      },
+      reddit: {
+        replyAssistantEnabled: true,
+        settings: {
+          replyAssistant: {
+            tone: "Objective",
+            replyLength: "medium",
+          },
+        },
+      },
+    },
     analyzeLimit: 15,
   };
 
@@ -182,6 +203,48 @@ describe("PlatformSettings", () => {
           zhihu: "deep",
         },
       });
+    });
+
+    it("updates reply assistant tone and length", () => {
+      render(
+        <PlatformSpecificSettings
+          config={mockConfig}
+          setConfig={mockSetConfig}
+          platform="zhihu"
+        />,
+      );
+
+      fireEvent.change(screen.getByDisplayValue("客观"), {
+        target: { value: "讽刺" },
+      });
+      expect(mockSetConfig).toHaveBeenCalledWith(
+        expect.objectContaining({
+          platformConfigs: expect.objectContaining({
+            zhihu: expect.objectContaining({
+              settings: expect.objectContaining({
+                replyAssistant: expect.objectContaining({
+                  tone: "讽刺",
+                }),
+              }),
+            }),
+          }),
+        }),
+      );
+
+      fireEvent.click(screen.getByText("reply_length_long"));
+      expect(mockSetConfig).toHaveBeenCalledWith(
+        expect.objectContaining({
+          platformConfigs: expect.objectContaining({
+            zhihu: expect.objectContaining({
+              settings: expect.objectContaining({
+                replyAssistant: expect.objectContaining({
+                  replyLength: "long",
+                }),
+              }),
+            }),
+          }),
+        }),
+      );
     });
   });
 
