@@ -15,6 +15,8 @@ dist/
 
 # Testing
 coverage/
+cov*.txt
+vitest_output.txt
 
 # IDEs and Editors
 .idea/
