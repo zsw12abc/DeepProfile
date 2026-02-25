@@ -273,8 +273,14 @@ describe("Background Service", () => {
 
     expect(response.success).toBe(true);
     expect(response.data.reply).toBe("This is a reply");
-    expect(TelemetryService.recordEvent).toHaveBeenCalledWith("reply_generation_requested", expect.any(Object));
-    expect(TelemetryService.recordPerformance).toHaveBeenCalledWith("reply_generation_completed", expect.any(Object));
+    expect(TelemetryService.recordEvent).toHaveBeenCalledWith(
+      "reply_generation_requested",
+      expect.any(Object),
+    );
+    expect(TelemetryService.recordPerformance).toHaveBeenCalledWith(
+      "reply_generation_completed",
+      expect.any(Object),
+    );
   });
 
   it("should handle TEST_CONNECTION message for openai", async () => {
@@ -314,7 +320,14 @@ describe("Background Service", () => {
   it("should handle LIST_MODELS message for gemini", async () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ models: [{ name: "models/gemini-pro", supportedGenerationMethods: ["generateContent"] }] }),
+      json: async () => ({
+        models: [
+          {
+            name: "models/gemini-pro",
+            supportedGenerationMethods: ["generateContent"],
+          },
+        ],
+      }),
     });
 
     const response: any = await sendMessage({
@@ -361,9 +374,17 @@ describe("Background Service", () => {
 
     // It will fail because ProfileService mocked return values are empty arrays from beforeEach or previous test if not reassigned, but actually we just want to ensure HistoryService.getProfile is handled correctly.
     // Let's setup the mocks so it succeeds
-    vi.mocked(ProfileService.fetchUserProfile).mockResolvedValue({ name: "A" } as any);
-    vi.mocked(ProfileService.fetchUserContent).mockResolvedValue({ items: [{ id: "1" }], totalFetched: 1, totalRelevant: 1 } as any);
-    vi.mocked(LLMService.generateProfileForPlatform).mockResolvedValue({ content: "New Result" } as any);
+    vi.mocked(ProfileService.fetchUserProfile).mockResolvedValue({
+      name: "A",
+    } as any);
+    vi.mocked(ProfileService.fetchUserContent).mockResolvedValue({
+      items: [{ id: "1" }],
+      totalFetched: 1,
+      totalRelevant: 1,
+    } as any);
+    vi.mocked(LLMService.generateProfileForPlatform).mockResolvedValue({
+      content: "New Result",
+    } as any);
 
     const forceResponse: any = await sendMessage({
       type: "ANALYZE_PROFILE",
@@ -378,7 +399,9 @@ describe("Background Service", () => {
 
   it("should handle ANALYZE_PROFILE failure when no items and no userProfile", async () => {
     vi.mocked(ProfileService.fetchUserProfile).mockResolvedValue(null);
-    vi.mocked(ProfileService.fetchUserContent).mockResolvedValue({ items: [] } as any);
+    vi.mocked(ProfileService.fetchUserContent).mockResolvedValue({
+      items: [],
+    } as any);
 
     const response: any = await sendMessage({
       type: "ANALYZE_PROFILE",
@@ -392,25 +415,41 @@ describe("Background Service", () => {
   });
 
   it("should handle TELEMETRY_EVENT", async () => {
-    const response: any = await sendMessage({ type: "TELEMETRY_EVENT", name: "test", data: {} });
+    const response: any = await sendMessage({
+      type: "TELEMETRY_EVENT",
+      name: "test",
+      data: {},
+    });
     expect(response.success).toBe(true);
     expect(TelemetryService.recordEvent).toHaveBeenCalledWith("test", {});
   });
 
   it("should handle TELEMETRY_ERROR", async () => {
-    const response: any = await sendMessage({ type: "TELEMETRY_ERROR", name: "test", data: {} });
+    const response: any = await sendMessage({
+      type: "TELEMETRY_ERROR",
+      name: "test",
+      data: {},
+    });
     expect(response.success).toBe(true);
     expect(TelemetryService.recordError).toHaveBeenCalledWith("test", {});
   });
 
   it("should handle TELEMETRY_PERFORMANCE", async () => {
-    const response: any = await sendMessage({ type: "TELEMETRY_PERFORMANCE", name: "test", data: {} });
+    const response: any = await sendMessage({
+      type: "TELEMETRY_PERFORMANCE",
+      name: "test",
+      data: {},
+    });
     expect(response.success).toBe(true);
     expect(TelemetryService.recordPerformance).toHaveBeenCalledWith("test", {});
   });
 
   it("should handle TELEMETRY_COMPLIANCE", async () => {
-    const response: any = await sendMessage({ type: "TELEMETRY_COMPLIANCE", name: "test", data: {} });
+    const response: any = await sendMessage({
+      type: "TELEMETRY_COMPLIANCE",
+      name: "test",
+      data: {},
+    });
     expect(response.success).toBe(true);
     expect(TelemetryService.recordCompliance).toHaveBeenCalledWith("test", {});
   });
@@ -430,12 +469,19 @@ describe("Background Service", () => {
 
       expect(response.success).toBe(false);
       expect(response.error).toContain("error_401");
-      expect(TelemetryService.recordError).toHaveBeenCalledWith("analysis_failed", expect.any(Object));
+      expect(TelemetryService.recordError).toHaveBeenCalledWith(
+        "analysis_failed",
+        expect.any(Object),
+      );
     });
 
     it("should handle ANALYZE_COMMENTS with answerId fallback", async () => {
-      vi.mocked(ZhihuClient.fetchAnswerContentForContext).mockResolvedValue("Fetched Answer Content");
-      vi.mocked(CommentAnalysisService.analyzeComments).mockResolvedValue({} as any);
+      vi.mocked(ZhihuClient.fetchAnswerContentForContext).mockResolvedValue(
+        "Fetched Answer Content",
+      );
+      vi.mocked(CommentAnalysisService.analyzeComments).mockResolvedValue(
+        {} as any,
+      );
 
       const response: any = await sendMessage({
         type: "ANALYZE_COMMENTS",
@@ -445,17 +491,21 @@ describe("Background Service", () => {
       });
 
       expect(response.success).toBe(true);
-      expect(ZhihuClient.fetchAnswerContentForContext).toHaveBeenCalledWith("12345");
+      expect(ZhihuClient.fetchAnswerContentForContext).toHaveBeenCalledWith(
+        "12345",
+      );
       expect(CommentAnalysisService.analyzeComments).toHaveBeenCalledWith(
         [],
         undefined,
         "Fetched Answer Content",
-        "zhihu"
+        "zhihu",
       );
     });
 
     it("should handle error in ANALYZE_COMMENTS", async () => {
-      vi.mocked(CommentAnalysisService.analyzeComments).mockRejectedValue(new Error("Analysis failed"));
+      vi.mocked(CommentAnalysisService.analyzeComments).mockRejectedValue(
+        new Error("Analysis failed"),
+      );
 
       const response: any = await sendMessage({
         type: "ANALYZE_COMMENTS",
@@ -467,7 +517,9 @@ describe("Background Service", () => {
     });
 
     it("should handle error in GENERATE_REPLY", async () => {
-      vi.mocked(ReplyAssistantService.generateReply).mockRejectedValue(new Error("Reply failed"));
+      vi.mocked(ReplyAssistantService.generateReply).mockRejectedValue(
+        new Error("Reply failed"),
+      );
 
       const response: any = await sendMessage({
         type: "GENERATE_REPLY",
@@ -475,7 +527,10 @@ describe("Background Service", () => {
 
       expect(response.success).toBe(false);
       expect(response.error).toBe("Reply failed");
-      expect(TelemetryService.recordError).toHaveBeenCalledWith("reply_generation_failed", expect.any(Object));
+      expect(TelemetryService.recordError).toHaveBeenCalledWith(
+        "reply_generation_failed",
+        expect.any(Object),
+      );
     });
 
     it("should handle TEST_CONNECTION message for ollama and gemini", async () => {
@@ -519,9 +574,14 @@ describe("Background Service", () => {
       } as any);
       vi.mocked(TopicService.classify).mockReturnValue("technology");
       vi.mocked(HistoryService.getProfile).mockResolvedValue(null);
-      vi.mocked(ProfileService.fetchUserProfile).mockResolvedValue({ name: "A" } as any);
+      vi.mocked(ProfileService.fetchUserProfile).mockResolvedValue({
+        name: "A",
+      } as any);
       vi.mocked(ProfileService.fetchUserContent).mockResolvedValue({
-        items: [{ id: "1", action_type: "created" }, { id: "2", action_type: "voted" }],
+        items: [
+          { id: "1", action_type: "created" },
+          { id: "2", action_type: "voted" },
+        ],
         totalFetched: 2,
         totalRelevant: 2,
       } as any);
@@ -542,9 +602,10 @@ describe("Background Service", () => {
 
       expect(response.success).toBe(true);
       expect(response.data.debugInfo).toBeDefined();
-      expect(response.data.debugInfo.itemsBreakdown).toContain("Created: 1, Voted: 1");
+      expect(response.data.debugInfo.itemsBreakdown).toContain(
+        "Created: 1, Voted: 1",
+      );
       expect(response.data.debugInfo.sourceInfo).toContain("Top 2 of 2");
     });
   });
 });
-

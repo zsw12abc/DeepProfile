@@ -157,9 +157,7 @@ describe("ZhihuClient", () => {
       fetchMock.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
-          data: [
-            { id: "1", type: "answer", excerpt: "A", created_time: 1000 },
-          ],
+          data: [{ id: "1", type: "answer", excerpt: "A", created_time: 1000 }],
         }),
       });
 
@@ -483,12 +481,14 @@ describe("ZhihuClient", () => {
       );
 
       const promise = ZhihuClient.fetchImageAsBase64("http://image.com/1.png");
-      setTimeout(() => mockFileReader.onerror(new Error("File read error")), 50); // Trigger error
+      setTimeout(
+        () => mockFileReader.onerror(new Error("File read error")),
+        50,
+      ); // Trigger error
 
       const result = await promise;
       expect(result).toBeNull();
     });
-
   });
 
   describe("cleanContentData", () => {
@@ -564,13 +564,76 @@ describe("ZhihuClient", () => {
 
     it("should trim non relevant items to 3 if relevant length >= 3", () => {
       const mockContent: ZhihuContent[] = [
-        { id: "1", type: "answer", title: "1", excerpt: "", content: "", created_time: 0, action_type: "created", is_relevant: true },
-        { id: "2", type: "answer", title: "2", excerpt: "", content: "", created_time: 0, action_type: "created", is_relevant: true },
-        { id: "3", type: "answer", title: "3", excerpt: "", content: "", created_time: 0, action_type: "created", is_relevant: true },
-        { id: "4", type: "answer", title: "4", excerpt: "", content: "", created_time: 0, action_type: "created", is_relevant: false },
-        { id: "5", type: "answer", title: "5", excerpt: "", content: "", created_time: 0, action_type: "created", is_relevant: false },
-        { id: "6", type: "answer", title: "6", excerpt: "", content: "", created_time: 0, action_type: "created", is_relevant: false },
-        { id: "7", type: "answer", title: "7", excerpt: "", content: "", created_time: 0, action_type: "created", is_relevant: false },
+        {
+          id: "1",
+          type: "answer",
+          title: "1",
+          excerpt: "",
+          content: "",
+          created_time: 0,
+          action_type: "created",
+          is_relevant: true,
+        },
+        {
+          id: "2",
+          type: "answer",
+          title: "2",
+          excerpt: "",
+          content: "",
+          created_time: 0,
+          action_type: "created",
+          is_relevant: true,
+        },
+        {
+          id: "3",
+          type: "answer",
+          title: "3",
+          excerpt: "",
+          content: "",
+          created_time: 0,
+          action_type: "created",
+          is_relevant: true,
+        },
+        {
+          id: "4",
+          type: "answer",
+          title: "4",
+          excerpt: "",
+          content: "",
+          created_time: 0,
+          action_type: "created",
+          is_relevant: false,
+        },
+        {
+          id: "5",
+          type: "answer",
+          title: "5",
+          excerpt: "",
+          content: "",
+          created_time: 0,
+          action_type: "created",
+          is_relevant: false,
+        },
+        {
+          id: "6",
+          type: "answer",
+          title: "6",
+          excerpt: "",
+          content: "",
+          created_time: 0,
+          action_type: "created",
+          is_relevant: false,
+        },
+        {
+          id: "7",
+          type: "answer",
+          title: "7",
+          excerpt: "",
+          content: "",
+          created_time: 0,
+          action_type: "created",
+          is_relevant: false,
+        },
       ];
 
       const result = ZhihuClient.cleanContentData(mockContent);

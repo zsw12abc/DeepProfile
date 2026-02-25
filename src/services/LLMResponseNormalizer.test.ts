@@ -42,8 +42,7 @@ describe("LLMResponseNormalizer", () => {
         enableDebug: true,
       } as any);
 
-      const input =
-        '```json\n{"nickname":"test","value_orientation":[]}\n```';
+      const input = '```json\n{"nickname":"test","value_orientation":[]}\n```';
       normalizeAndFixResponse(input);
 
       expect(Logger.info).toHaveBeenCalledWith("【LLM RAW RESPONSE】", input);
@@ -111,7 +110,9 @@ describe("LLMResponseNormalizer", () => {
       vi.mocked(ConfigService.getConfigSync).mockReturnValue({
         enableDebug: true,
       } as any);
-      vi.mocked(normalizeLabelId).mockImplementation((label: string) => `normalized_${label.toLowerCase()}`);
+      vi.mocked(normalizeLabelId).mockImplementation(
+        (label: string) => `normalized_${label.toLowerCase()}`,
+      );
     });
 
     it("should fallback to political_leaning if value_orientation is missing", () => {
@@ -166,7 +167,8 @@ describe("LLMResponseNormalizer", () => {
     });
 
     it("should handle object with invalid score", () => {
-      const input = '{"value_orientation":[{"label":"Authoritarian", "score": "invalid"}]}';
+      const input =
+        '{"value_orientation":[{"label":"Authoritarian", "score": "invalid"}]}';
       const result = normalizeAndFixResponse(input);
       const parsed = JSON.parse(result);
 
@@ -177,18 +179,24 @@ describe("LLMResponseNormalizer", () => {
     });
 
     it("should clamp valid scores outside of threshold", () => {
-      const input = '{"value_orientation":[{"label":"High", "score": 2.5}, {"label":"Low", "score": -1.5}]}';
+      const input =
+        '{"value_orientation":[{"label":"High", "score": 2.5}, {"label":"Low", "score": -1.5}]}';
       const result = normalizeAndFixResponse(input);
       const parsed = JSON.parse(result);
 
       expect(parsed.value_orientation[0].score).toBe(1);
       expect(parsed.value_orientation[1].score).toBe(-1);
-      expect(Logger.info).toHaveBeenCalledWith("Normalized score at index 0: 2.5 -> 1");
-      expect(Logger.info).toHaveBeenCalledWith("Normalized score at index 1: -1.5 -> -1");
+      expect(Logger.info).toHaveBeenCalledWith(
+        "Normalized score at index 0: 2.5 -> 1",
+      );
+      expect(Logger.info).toHaveBeenCalledWith(
+        "Normalized score at index 1: -1.5 -> -1",
+      );
     });
 
     it("should handle valid object with score", () => {
-      const input = '{"value_orientation":[{"label":"Moderate", "score": 0.2}]}';
+      const input =
+        '{"value_orientation":[{"label":"Moderate", "score": 0.2}]}';
       const result = normalizeAndFixResponse(input);
       const parsed = JSON.parse(result);
 
@@ -216,7 +224,7 @@ describe("LLMResponseNormalizer", () => {
         enableDebug: false,
       } as any);
 
-      const input = '{}';
+      const input = "{}";
       const result = normalizeAndFixResponse(input);
       const parsed = JSON.parse(result);
 
@@ -235,7 +243,7 @@ describe("LLMResponseNormalizer", () => {
         nickname: "Known",
         topic_classification: "Tech",
         summary: "Good",
-        evidence: ["E1", "E2"]
+        evidence: ["E1", "E2"],
       });
       const result = normalizeAndFixResponse(input);
       const parsed = JSON.parse(result);
