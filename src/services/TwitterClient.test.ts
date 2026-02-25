@@ -48,7 +48,7 @@ describe('TwitterClient', () => {
         it('should fetch content through chrome API when available', async () => {
             // Mock Chrome API
             const mockContent = [
-                { id: '1', title: 'Test Tweet', content: 'Hello World', created_time: 123456, url: '', type: 'tweet' } as ZhihuContent
+                { id: '1', title: 'Test Tweet', content: 'Hello World', created_time: 123456, url: '', type: 'tweet', excerpt: 'Test Tweet', action_type: 'created' } as unknown as ZhihuContent
             ];
 
             global.chrome = {
