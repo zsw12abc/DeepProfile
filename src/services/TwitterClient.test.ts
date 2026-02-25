@@ -183,7 +183,7 @@ describe('TwitterClient', () => {
             // It's tricky to mock the responseCallback logic perfectly without extracting it,
             // but we can simulate the chrome runtime message listener behavior.
 
-            let listenerCallback: Function;
+            let listenerCallback: (response: any) => void;
             global.chrome = {
                 tabs: {
                     query: vi.fn((queryInfo, callback) => {

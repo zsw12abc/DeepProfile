@@ -352,7 +352,7 @@ describe("Background Service", () => {
       context: "test",
     } as any);
 
-    const response: any = await sendMessage({
+    await sendMessage({
       type: "ANALYZE_PROFILE",
       userId: "test-user",
       platform: "zhihu",

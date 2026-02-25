@@ -167,7 +167,7 @@ describe('QuoraClient', () => {
         });
 
         it('should resolve with content when message connects successfully', async () => {
-            let listenerCallback: Function;
+            let listenerCallback: (response: any) => void;
             global.chrome = {
                 tabs: {
                     query: vi.fn((queryInfo, callback) => callback([{ id: 100 }])),
