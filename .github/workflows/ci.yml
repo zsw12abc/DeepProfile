@@ -35,7 +35,7 @@ jobs:
         run: npm run test:coverage:contents
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
@@ -62,7 +62,7 @@ jobs:
           cd ../..
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: DeepProfile-Extension
           path: DeepProfile-Extension.zip
