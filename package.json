@@ -47,7 +47,7 @@
     "eslint-plugin-react": "^7.35.0",
     "jsdom": "28.1.0",
     "prettier": "3.2.4",
-    "svgo": "^4.0.0",
+    "svgo": "^4.0.1",
     "typescript": "5.3.3",
     "vitest": "1.2.1"
   },
